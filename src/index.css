@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,6 +69,15 @@
 
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  /* New classes for drag-and-drop styling */
+  .dragging {
+    @apply bg-slate-900/90 border-emerald/30;
+  }
+  
+  .drag-over {
+    @apply bg-slate-800/80;
   }
 }
 
