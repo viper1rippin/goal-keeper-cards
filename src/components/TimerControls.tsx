@@ -37,7 +37,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
         ) : (
           <>
             <Play className="mr-2" size={16} /> 
-            {time > 0 ? "Resume Focus" : "Start Focus"}
+            {time > 0 ? "Resume" : "Start Focus"}
           </>
         )}
       </Button>
