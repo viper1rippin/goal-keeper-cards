@@ -1,37 +1,13 @@
 
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
-import SortableSubGoalCard from './SortableSubGoalCard';
-import SubGoalAddCard from './SubGoalAddCard';
 import SubGoalDialog from './SubGoalDialog';
-import { 
-  DndContext, 
-  closestCenter, 
-  PointerSensor, 
-  useSensor, 
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  horizontalListSortingStrategy,
-  arrayMove
-} from '@dnd-kit/sortable';
-import GoalCard from './GoalCard';
+import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import SubGoalDndContext from './subgoal/SubGoalDndContext';
+import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -70,15 +46,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   // State for delete confirmation dialog
   const [subGoalToDelete, setSubGoalToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
-  // Setup sensors for drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Minimum drag distance before activation
-      },
-    })
-  );
 
   // Handle adding a new sub-goal
   const handleAddSubGoal = () => {
@@ -196,58 +163,20 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 
   return (
     <>
-      <DndContext 
-        sensors={sensors}
-        collisionDetection={closestCenter}
+      <SubGoalDndContext
+        subGoals={subGoals}
+        parentTitle={parentTitle}
+        rowIndex={rowIndex}
+        activeGoal={activeGoal}
+        onGoalFocus={onGoalFocus}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-      >
-        <SortableContext 
-          items={subGoals.map(goal => goal.id || '')}
-          strategy={horizontalListSortingStrategy}
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {subGoals.map((goal, goalIndex) => {
-              const isActiveGoal = activeGoal?.rowIndex === rowIndex && activeGoal?.goalIndex === goalIndex;
-              
-              return (
-                <SortableSubGoalCard 
-                  key={goal.id || goalIndex}
-                  goal={goal}
-                  index={goalIndex}
-                  isActiveGoal={isActiveGoal}
-                  onGoalFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
-                  onEdit={() => handleEditSubGoal(goal, goalIndex)}
-                  onDelete={goal.id ? () => handleConfirmDeleteSubGoal(goal.id as string) : undefined}
-                  isDragging={activeSubGoalId === goal.id}
-                />
-              );
-            })}
-            
-            {/* Add Sub-Goal Card */}
-            <SubGoalAddCard 
-              onClick={handleAddSubGoal} 
-              index={subGoals.length}
-            />
-          </div>
-        </SortableContext>
-        
-        {/* Drag overlay for dragged cards */}
-        <DragOverlay adjustScale={true}>
-          {activeSubGoal ? (
-            <GoalCard
-              title={activeSubGoal.title}
-              description={activeSubGoal.description}
-              progress={activeSubGoal.progress}
-              index={0}
-              isFocused={false}
-              isActiveFocus={false}
-              onFocus={() => {}}
-              isDragging={true}
-            />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+        activeSubGoal={activeSubGoal}
+        activeSubGoalId={activeSubGoalId}
+        onEdit={handleEditSubGoal}
+        onDelete={handleConfirmDeleteSubGoal}
+        onAddSubGoal={handleAddSubGoal}
+      />
       
       {/* Sub-Goal Dialog for adding/editing */}
       <SubGoalDialog
@@ -264,31 +193,11 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
       />
       
       {/* Delete Confirmation Dialog */}
-      <AlertDialog 
-        open={isDeleteDialogOpen} 
-        onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}
-      >
-        <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Sub-Goal</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to delete this sub-goal? 
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent text-slate-400 hover:bg-slate-800 hover:text-white">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={executeDeleteSubGoal}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteSubGoalDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={executeDeleteSubGoal}
+      />
     </>
   );
 };
