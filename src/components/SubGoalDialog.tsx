@@ -4,6 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm, SubGoalFormData } from "./subgoal/SubGoalForm";
 import { useAuth } from "@/context/AuthContext";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 
 interface SubGoalDialogProps {
   isOpen: boolean;
@@ -18,6 +27,13 @@ interface SubGoalDialogProps {
   onSubGoalSaved: () => void;
 }
 
+// Form validation schema
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  progress: z.number().min(0).max(100).optional().default(0)
+});
+
 const SubGoalDialog = ({
   isOpen,
   onClose,
@@ -28,6 +44,27 @@ const SubGoalDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Initialize form with React Hook Form
+  const form = useForm<SubGoalFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: subGoalToEdit?.title || "",
+      description: subGoalToEdit?.description || "",
+      progress: subGoalToEdit?.progress || 0
+    }
+  });
+  
+  // Reset form when dialog opens/closes or subGoalToEdit changes
+  useState(() => {
+    if (isOpen) {
+      form.reset({
+        title: subGoalToEdit?.title || "",
+        description: subGoalToEdit?.description || "",
+        progress: subGoalToEdit?.progress || 0
+      });
+    }
+  });
 
   const handleSave = async (formData: SubGoalFormData) => {
     if (!user) {
@@ -124,14 +161,23 @@ const SubGoalDialog = ({
   };
 
   return (
-    <SubGoalForm
-      isOpen={isOpen}
-      onClose={onClose}
-      subGoalToEdit={subGoalToEdit}
-      onSubmit={handleSave}
-      onDelete={subGoalToEdit ? handleDelete : undefined}
-      isSubmitting={isSubmitting}
-    />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="bg-slate-900 border-slate-800 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-white">
+            {subGoalToEdit ? 'Edit Sub-Goal' : 'Create New Sub-Goal'}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <SubGoalForm
+          form={form}
+          onSubmit={handleSave}
+          onClose={onClose}
+          subGoalToEdit={subGoalToEdit}
+          onDelete={subGoalToEdit ? handleDelete : undefined}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 

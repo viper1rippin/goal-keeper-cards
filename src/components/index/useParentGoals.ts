@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
+import { Goal } from "../GoalRow";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
@@ -17,24 +18,31 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // First get all parent goals
+      const { data: parentData, error: parentError } = await supabase
         .from('parent_goals')
         .select('*')
         .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (parentError) throw parentError;
       
-      // Transform data to include empty goals array if no data
-      const transformedData = data?.map(goal => ({
+      // Initialize the results array with empty goals arrays
+      const results: ParentGoal[] = (parentData || []).map(goal => ({
         ...goal,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
-      })) || [];
+        goals: []
+      }));
       
-      setParentGoals(transformedData);
+      // If there's a specific goal being edited with goals already loaded, use those
+      if (goalToEdit?.id && goalToEdit?.goals) {
+        const editIndex = results.findIndex(g => g.id === goalToEdit.id);
+        if (editIndex >= 0) {
+          results[editIndex].goals = [...goalToEdit.goals];
+        }
+      }
+      
+      setParentGoals(results);
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({
@@ -56,9 +64,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          } as any)
+          .update({ position: i })
           .eq('id', updatedGoals[i].id)
           .eq('user_id', user.id);
         
