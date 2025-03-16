@@ -21,16 +21,19 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
+        
+      // Note: We're not filtering by user_id as it doesn't exist in the schema yet
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
+      // Transform data to include empty goals array
       const transformedData = data?.map(goal => ({
         ...goal,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
@@ -56,13 +59,12 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     try {
       // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
+        const updateData = { position: i } as any;
+        
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          } as any)
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user?.id);
+          .update(updateData)
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -91,8 +93,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user?.id);
+        .eq('id', id);
       
       if (error) throw error;
       

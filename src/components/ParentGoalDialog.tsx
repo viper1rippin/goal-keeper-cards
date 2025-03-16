@@ -40,8 +40,7 @@ const ParentGoalDialog = ({
             description: values.description,
             updated_at: new Date().toISOString()
           })
-          .eq('id', goalToEdit.id)
-          .eq('user_id', user.id);
+          .eq('id', goalToEdit.id);
 
         if (error) throw error;
         toast({ 
@@ -54,8 +53,8 @@ const ParentGoalDialog = ({
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description,
-            user_id: user.id
+            description: values.description
+            // Note: Not including user_id since it doesn't exist in the schema yet
           }]);
 
         if (error) throw error;
@@ -94,8 +93,7 @@ const ParentGoalDialog = ({
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id)
-        .eq('user_id', user.id);
+        .eq('id', goalToEdit.id);
       
       if (error) throw error;
       
