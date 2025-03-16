@@ -71,24 +71,32 @@ const ParentGoalDialog = ({
     if (!goalToEdit?.id) return;
     
     try {
+      // First set the isDeleting flag to true to disable UI
       setIsDeleting(true);
       
       // Stop focus first to prevent any state issues
+      console.log("ParentGoalDialog: Stopping focus before deletion");
       handleStopFocus();
       
       // Delete all sub-goals first
-      console.log("Deleting sub-goals for parent goal:", goalToEdit.id);
-      const { error: subGoalsError } = await supabase
+      console.log("ParentGoalDialog: Deleting sub-goals for parent goal:", goalToEdit.id);
+      const { error: subGoalsError, data: deletedSubGoals } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', goalToEdit.id);
+        .eq('parent_goal_id', goalToEdit.id)
+        .select();
       
       if (subGoalsError) {
         console.error("Error deleting sub-goals:", subGoalsError);
         throw subGoalsError;
       }
       
-      console.log("Deleting parent goal:", goalToEdit.id);
+      console.log(`ParentGoalDialog: Successfully deleted ${deletedSubGoals?.length || 0} sub-goals`);
+      
+      // Add a short delay to ensure sub-goals are fully deleted
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log("ParentGoalDialog: Deleting parent goal:", goalToEdit.id);
       // Then delete the parent goal
       const { error } = await supabase
         .from('parent_goals')
@@ -100,13 +108,17 @@ const ParentGoalDialog = ({
         throw error;
       }
       
+      console.log("ParentGoalDialog: Parent goal deleted successfully");
+      
       toast({
         title: "Goal deleted",
         description: "The goal and all its sub-goals have been successfully deleted."
       });
       
-      onGoalSaved(); // Refresh the goals list
+      // First close the delete alert
       setShowDeleteAlert(false);
+      // Then refresh the goals list and close the main dialog
+      onGoalSaved(); // Refresh the goals list
       onClose();
     } catch (error) {
       console.error("Error deleting goal:", error);
@@ -116,6 +128,7 @@ const ParentGoalDialog = ({
         variant: "destructive",
       });
     } finally {
+      // Always reset the isDeleting state, even on error
       setIsDeleting(false);
     }
   };
@@ -123,7 +136,7 @@ const ParentGoalDialog = ({
   return (
     <>
       <ParentGoalDialogContent 
-        isOpen={isOpen}
+        isOpen={isOpen && !isDeleting}
         onClose={onClose}
         goalToEdit={goalToEdit}
         onSubmit={handleSubmit}

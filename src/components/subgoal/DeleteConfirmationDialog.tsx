@@ -8,8 +8,10 @@ import {
   AlertDialogDescription, 
   AlertDialogFooter, 
   AlertDialogHeader, 
-  AlertDialogTitle 
+  AlertDialogTitle,
+  AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
 interface DeleteConfirmationDialogProps { 
   open: boolean; 
@@ -26,8 +28,10 @@ export const DeleteConfirmationDialog = ({
 }: DeleteConfirmationDialogProps) => {
   const handleDelete = async () => {
     try {
+      console.log("DeleteConfirmationDialog: Starting delete operation");
       await onConfirmDelete();
-      // Dialog will close automatically from parent component
+      console.log("DeleteConfirmationDialog: Delete operation completed");
+      // Dialog will be closed by parent component
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
       // Ensure dialog closes even if there's an error
@@ -36,7 +40,7 @@ export const DeleteConfirmationDialog = ({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={isDeleting ? undefined : onOpenChange}>
       <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white">Delete Sub-Goal</AlertDialogTitle>
@@ -56,7 +60,14 @@ export const DeleteConfirmationDialog = ({
             className="bg-red-600 hover:bg-red-700 text-white"
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

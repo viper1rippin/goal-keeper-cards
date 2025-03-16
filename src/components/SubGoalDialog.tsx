@@ -104,12 +104,14 @@ const SubGoalDialog = ({
     if (!subGoalToEdit || !subGoalToEdit.id) return;
     
     try {
+      // First set the isDeleting flag to true to disable UI
       setIsDeleting(true);
       
       // Stop focus first to prevent any state issues
+      console.log("SubGoalDialog: Stopping focus before deletion");
       handleStopFocus();
       
-      console.log("Deleting sub-goal:", subGoalToEdit.id);
+      console.log("SubGoalDialog: Deleting sub-goal:", subGoalToEdit.id);
       const { error } = await supabase
         .from('sub_goals')
         .delete()
@@ -120,13 +122,17 @@ const SubGoalDialog = ({
         throw error;
       }
       
+      console.log("SubGoalDialog: Sub-goal deleted successfully");
+      
       toast({
         title: "Sub-goal deleted",
         description: "The sub-goal has been successfully deleted.",
       });
       
-      onSave({ title: "", description: "" }); // Trigger parent component update
+      // Close the delete confirmation dialog first
       setShowDeleteAlert(false);
+      // Then trigger parent update and close the main dialog
+      onSave({ title: "", description: "" }); // Trigger parent component update
       onClose();
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
@@ -136,13 +142,14 @@ const SubGoalDialog = ({
         variant: "destructive",
       });
     } finally {
+      // Always reset the isDeleting state, even on error
       setIsDeleting(false);
     }
   };
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && !isDeleting && onClose()}>
         <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
