@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +8,6 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Goal } from "./GoalRow";
 
-// Points earned per minute of focus (adjusted for 24-hour level-up)
-// 24 hours = 1440 minutes, so 1/1440 points per minute = 1 point per 24 hours
 const POINTS_PER_MINUTE = 1 / 1440;
 
 interface FocusTimerProps {
@@ -31,7 +28,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
   const [earnedPoints, setEarnedPoints] = useState(0);
   const { toast } = useToast();
 
-  // Auto-start timer when activeGoal changes to non-null
   useEffect(() => {
     if (activeGoal && !isActive) {
       setIsActive(true);
@@ -42,7 +38,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     }
   }, [activeGoal, toast]);
 
-  // Calculate points needed for next level
   const getPointsForNextLevel = (level: number) => {
     if (level >= 200) return Infinity;
     if (level >= 120) return (level + 1) * 15;
@@ -55,7 +50,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
 
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
   
-  // Format time as HH:MM:SS to better display long focus sessions
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -63,7 +57,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Toggle timer
   const toggleTimer = () => {
     setIsActive(!isActive);
     
@@ -77,16 +70,13 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     }
   };
 
-  // Reset timer
   const resetTimer = () => {
     setIsActive(false);
     
-    // Only add points if there was some time spent
     if (time > 0) {
       const newPoints = (time / 60) * POINTS_PER_MINUTE;
       setEarnedPoints(prev => prev + newPoints);
       
-      // Check if user leveled up
       const totalPoints = earnedPoints + newPoints;
       if (totalPoints >= pointsForNextLevel) {
         onLevelUp(userLevel + 1);
@@ -102,7 +92,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     setTime(0);
   };
 
-  // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     
@@ -119,15 +108,24 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     };
   }, [isActive, time]);
 
-  // Calculate progress percentage
   const progressPercent = Math.min(
     100, 
     (earnedPoints / pointsForNextLevel) * 100
   );
 
-  // Calculate time needed for next level
   const minutesForNextLevel = Math.ceil((pointsForNextLevel - earnedPoints) / POINTS_PER_MINUTE);
+  
   const hoursForNextLevel = (minutesForNextLevel / 60).toFixed(1);
+  
+  const formatTimeNeeded = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes} minutes`;
+    } else if (minutes < 1440) {
+      return `${(minutes / 60).toFixed(1)} hours`;
+    } else {
+      return `${(minutes / 1440).toFixed(1)} days`;
+    }
+  };
 
   return (
     <Card className="w-full max-w-md glass-card border-emerald/20">
@@ -174,7 +172,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
               {formatTime(time)}
             </div>
             <div className="text-xs text-slate-400">
-              ~{hoursForNextLevel} hours of focus needed for next level
+              {formatTimeNeeded(minutesForNextLevel)} of focus needed for next level
             </div>
           </div>
         </div>
