@@ -7,15 +7,13 @@ interface ParentGoalDialogContentProps {
   onClose: () => void;
   goalToEdit?: { id: string; title: string; description: string } | null;
   onSubmit: (values: { title: string; description: string }) => Promise<void>;
-  onDelete: () => void;
 }
 
 export const ParentGoalDialogContent = ({
   isOpen,
   onClose,
   goalToEdit,
-  onSubmit,
-  onDelete
+  onSubmit
 }: ParentGoalDialogContentProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -24,8 +22,6 @@ export const ParentGoalDialogContent = ({
           initialData={goalToEdit}
           onSubmit={onSubmit}
           onCancel={onClose}
-          showDelete={!!goalToEdit?.id}
-          onDelete={onDelete}
         />
       </DialogContent>
     </Dialog>

@@ -6,7 +6,6 @@ import * as z from "zod";
 import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { DeleteConfirmationDialog } from './subgoal/DeleteConfirmationDialog';
 import { SubGoalForm } from './subgoal/SubGoalForm';
 
 // Form validation schema
@@ -36,7 +35,6 @@ const SubGoalDialog = ({
   parentGoalId
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   
   // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
@@ -105,65 +103,26 @@ const SubGoalDialog = ({
     });
   };
 
-  const handleDelete = async () => {
-    if (!subGoalToEdit || !subGoalToEdit.id) return;
-    
-    try {
-      const { error } = await supabase
-        .from('sub_goals')
-        .delete()
-        .eq('id', subGoalToEdit.id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Sub-goal deleted",
-        description: "The sub-goal has been successfully deleted.",
-      });
-      
-      setShowDeleteAlert(false);
-      onClose();
-      // Pass empty object to trigger refresh
-      onSave({ title: "", description: "" });
-    } catch (error) {
-      console.error("Error deleting sub-goal:", error);
-      toast({
-        title: "Error deleting sub-goal",
-        description: "There was an error deleting your sub-goal. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
-            </DialogTitle>
-            <p className="text-slate-400 mt-1">
-              {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
-            </p>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
+          </DialogTitle>
+          <p className="text-slate-400 mt-1">
+            {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
+          </p>
+        </DialogHeader>
 
-          <SubGoalForm 
-            form={form} 
-            onSubmit={onSubmit} 
-            subGoalToEdit={subGoalToEdit}
-            onClose={onClose}
-            onDelete={() => setShowDeleteAlert(true)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <DeleteConfirmationDialog 
-        open={showDeleteAlert} 
-        onOpenChange={setShowDeleteAlert} 
-        onConfirmDelete={handleDelete} 
-      />
-    </>
+        <SubGoalForm 
+          form={form} 
+          onSubmit={onSubmit} 
+          subGoalToEdit={subGoalToEdit}
+          onClose={onClose}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 

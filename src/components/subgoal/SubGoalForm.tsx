@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Trash2 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { Goal } from '../GoalRow';
 import { SubGoalFormValues } from '../SubGoalDialog';
@@ -13,7 +12,6 @@ interface SubGoalFormProps {
   form: UseFormReturn<SubGoalFormValues>;
   onSubmit: (values: SubGoalFormValues) => Promise<void>;
   onClose: () => void;
-  onDelete: () => void;
   subGoalToEdit: Goal | null;
 }
 
@@ -21,7 +19,6 @@ export const SubGoalForm = ({
   form, 
   onSubmit, 
   onClose, 
-  onDelete, 
   subGoalToEdit 
 }: SubGoalFormProps) => {
   
@@ -74,19 +71,8 @@ export const SubGoalForm = ({
           )}
         />
 
-        <div className="flex justify-between pt-4">
-          {subGoalToEdit && subGoalToEdit.id && (
-            <Button 
-              variant="ghost" 
-              type="button"
-              onClick={onDelete}
-              className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
-            >
-              <Trash2 size={16} />
-              Delete
-            </Button>
-          )}
-          <div className="flex gap-2 ml-auto">
+        <div className="flex justify-end pt-4">
+          <div className="flex gap-2">
             <Button 
               type="button" 
               variant="ghost" 

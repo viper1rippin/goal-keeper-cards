@@ -3,7 +3,6 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
-import { DeleteConfirmationDialog } from "./parentgoal/DeleteConfirmationDialog";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -18,8 +17,6 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
       if (goalToEdit?.id) {
@@ -67,61 +64,13 @@ const ParentGoalDialog = ({
     }
   };
 
-  const handleDelete = async () => {
-    if (!goalToEdit?.id) return;
-    
-    try {
-      // First delete all sub-goals associated with this parent goal
-      const { error: subGoalsError } = await supabase
-        .from('sub_goals')
-        .delete()
-        .eq('parent_goal_id', goalToEdit.id);
-      
-      if (subGoalsError) throw subGoalsError;
-      
-      // Then delete the parent goal
-      const { error } = await supabase
-        .from('parent_goals')
-        .delete()
-        .eq('id', goalToEdit.id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Goal deleted",
-        description: "The goal and all its sub-goals have been successfully deleted."
-      });
-      
-      // Close dialogs and refresh goals
-      setShowDeleteAlert(false);
-      onClose();
-      onGoalSaved();
-    } catch (error) {
-      console.error("Error deleting goal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the goal. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <>
-      <ParentGoalDialogContent 
-        isOpen={isOpen}
-        onClose={onClose}
-        goalToEdit={goalToEdit}
-        onSubmit={handleSubmit}
-        onDelete={() => setShowDeleteAlert(true)}
-      />
-
-      <DeleteConfirmationDialog 
-        open={showDeleteAlert} 
-        onOpenChange={setShowDeleteAlert}
-        onConfirmDelete={handleDelete}
-      />
-    </>
+    <ParentGoalDialogContent 
+      isOpen={isOpen}
+      onClose={onClose}
+      goalToEdit={goalToEdit}
+      onSubmit={handleSubmit}
+    />
   );
 };
 

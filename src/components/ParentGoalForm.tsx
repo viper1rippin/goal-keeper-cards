@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
 
 // Define form schema using zod
 const formSchema = z.object({
@@ -22,16 +21,12 @@ interface ParentGoalFormProps {
   initialData?: { id?: string; title: string; description: string } | null;
   onSubmit: (values: FormValues) => Promise<void>;
   onCancel: () => void;
-  showDelete?: boolean;
-  onDelete?: () => void;
 }
 
 const ParentGoalForm = ({ 
   initialData, 
   onSubmit, 
-  onCancel, 
-  showDelete = false,
-  onDelete 
+  onCancel
 }: ParentGoalFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -116,19 +111,8 @@ const ParentGoalForm = ({
             )}
           />
 
-          <div className="flex justify-between pt-4">
-            {showDelete && (
-              <Button 
-                variant="ghost" 
-                type="button"
-                onClick={onDelete}
-                className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
-              >
-                <Trash2 size={16} />
-                Delete
-              </Button>
-            )}
-            <div className="flex gap-2 ml-auto">
+          <div className="flex justify-end pt-4">
+            <div className="flex gap-2">
               <Button 
                 variant="ghost" 
                 onClick={onCancel}
