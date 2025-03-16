@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 import { useAuth } from "@/context/AuthContext";
 
@@ -19,7 +19,6 @@ const ParentGoalDialog = ({
   onGoalSaved
 }: ParentGoalDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     if (!user) {
@@ -41,7 +40,8 @@ const ParentGoalDialog = ({
             description: values.description,
             updated_at: new Date().toISOString()
           })
-          .eq('id', goalToEdit.id);
+          .eq('id', goalToEdit.id)
+          .eq('user_id', user.id);
 
         if (error) throw error;
         toast({ 
@@ -49,12 +49,13 @@ const ParentGoalDialog = ({
           description: "Your goal has been updated successfully."
         });
       } else {
-        // Create new goal - remove user_id from the insert for now
+        // Create new goal
         const { error } = await supabase
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description
+            description: values.description,
+            user_id: user.id
           }]);
 
         if (error) throw error;
@@ -89,11 +90,12 @@ const ParentGoalDialog = ({
       
       if (subGoalError) throw subGoalError;
       
-      // Then delete the parent goal - remove user_id from the condition
+      // Then delete the parent goal
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id);
+        .eq('id', goalToEdit.id)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
