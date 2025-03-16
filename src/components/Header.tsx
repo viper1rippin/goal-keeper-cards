@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import UserBadge from "./UserBadge";
@@ -22,9 +22,31 @@ const Header = ({
   onStopFocus
 }: HeaderProps) => {
   const [userLevel, setUserLevel] = useState(10); // Default starting level
+  // Reference to track the last scroll position
+  const lastScrollPosition = useRef(0);
+  
+  // Handle showing/hiding focus timer without scroll jumping
+  useLayoutEffect(() => {
+    if (showFocusTimer) {
+      // When focus timer is shown, restore the previous scroll position
+      setTimeout(() => {
+        window.scrollTo({
+          top: lastScrollPosition.current,
+          behavior: "auto" // Use auto to avoid animation
+        });
+      }, 0);
+    }
+  }, [showFocusTimer]);
   
   const handleLevelUp = (newLevel: number) => {
     setUserLevel(newLevel);
+  };
+  
+  // Handle timer toggle button click
+  const handleTimerToggle = () => {
+    // Save current scroll position before toggling
+    lastScrollPosition.current = window.scrollY;
+    setShowFocusTimer(!showFocusTimer);
   };
   
   return (
@@ -50,7 +72,7 @@ const Header = ({
             <Button 
               variant={activeGoal ? "default" : "outline"}
               size="sm"
-              onClick={() => setShowFocusTimer(!showFocusTimer)}
+              onClick={handleTimerToggle}
               className={cn(
                 activeGoal 
                   ? "bg-emerald hover:bg-emerald-dark" 
@@ -69,8 +91,18 @@ const Header = ({
               userLevel={userLevel} 
               onLevelUp={handleLevelUp}
               onClose={() => {
+                // Save current scroll position before closing timer
+                lastScrollPosition.current = window.scrollY;
                 setShowFocusTimer(false);
                 if (onStopFocus) onStopFocus();
+                
+                // Restore scroll position after timer is removed
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: lastScrollPosition.current,
+                    behavior: "auto"
+                  });
+                }, 0);
               }}
               activeGoal={activeGoal}
             />
