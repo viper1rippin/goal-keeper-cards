@@ -29,9 +29,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       if (parentError) throw parentError;
       
       // Initialize the results array with empty goals arrays
-      const results: ParentGoal[] = (parentData || []).map(goal => ({
+      const results = (parentData || []).map(goal => ({
         ...goal,
-        goals: []
+        goals: [] as Goal[]
       }));
       
       // If there's a specific goal being edited with goals already loaded, use those
