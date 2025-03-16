@@ -54,22 +54,45 @@ const ParentGoalDialog = ({
         });
       } else {
         // Create new goal with user_id
-        const { error } = await supabase
-          .from('parent_goals')
-          .insert([{
-            title: values.title,
-            description: values.description,
-            user_id: user.id, // Add user_id for new goals
-            created_at: now,
-            updated_at: now,
-            position: 0 // Default position
-          }]);
+        try {
+          const { error } = await supabase
+            .from('parent_goals')
+            .insert([{
+              title: values.title,
+              description: values.description,
+              user_id: user.id, // Add user_id for new goals
+              created_at: now,
+              updated_at: now,
+              position: 0 // Default position
+            }]);
 
-        if (error) throw error;
-        toast({ 
-          title: "Goal created",
-          description: "Your new goal has been created successfully."
-        });
+          if (error) {
+            // If error is about user_id column not existing, try without it
+            if (error.message && error.message.includes("user_id")) {
+              const { error: fallbackError } = await supabase
+                .from('parent_goals')
+                .insert([{
+                  title: values.title,
+                  description: values.description,
+                  created_at: now,
+                  updated_at: now,
+                  position: 0 // Default position
+                }]);
+                
+              if (fallbackError) throw fallbackError;
+            } else {
+              throw error;
+            }
+          }
+          
+          toast({ 
+            title: "Goal created",
+            description: "Your new goal has been created successfully."
+          });
+        } catch (error) {
+          console.error("Error creating goal:", error);
+          throw error;
+        }
       }
       
       // Close dialog and refresh goals

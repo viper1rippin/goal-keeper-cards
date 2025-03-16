@@ -15,6 +15,17 @@ export type SubGoal = {
   progress: number; // Make this required to match Goal type
 };
 
+// Define a type for database row from Supabase
+type ParentGoalRow = {
+  id: string;
+  title: string;
+  description: string;
+  position: number | null;
+  created_at: string;
+  updated_at: string;
+  user_id?: string; // Make this optional since it might not exist in the DB yet
+};
+
 // Define a type for ParentGoal that uses the SubGoal type
 export type ParentGoalWithSubGoals = {
   id: string;
@@ -43,7 +54,6 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
     setIsLoading(true);
     try {
       // Create query with user_id filtering if the column exists
-      // This will automatically handle the case where user_id doesn't exist yet
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -52,25 +62,26 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       
       if (error) throw error;
       
-      // Filter goals by user_id in memory if we can't do it in the database
-      // This ensures users only see their own goals even if the column doesn't exist
-      const filteredData = data?.filter(goal => {
+      // Cast the data to our ParentGoalRow type
+      const typedData = data as ParentGoalRow[];
+      
+      // Filter goals by user_id in memory 
+      const filteredData = typedData.filter(goal => {
         // If the goal has a user_id, check if it matches the current user
-        if (goal.user_id) {
+        if ('user_id' in goal && goal.user_id) {
           return goal.user_id === user.id;
         }
-        // If there's no user_id field yet, we'll show all goals to maintain backward compatibility
-        // This will be temporary until we add the user_id column
+        // If there's no user_id field yet, we'll show all goals (temporary)
         return true;
       });
       
       // Transform data to include empty goals array
-      const transformedData = filteredData?.map(goal => ({
+      const transformedData = filteredData.map(goal => ({
         ...goal,
         created_at: goal.created_at,
         updated_at: goal.updated_at,
         position: goal.position || 0,
-        user_id: goal.user_id || user.id, // Set user_id if it doesn't exist
+        user_id: ('user_id' in goal) ? goal.user_id : user.id, // Set user_id if it doesn't exist
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
