@@ -4,10 +4,14 @@ import { Button } from "@/components/ui/button";
 
 interface GoalRowActionsProps {
   onEdit: () => void;
+  onDelete?: () => Promise<void>;
+  title?: string;
 }
 
 const GoalRowActions: React.FC<GoalRowActionsProps> = ({
-  onEdit
+  onEdit,
+  onDelete,
+  title
 }) => {
   return (
     <div className="absolute top-0 right-0 flex space-x-2">
