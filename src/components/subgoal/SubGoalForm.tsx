@@ -79,11 +79,7 @@ export const SubGoalForm = ({
             <Button 
               variant="ghost" 
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDelete();
-              }}
+              onClick={onDelete}
               className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
             >
               <Trash2 size={16} />
