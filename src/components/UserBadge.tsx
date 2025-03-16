@@ -3,6 +3,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Sword, Award, Crown, Trophy } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export type BadgeLevel = 
   | "soldier" 
@@ -86,6 +87,7 @@ const UserBadge: React.FC<UserBadgeProps> = ({
   showLevel = true,
   size = "md" 
 }) => {
+  const { user } = useAuth();
   const badgeType = getBadgeByLevel(level);
   const badge = badgeConfigs[badgeType];
   
@@ -95,18 +97,24 @@ const UserBadge: React.FC<UserBadgeProps> = ({
     lg: "text-sm py-1 px-2.5"
   };
 
+  // Get the first part of the email for display
+  const displayName = user?.email ? user.email.split('@')[0] : 'User';
+
   return (
-    <Badge 
-      className={cn(
-        "flex items-center font-medium", 
-        badge.color,
-        sizeClasses[size]
-      )}
-    >
-      {badge.icon}
-      {badge.name}
-      {showLevel && <span className="ml-1 opacity-80">Lvl {level}</span>}
-    </Badge>
+    <div className="flex items-center space-x-2">
+      <Badge 
+        className={cn(
+          "flex items-center font-medium", 
+          badge.color,
+          sizeClasses[size]
+        )}
+      >
+        {badge.icon}
+        {badge.name}
+        {showLevel && <span className="ml-1 opacity-80">Lvl {level}</span>}
+      </Badge>
+      <span className="text-sm text-slate-300">{displayName}</span>
+    </div>
   );
 };
 

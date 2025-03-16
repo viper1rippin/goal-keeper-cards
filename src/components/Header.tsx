@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import UserBadge from "./UserBadge";
 import { Button } from "./ui/button";
-import { Timer } from "lucide-react";
+import { Timer, LogOut } from "lucide-react";
 import FocusTimer from "./FocusTimer";
 import { Goal } from "./GoalRow";
+import { useAuth } from "@/context/AuthContext";
 
 interface HeaderProps {
   activeGoal?: Goal | null;
@@ -22,6 +23,7 @@ const Header = ({
   onStopFocus
 }: HeaderProps) => {
   const [userLevel, setUserLevel] = useState(10); // Default starting level
+  const { signOut } = useAuth();
   // Reference to track the last scroll position
   const lastScrollPosition = useRef(0);
   
@@ -55,7 +57,7 @@ const Header = ({
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              <span className="text-gradient">John's App</span>
+              <span className="text-gradient">Goal Tracker</span>
             </h1>
             <p className="text-slate-400 mt-1">Set, track, and accomplish your goals</p>
           </div>
@@ -81,6 +83,16 @@ const Header = ({
             >
               <Timer className="mr-2" size={16} />
               {activeGoal ? "Focusing" : "Focus"}
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={signOut}
+              className="text-slate-400 hover:text-slate-200"
+            >
+              <LogOut size={16} />
+              <span className="ml-2 hidden md:inline">Sign Out</span>
             </Button>
           </div>
         </div>
