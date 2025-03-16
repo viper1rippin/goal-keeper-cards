@@ -3,13 +3,6 @@ import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import { 
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem
-} from "@/components/ui/context-menu";
-import { Timer } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -18,7 +11,6 @@ export interface GoalCardProps {
   index: number;
   isFocused: boolean;
   onFocus: () => void;
-  onStartFocusTimer?: (goalTitle: string, goalDescription: string) => void;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -41,15 +33,7 @@ const progressGradientVariations = [
   "from-emerald/90 to-emerald-light",
 ];
 
-const GoalCard = ({ 
-  title, 
-  description, 
-  progress, 
-  index, 
-  isFocused, 
-  onFocus, 
-  onStartFocusTimer 
-}: GoalCardProps) => {
+const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
@@ -115,87 +99,70 @@ const GoalCard = ({
     };
   }, []);
   
-  // Handle focus timer start
-  const handleStartFocusTimer = () => {
-    if (onStartFocusTimer) {
-      onStartFocusTimer(title, description);
-    }
-  };
-  
   return (
     <AnimatedContainer 
       animation="scale-in"
       delay={delay}
       className="w-full"
     >
-      <ContextMenu>
-        <ContextMenuTrigger>
+      <div 
+        ref={cardRef}
+        className={cn(
+          "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
+          isFocused 
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
+            : isHovered
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
+              : "bg-slate-900/70 border-slate-800/50 opacity-70",
+          progress === 100 && !isFocused && "border-emerald/10"
+        )}
+        onClick={onFocus}
+      >
+        {/* Green lantern-like glow effect */}
+        {isMouseInCard && (
           <div 
-            ref={cardRef}
-            className={cn(
-              "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
-              isFocused 
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
-                : isHovered
-                  ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
-                  : "bg-slate-900/70 border-slate-800/50 opacity-70",
-              progress === 100 && !isFocused && "border-emerald/10"
-            )}
-            onClick={onFocus}
-          >
-            {/* Green lantern-like glow effect */}
-            {isMouseInCard && (
+            className="absolute pointer-events-none"
+            style={{
+              left: `${mousePos.x}px`,
+              top: `${mousePos.y}px`,
+              width: '120px',
+              height: '120px',
+              transform: 'translate(-50%, -50%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.07) 40%, transparent 70%)',
+              borderRadius: '50%',
+              zIndex: 1,
+              mixBlendMode: 'screen',
+            }}
+          />
+        )}
+        
+        <div className="flex flex-col h-full relative z-2">
+          <h3 className={cn(
+            "font-medium text-lg mb-2",
+            isFocused || isHovered ? "text-slate-100" : "text-slate-400"
+          )}>{title}</h3>
+          <p className={cn(
+            "text-sm flex-1 mb-4",
+            isFocused || isHovered ? "text-slate-300" : "text-slate-500"
+          )}>{description}</p>
+          
+          <div className="mt-auto">
+            <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+              <span>Progress</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className="absolute pointer-events-none"
-                style={{
-                  left: `${mousePos.x}px`,
-                  top: `${mousePos.y}px`,
-                  width: '120px',
-                  height: '120px',
-                  transform: 'translate(-50%, -50%)',
-                  background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.07) 40%, transparent 70%)',
-                  borderRadius: '50%',
-                  zIndex: 1,
-                  mixBlendMode: 'screen',
-                }}
+                className={cn(
+                  "h-full bg-gradient-to-r transition-all duration-700 ease-out",
+                  isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40"
+                )}
+                style={{ width: `${progress}%` }}
               />
-            )}
-            
-            <div className="flex flex-col h-full relative z-2">
-              <h3 className={cn(
-                "font-medium text-lg mb-2",
-                isFocused || isHovered ? "text-slate-100" : "text-slate-400"
-              )}>{title}</h3>
-              <p className={cn(
-                "text-sm flex-1 mb-4",
-                isFocused || isHovered ? "text-slate-300" : "text-slate-500"
-              )}>{description}</p>
-              
-              <div className="mt-auto">
-                <div className="flex justify-between text-xs text-slate-400 mb-1.5">
-                  <span>Progress</span>
-                  <span>{progress}%</span>
-                </div>
-                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full bg-gradient-to-r transition-all duration-700 ease-out",
-                      isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40"
-                    )}
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
             </div>
           </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem className="flex items-center cursor-pointer" onClick={handleStartFocusTimer}>
-            <Timer className="mr-2 h-4 w-4" />
-            <span>Start Focus Timer</span>
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+        </div>
+      </div>
     </AnimatedContainer>
   );
 };

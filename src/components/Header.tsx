@@ -7,28 +7,13 @@ import { Button } from "./ui/button";
 import { Timer } from "lucide-react";
 import FocusTimer from "./FocusTimer";
 
-interface HeaderProps {
-  onStartFocusTimer?: (goalTitle: string, goalDescription: string) => void;
-}
-
-const Header = ({ onStartFocusTimer }: HeaderProps) => {
+const Header = () => {
   const [showFocusTimer, setShowFocusTimer] = useState(false);
   const [userLevel, setUserLevel] = useState(10); // Default starting level
-  const [focusedGoal, setFocusedGoal] = useState<{ title?: string; description?: string }>({});
   
   const handleLevelUp = (newLevel: number) => {
     setUserLevel(newLevel);
   };
-  
-  const handleStartFocusTimer = (goalTitle: string, goalDescription: string) => {
-    setFocusedGoal({ title: goalTitle, description: goalDescription });
-    setShowFocusTimer(true);
-  };
-  
-  // Expose the handler to parent components
-  if (onStartFocusTimer) {
-    onStartFocusTimer = handleStartFocusTimer;
-  }
   
   return (
     <header className="w-full py-8 px-6 sm:px-8 md:px-12 lg:px-16 border-b border-slate-800/80">
@@ -68,8 +53,6 @@ const Header = ({ onStartFocusTimer }: HeaderProps) => {
               userLevel={userLevel} 
               onLevelUp={handleLevelUp}
               onClose={() => setShowFocusTimer(false)}
-              goalTitle={focusedGoal.title}
-              goalDescription={focusedGoal.description}
             />
           </div>
         )}

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import Header from "@/components/Header";
 import GoalRow from "@/components/GoalRow";
 import AnimatedContainer from "@/components/AnimatedContainer";
@@ -87,15 +87,9 @@ const goalData = [
 ];
 
 const Index = () => {
-  const [focusedGoal, setFocusedGoal] = useState<{ title: string; description: string } | null>(null);
-  
-  const handleStartFocusTimer = (goalTitle: string, goalDescription: string) => {
-    setFocusedGoal({ title: goalTitle, description: goalDescription });
-  };
-  
   return (
     <div className="min-h-screen flex flex-col bg-apple-dark">
-      <Header onStartFocusTimer={handleStartFocusTimer} />
+      <Header />
       
       <main className="flex-1 py-10 px-6 sm:px-8 md:px-12 lg:px-16">
         <AnimatedContainer className="max-w-7xl mx-auto mb-12">
@@ -111,7 +105,6 @@ const Index = () => {
               description={rowData.description}
               goals={rowData.goals}
               index={index}
-              onStartFocusTimer={handleStartFocusTimer}
             />
           ))}
         </AnimatedContainer>
