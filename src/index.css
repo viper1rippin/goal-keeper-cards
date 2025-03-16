@@ -101,6 +101,12 @@
   100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
 }
 
+@keyframes green-lantern-pulse {
+  0% { opacity: 0.7; filter: blur(8px); }
+  50% { opacity: 0.9; filter: blur(7px); }
+  100% { opacity: 0.7; filter: blur(8px); }
+}
+
 .animate-fade-in {
   animation: fade-in 0.5s ease-out forwards;
 }
@@ -119,4 +125,8 @@
 
 .animate-emerald-pulse {
   animation: emerald-pulse 2s infinite;
+}
+
+.animate-green-lantern {
+  animation: green-lantern-pulse 3s infinite;
 }

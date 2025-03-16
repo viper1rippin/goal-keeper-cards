@@ -76,7 +76,7 @@ const GoalCard = ({
     return progressGradientVariations[gradientIndex];
   }, [title]);
   
-  // Handle mouse move for glow effect
+  // Handle mouse move for refined glow effect
   useEffect(() => {
     if (!cardRef.current) return;
     
@@ -144,24 +144,34 @@ const GoalCard = ({
         )}
         onClick={handleClick}
       >
-        {/* Enhanced green lantern-like glow effect */}
+        {/* Enhanced green lantern-like glow effect - more refined with proper z-indexing and blend mode */}
         {isMouseInCard && (
           <div 
             className="absolute pointer-events-none"
             style={{
               left: `${mousePos.x}px`,
               top: `${mousePos.y}px`,
-              width: '150px',
-              height: '150px',
+              width: '120px',
+              height: '120px',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.15) 40%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.30) 0%, rgba(5, 150, 105, 0.15) 30%, transparent 70%)',
               borderRadius: '50%',
               zIndex: 1,
               mixBlendMode: 'screen',
-              filter: 'blur(5px)',
+              filter: 'blur(8px)',
+              opacity: 0.85,
             }}
           />
         )}
+        
+        {/* Subtle inner glow effect */}
+        <div 
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at center, rgba(16, 185, 129, 0.05) 0%, transparent 70%)',
+            zIndex: 0,
+          }}
+        />
         
         {/* Edit button - only visible on hover */}
         {onEdit && isHovered && (
