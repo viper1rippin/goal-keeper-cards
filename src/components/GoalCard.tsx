@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Edit2 } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -14,6 +15,8 @@ export interface GoalCardProps {
   // Add new props for focus timer
   isActiveFocus?: boolean;
   onStartFocus?: () => void;
+  // Add edit functionality
+  onEdit?: () => void;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -44,7 +47,8 @@ const GoalCard = ({
   isFocused, 
   onFocus, 
   isActiveFocus = false,
-  onStartFocus 
+  onStartFocus,
+  onEdit
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
@@ -130,32 +134,47 @@ const GoalCard = ({
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
           isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/40 shadow-lg shadow-emerald/30 animate-emerald-pulse`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-md shadow-emerald/15 opacity-90`
                 : "bg-slate-900/70 border-slate-800/50 opacity-70",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/10"
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15"
         )}
         onClick={handleClick}
       >
-        {/* Green lantern-like glow effect */}
+        {/* Enhanced green lantern-like glow effect */}
         {isMouseInCard && (
           <div 
             className="absolute pointer-events-none"
             style={{
               left: `${mousePos.x}px`,
               top: `${mousePos.y}px`,
-              width: '120px',
-              height: '120px',
+              width: '150px',
+              height: '150px',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.07) 40%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.15) 40%, transparent 70%)',
               borderRadius: '50%',
               zIndex: 1,
               mixBlendMode: 'screen',
+              filter: 'blur(5px)',
             }}
           />
+        )}
+        
+        {/* Edit button - only visible on hover */}
+        {onEdit && isHovered && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-800/70 text-emerald hover:bg-slate-700/80 transition-colors z-10"
+            aria-label="Edit sub-goal"
+          >
+            <Edit2 size={14} />
+          </button>
         )}
         
         <div className="flex flex-col h-full relative z-2">
