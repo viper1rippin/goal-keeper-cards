@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -8,8 +7,6 @@ import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 
 // Form validation schema
@@ -117,28 +114,18 @@ const SubGoalDialog = ({
     }
   };
 
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-semibold">
-                {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
-              </DialogTitle>
-              
-              {subGoalToEdit && onDelete && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                >
-                  <Trash2 size={16} className="mr-1" />
-                  Delete
-                </Button>
-              )}
-            </div>
+            <DialogTitle className="text-xl font-semibold">
+              {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
+            </DialogTitle>
             <p className="text-slate-400 mt-1">
               {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
             </p>
@@ -149,6 +136,7 @@ const SubGoalDialog = ({
             onSubmit={onSubmit} 
             subGoalToEdit={subGoalToEdit}
             onClose={onClose}
+            onDelete={subGoalToEdit && onDelete ? handleDeleteClick : undefined}
           />
         </DialogContent>
       </Dialog>

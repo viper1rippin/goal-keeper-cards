@@ -1,9 +1,8 @@
 
 import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import ParentGoalForm from "../ParentGoalForm";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import DeleteParentGoalDialog from "./DeleteParentGoalDialog";
+import { useState } from "react";
 
 interface ParentGoalDialogContentProps {
   isOpen: boolean;
@@ -20,33 +19,44 @@ export const ParentGoalDialogContent = ({
   onSubmit,
   onDelete
 }: ParentGoalDialogContentProps) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-apple-dark border-slate-800/80 text-white max-w-md">
-        <DialogDescription className="sr-only">
-          {goalToEdit ? "Edit Goal" : "Create New Goal"}
-        </DialogDescription>
-        
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium">
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="bg-apple-dark border-slate-800/80 text-white max-w-md">
+          <DialogDescription className="sr-only">
             {goalToEdit ? "Edit Goal" : "Create New Goal"}
-          </h3>
+          </DialogDescription>
           
-          {goalToEdit && onDelete && (
-            <DeleteParentGoalDialog
-              title={goalToEdit.title}
-              onDelete={onDelete}
-            />
-          )}
-        </div>
-        
-        <ParentGoalForm
-          initialData={goalToEdit}
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          showHeader={false}
+          <div className="mb-4">
+            <h3 className="text-lg font-medium">
+              {goalToEdit ? "Edit Goal" : "Create New Goal"}
+            </h3>
+          </div>
+          
+          <ParentGoalForm
+            initialData={goalToEdit}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            showHeader={false}
+            onDelete={goalToEdit && onDelete ? handleDeleteClick : undefined}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {goalToEdit && onDelete && (
+        <DeleteParentGoalDialog
+          title={goalToEdit.title}
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onDelete={onDelete}
         />
-      </DialogContent>
-    </Dialog>
+      )}
+    </>
   );
 };

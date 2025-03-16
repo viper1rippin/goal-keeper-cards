@@ -9,32 +9,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 
 interface DeleteParentGoalDialogProps {
   title: string;
   onDelete: () => Promise<void>;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
   title,
-  onDelete
+  onDelete,
+  isOpen,
+  onClose
 }) => {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-        >
-          <Trash2 size={16} className="mr-1" />
-          Delete
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+    >
       <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white">Delete Goal</AlertDialogTitle>
