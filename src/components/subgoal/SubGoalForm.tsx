@@ -7,19 +7,22 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { UseFormReturn } from "react-hook-form";
 import { Goal } from '../GoalRow';
 import { SubGoalFormValues } from '../SubGoalDialog';
+import { Trash2 } from "lucide-react";
 
 interface SubGoalFormProps {
   form: UseFormReturn<SubGoalFormValues>;
   onSubmit: (values: SubGoalFormValues) => Promise<void>;
   onClose: () => void;
   subGoalToEdit: Goal | null;
+  onDelete?: () => Promise<void>;
 }
 
 export const SubGoalForm = ({ 
   form, 
   onSubmit, 
   onClose, 
-  subGoalToEdit 
+  subGoalToEdit,
+  onDelete
 }: SubGoalFormProps) => {
   
   // Handle key press in the description field
@@ -71,8 +74,20 @@ export const SubGoalForm = ({
           )}
         />
 
-        <div className="flex justify-end pt-4">
-          <div className="flex gap-2">
+        <div className="flex justify-between pt-4">
+          {/* Delete button shown only when editing existing sub-goals */}
+          {subGoalToEdit && subGoalToEdit.id && onDelete && (
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={onDelete}
+              className="text-red-400 hover:bg-red-900/20 hover:text-red-300"
+            >
+              <Trash2 size={16} className="mr-1" />
+              Delete
+            </Button>
+          )}
+          <div className="flex gap-2 ml-auto">
             <Button 
               type="button" 
               variant="ghost" 

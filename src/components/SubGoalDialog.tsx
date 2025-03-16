@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -23,6 +24,7 @@ interface SubGoalDialogProps {
   subGoalToEdit: Goal | null;
   parentGoalTitle: string;
   parentGoalId: string;
+  onDelete?: (subGoalId: string) => Promise<void>;
 }
 
 // Main component
@@ -32,7 +34,8 @@ const SubGoalDialog = ({
   onSave, 
   subGoalToEdit,
   parentGoalTitle,
-  parentGoalId
+  parentGoalId,
+  onDelete
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
   
@@ -103,6 +106,23 @@ const SubGoalDialog = ({
     });
   };
 
+  // Handle delete sub-goal
+  const handleDeleteSubGoal = async () => {
+    if (subGoalToEdit?.id && onDelete) {
+      try {
+        await onDelete(subGoalToEdit.id);
+        onClose(); // Close the dialog after deletion
+      } catch (error) {
+        console.error("Error deleting sub-goal:", error);
+        toast({
+          title: "Error deleting sub-goal",
+          description: "There was an error deleting your sub-goal. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
@@ -120,6 +140,7 @@ const SubGoalDialog = ({
           onSubmit={onSubmit} 
           subGoalToEdit={subGoalToEdit}
           onClose={onClose}
+          onDelete={subGoalToEdit?.id ? handleDeleteSubGoal : undefined}
         />
       </DialogContent>
     </Dialog>
