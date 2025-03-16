@@ -25,6 +25,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
         .from('parent_goals')
         .select('*');
       
+      // Filter by user_id
+      query = query.eq('user_id', user.id);
+      
       // Add ordering
       query = query.order('position', { ascending: true })
                   .order('created_at', { ascending: false });
@@ -65,7 +68,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
         const { error } = await supabase
           .from('parent_goals')
           .update({ position: i })
-          .eq('id', updatedGoals[i].id);
+          .eq('id', updatedGoals[i].id)
+          .eq('user_id', user.id); // Make sure we're only updating user's own goals
         
         if (error) throw error;
       }
@@ -96,7 +100,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Make sure we're only deleting user's own goals
       
       if (error) throw error;
       
