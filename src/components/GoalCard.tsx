@@ -7,7 +7,6 @@ import GoalCardContent from "./GoalCardContent";
 import GoalCardGlow from "./GoalCardGlow";
 import GoalCardEditButton from "./GoalCardEditButton";
 import GoalCardDragHandle from "./GoalCardDragHandle";
-import { Trash2 } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -155,20 +154,6 @@ const GoalCard = ({
         
         {/* Edit button - only visible on hover */}
         <GoalCardEditButton isHovered={isHovered} onEdit={onEdit} />
-        
-        {/* Delete button - only visible on hover */}
-        {onDelete && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="absolute bottom-2 right-2 p-1.5 rounded-full bg-red-800/60 text-red-300 hover:bg-red-800/90 transition-colors z-10 opacity-0 group-hover:opacity-100"
-            aria-label="Delete sub-goal"
-          >
-            <Trash2 size={14} />
-          </button>
-        )}
         
         {/* Content area with title, description and progress */}
         <GoalCardContent
