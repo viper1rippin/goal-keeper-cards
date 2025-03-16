@@ -30,12 +30,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
+      // Transform data to include empty goals array
       const transformedData = data?.map(goal => ({
         ...goal,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
+        goals: []
       })) || [];
       
       setParentGoals(transformedData);
@@ -62,7 +60,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .from('parent_goals')
           .update({ 
             position: i 
-          } as any)
+          })
           .eq('id', updatedGoals[i].id)
           .eq('user_id', userId);
         
