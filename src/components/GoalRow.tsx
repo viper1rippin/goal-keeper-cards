@@ -7,11 +7,12 @@ import { useState } from "react";
 interface GoalRowProps {
   title: string;
   description: string;
-  goals: Omit<GoalCardProps, 'index' | 'isFocused' | 'onFocus'>[];
+  goals: Omit<GoalCardProps, 'index' | 'isFocused' | 'onFocus' | 'onStartFocusTimer'>[];
   index: number;
+  onStartFocusTimer?: (goalTitle: string, goalDescription: string) => void;
 }
 
-const GoalRow = ({ title, description, goals, index }: GoalRowProps) => {
+const GoalRow = ({ title, description, goals, index, onStartFocusTimer }: GoalRowProps) => {
   // Calculate delay based on row index for staggered animation
   const rowDelay = index * 100;
   
@@ -40,6 +41,7 @@ const GoalRow = ({ title, description, goals, index }: GoalRowProps) => {
             index={idx}
             isFocused={focusedGoalIndex === idx}
             onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === idx ? null : idx)}
+            onStartFocusTimer={onStartFocusTimer}
           />
         ))}
       </div>

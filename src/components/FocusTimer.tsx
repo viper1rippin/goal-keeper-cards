@@ -16,12 +16,16 @@ interface FocusTimerProps {
   userLevel: number;
   onLevelUp: (newLevel: number, points: number) => void;
   onClose: () => void;
+  goalTitle?: string;
+  goalDescription?: string;
 }
 
 const FocusTimer: React.FC<FocusTimerProps> = ({ 
   userLevel, 
   onLevelUp,
-  onClose 
+  onClose,
+  goalTitle,
+  goalDescription
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [time, setTime] = useState(0);
@@ -56,7 +60,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     if (!isActive) {
       toast({
         title: "Focus mode activated",
-        description: "Stay focused and earn points to level up",
+        description: goalTitle ? `Focusing on: ${goalTitle}` : "Stay focused and earn points to level up",
       });
     }
   };
@@ -103,6 +107,17 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     };
   }, [isActive, time]);
 
+  // Auto-start timer if there's a goal specified
+  useEffect(() => {
+    if (goalTitle && !isActive && time === 0) {
+      setIsActive(true);
+      toast({
+        title: "Focus mode activated",
+        description: `Focusing on: ${goalTitle}`,
+      });
+    }
+  }, [goalTitle]);
+
   // Calculate progress percentage
   const progressPercent = Math.min(
     100, 
@@ -142,6 +157,13 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
           </div>
           
           <Progress value={progressPercent} className="h-2" />
+          
+          {goalTitle && (
+            <div className="p-3 bg-emerald-dark/10 border border-emerald/10 rounded-lg my-2">
+              <h4 className="font-medium text-emerald-light">{goalTitle}</h4>
+              {goalDescription && <p className="text-xs text-slate-400 mt-1">{goalDescription}</p>}
+            </div>
+          )}
           
           <div className="text-center">
             <div className={cn(
