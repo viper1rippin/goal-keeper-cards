@@ -11,6 +11,9 @@ export interface GoalCardProps {
   index: number;
   isFocused: boolean;
   onFocus: () => void;
+  // Add new props for focus timer
+  isActiveFocus?: boolean;
+  onStartFocus?: () => void;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -33,7 +36,16 @@ const progressGradientVariations = [
   "from-emerald/90 to-emerald-light",
 ];
 
-const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: GoalCardProps) => {
+const GoalCard = ({ 
+  title, 
+  description, 
+  progress, 
+  index, 
+  isFocused, 
+  onFocus, 
+  isActiveFocus = false,
+  onStartFocus 
+}: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
@@ -98,6 +110,14 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
       card.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
+
+  // Handle card click to start focus timer
+  const handleClick = () => {
+    onFocus(); // Toggle focus state as before
+    if (onStartFocus) {
+      onStartFocus(); // Start focus timer with this goal
+    }
+  };
   
   return (
     <AnimatedContainer 
@@ -109,14 +129,16 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
         ref={cardRef}
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
-          isFocused 
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
-            : isHovered
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
-              : "bg-slate-900/70 border-slate-800/50 opacity-70",
-          progress === 100 && !isFocused && "border-emerald/10"
+          isActiveFocus
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
+            : isFocused 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
+              : isHovered
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
+                : "bg-slate-900/70 border-slate-800/50 opacity-70",
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/10"
         )}
-        onClick={onFocus}
+        onClick={handleClick}
       >
         {/* Green lantern-like glow effect */}
         {isMouseInCard && (
@@ -139,11 +161,15 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
         <div className="flex flex-col h-full relative z-2">
           <h3 className={cn(
             "font-medium text-lg mb-2",
-            isFocused || isHovered ? "text-slate-100" : "text-slate-400"
+            isActiveFocus 
+              ? "text-white" 
+              : (isFocused || isHovered ? "text-slate-100" : "text-slate-400")
           )}>{title}</h3>
           <p className={cn(
             "text-sm flex-1 mb-4",
-            isFocused || isHovered ? "text-slate-300" : "text-slate-500"
+            isActiveFocus 
+              ? "text-slate-200" 
+              : (isFocused || isHovered ? "text-slate-300" : "text-slate-500")
           )}>{description}</p>
           
           <div className="mt-auto">
@@ -155,7 +181,9 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
               <div 
                 className={cn(
                   "h-full bg-gradient-to-r transition-all duration-700 ease-out",
-                  isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40"
+                  isActiveFocus 
+                    ? `${progressGradient} animate-pulse` 
+                    : (isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40")
                 )}
                 style={{ width: `${progress}%` }}
               />
