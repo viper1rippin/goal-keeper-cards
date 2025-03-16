@@ -4,6 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { POINTS_PER_MINUTE, getPointsForNextLevel } from "@/utils/timerUtils";
 import { Goal } from "@/components/GoalRow";
 
+// Define timer states for better state management
+type TimerState = "IDLE" | "RUNNING" | "PAUSED";
+
 interface UseTimerProps {
   userLevel: number;
   onLevelUp: (newLevel: number) => void;
@@ -11,57 +14,79 @@ interface UseTimerProps {
 }
 
 export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
-  const [isActive, setIsActive] = useState(false);
+  // Replace boolean isActive with a state machine
+  const [timerState, setTimerState] = useState<TimerState>("IDLE");
   const [time, setTime] = useState(0);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const { toast } = useToast();
   
   // Use a ref to track interval ID to prevent issues with stale closures
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Use a ref to track if a toggle is in progress to prevent rapid clicks
+  const isTogglingRef = useRef(false);
+  
+  // Compute derived state for backward compatibility
+  const isActive = timerState === "RUNNING";
   
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
 
-  // Auto-start timer when activeGoal changes to non-null
+  // Auto-start timer when activeGoal changes to non-null, but only if in IDLE state
   useEffect(() => {
-    if (activeGoal && !isActive && time === 0) {
-      // Only auto-start if the timer is not already running and at zero
-      setIsActive(true);
+    if (activeGoal && timerState === "IDLE" && time === 0) {
+      // Only auto-start if the timer is in IDLE state and at zero
+      setTimerState("RUNNING");
     }
-  }, [activeGoal, isActive, time]);
+  }, [activeGoal, timerState, time]);
 
-  // Show toast when timer starts/pauses, but separate from the state update
+  // Show toast based on timer state changes
   useEffect(() => {
-    if (isActive) {
+    if (timerState === "RUNNING") {
       toast({
         title: activeGoal 
           ? `Focusing on: ${activeGoal.title}` 
           : "Focus mode activated",
         description: "Stay focused and earn points to level up",
       });
-    } else if (time > 0) { // Only show pause toast if timer was running
+    } else if (timerState === "PAUSED" && time > 0) {
       toast({
         title: "Timer paused",
         description: "Your focus session is paused. Resume when you're ready.",
       });
     }
-  }, [isActive, activeGoal, toast, time]);
+  }, [timerState, activeGoal, toast, time]);
 
-  // Toggle timer separately from the toast notifications
+  // Toggle timer with debouncing to prevent rapid state changes
   const toggleTimer = () => {
-    // Clear any existing interval before changing state
+    // Prevent rapid toggles that can cause glitches
+    if (isTogglingRef.current) {
+      return;
+    }
+    
+    // Set toggling flag
+    isTogglingRef.current = true;
+    
+    // Clear any existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
     
-    // Then toggle the state
-    setIsActive(prevActive => !prevActive);
+    // Update state based on current state (state machine transition)
+    setTimerState(prevState => {
+      if (prevState === "RUNNING") return "PAUSED";
+      return "RUNNING";
+    });
+    
+    // Reset toggling flag after a short delay to prevent rapid clicks
+    setTimeout(() => {
+      isTogglingRef.current = false;
+    }, 300);
   };
 
   // Reset timer
   const resetTimer = () => {
     // First ensure timer is stopped
-    setIsActive(false);
+    setTimerState("IDLE");
     
     // Clear any existing interval
     if (intervalRef.current) {
@@ -99,7 +124,7 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
       intervalRef.current = null;
     }
     
-    if (isActive) {
+    if (timerState === "RUNNING") {
       // Set up a new interval if timer is active
       intervalRef.current = setInterval(() => {
         setTime(prevTime => prevTime + 1);
@@ -113,10 +138,11 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
         intervalRef.current = null;
       }
     };
-  }, [isActive]); // Only depend on isActive
+  }, [timerState]); // Only depend on timerState
 
   return {
-    isActive,
+    isActive, // Keep for backward compatibility
+    timerState,
     time,
     earnedPoints,
     pointsForNextLevel,
