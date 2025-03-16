@@ -10,28 +10,43 @@ export interface GoalCardProps {
   index: number;
 }
 
-// Define gradient variations for emerald tones
+// Collection of emerald-toned gradients for cards
 const gradientVariations = [
+  "from-emerald-dark/20 to-apple-dark",
+  "from-emerald-dark/30 to-emerald/5",
+  "from-emerald/10 to-apple-dark",
+  "from-emerald-light/10 to-apple-dark",
+  "from-emerald/5 to-emerald-dark/20",
+  "from-emerald-dark/25 to-emerald/10",
+];
+
+// Collection of progress bar gradients
+const progressGradientVariations = [
   "from-emerald to-emerald-light",
+  "from-emerald-light to-emerald",
   "from-emerald-dark to-emerald",
-  "from-teal-500 to-emerald-400",
-  "from-green-400 to-emerald-500",
-  "from-emerald-300 to-teal-600",
-  "from-emerald-400 to-green-300",
-  "from-teal-400 to-emerald-300",
-  "from-emerald-500 to-teal-300",
+  "from-emerald to-emerald-dark",
+  "from-emerald-light/90 to-emerald",
+  "from-emerald/90 to-emerald-light",
 ];
 
 const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
-  // Select a consistent gradient based on the title (this ensures the same card always gets the same gradient)
-  const gradientClass = useMemo(() => {
-    // Use the sum of character codes from the title to create a deterministic but seemingly random choice
-    const titleSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    const gradientIndex = titleSum % gradientVariations.length;
+  // Generate a consistent gradient for each card based on the title
+  const cardGradient = useMemo(() => {
+    // Use the title to create a deterministic but seemingly random index
+    const charSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const gradientIndex = charSum % gradientVariations.length;
     return gradientVariations[gradientIndex];
+  }, [title]);
+  
+  // Generate a consistent gradient for each progress bar based on the title
+  const progressGradient = useMemo(() => {
+    const charSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const gradientIndex = charSum % progressGradientVariations.length;
+    return progressGradientVariations[gradientIndex];
   }, [title]);
   
   return (
@@ -41,8 +56,9 @@ const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
       className="w-full"
     >
       <div className={cn(
-        "glass-card rounded-lg p-5 h-full hover-scale",
-        progress === 100 && "glass-card-emerald"
+        "glass-card rounded-lg p-5 h-full hover-scale bg-gradient-to-br",
+        cardGradient,
+        progress === 100 && "border-emerald/20 shadow-lg shadow-emerald/5"
       )}>
         <div className="flex flex-col h-full">
           <h3 className="font-medium text-lg mb-2">{title}</h3>
@@ -55,7 +71,10 @@ const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
             </div>
             <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className={`h-full bg-gradient-to-r ${gradientClass} transition-all duration-700 ease-out`}
+                className={cn(
+                  "h-full bg-gradient-to-r transition-all duration-700 ease-out",
+                  progressGradient
+                )}
                 style={{ width: `${progress}%` }}
               />
             </div>
