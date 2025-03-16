@@ -28,7 +28,8 @@ export function useGoalFocus() {
     // First set the new active goal
     setActiveGoal(goal);
     setActiveGoalIndices({ rowIndex, goalIndex });
-    setShowFocusTimer(true);
+    // Remove the automatic showing of focus timer when selecting a goal
+    // setShowFocusTimer(true); 
     
     // Use requestAnimationFrame to restore scroll position AFTER rendering
     requestAnimationFrame(() => {
