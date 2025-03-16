@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -62,6 +63,7 @@ const SubGoalDialog = ({
     try {
       await saveSubGoal(values);
       form.reset();
+      onClose();
     } catch (error) {
       console.error("Error saving sub-goal:", error);
       toast({
@@ -143,9 +145,9 @@ const SubGoalDialog = ({
             <DialogTitle className="text-xl font-semibold">
               {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
             </DialogTitle>
-            <p className="text-slate-400 mt-1">
+            <DialogDescription className="text-slate-400 mt-1">
               {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <SubGoalForm 

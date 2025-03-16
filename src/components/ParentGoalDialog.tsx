@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 import { DeleteConfirmationDialog } from "./parentgoal/DeleteConfirmationDialog";
 
@@ -19,6 +19,7 @@ const ParentGoalDialog = ({
   onGoalSaved
 }: ParentGoalDialogProps) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {

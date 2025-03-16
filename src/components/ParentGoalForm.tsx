@@ -69,6 +69,14 @@ const ParentGoalForm = ({
     }
   };
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete();
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -121,7 +129,7 @@ const ParentGoalForm = ({
               <Button 
                 variant="ghost" 
                 type="button"
-                onClick={onDelete}
+                onClick={handleDeleteClick}
                 className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
               >
                 <Trash2 size={16} />
