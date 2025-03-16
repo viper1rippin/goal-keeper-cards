@@ -69,10 +69,6 @@
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
   }
-  
-  .soft-focus {
-    @apply focus-visible:ring-emerald/20 focus-visible:border-emerald/20 focus-visible:ring-opacity-40;
-  }
 }
 
 /* Animations for our components */
