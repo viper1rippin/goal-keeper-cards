@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,38 @@ interface SubGoalDialogProps {
   parentGoalId: string;
 }
 
+// Component for the delete confirmation dialog
+const DeleteConfirmationDialog = ({ 
+  open, 
+  onOpenChange, 
+  onConfirmDelete 
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void; 
+  onConfirmDelete: () => void 
+}) => (
+  <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
+      <AlertDialogHeader>
+        <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
+        <AlertDialogDescription className="text-slate-400">
+          This action cannot be undone. This will permanently delete the sub-goal.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+        <AlertDialogAction 
+          onClick={onConfirmDelete}
+          className="bg-red-600 hover:bg-red-700 text-white"
+        >
+          Delete
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
+
+// Main component
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -52,7 +83,7 @@ const SubGoalDialog = ({
   });
 
   // Reset form when dialog opens/closes or when editing a different goal
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       form.reset({
         title: subGoalToEdit?.title || "",
@@ -64,37 +95,7 @@ const SubGoalDialog = ({
   // Handle form submission
   const onSubmit = async (values: SubGoalFormValues) => {
     try {
-      // Prepare sub-goal data
-      const subGoalData = {
-        parent_goal_id: parentGoalId,
-        title: values.title,
-        description: values.description,
-        progress: subGoalToEdit?.progress || 0
-      };
-      
-      // If editing, update the existing sub-goal
-      if (subGoalToEdit && subGoalToEdit.id) {
-        const { error } = await supabase
-          .from('sub_goals')
-          .update(subGoalData)
-          .eq('id', subGoalToEdit.id);
-        
-        if (error) throw error;
-      } else {
-        // Otherwise, create a new sub-goal
-        const { error } = await supabase
-          .from('sub_goals')
-          .insert(subGoalData);
-        
-        if (error) throw error;
-      }
-      
-      // Call the onSave callback to update UI
-      onSave({
-        title: values.title,
-        description: values.description,
-      });
-      
+      await saveSubGoal(values);
       form.reset();
     } catch (error) {
       console.error("Error saving sub-goal:", error);
@@ -104,6 +105,39 @@ const SubGoalDialog = ({
         variant: "destructive",
       });
     }
+  };
+
+  const saveSubGoal = async (values: SubGoalFormValues) => {
+    // Prepare sub-goal data
+    const subGoalData = {
+      parent_goal_id: parentGoalId,
+      title: values.title,
+      description: values.description,
+      progress: subGoalToEdit?.progress || 0
+    };
+    
+    // If editing, update the existing sub-goal
+    if (subGoalToEdit && subGoalToEdit.id) {
+      const { error } = await supabase
+        .from('sub_goals')
+        .update(subGoalData)
+        .eq('id', subGoalToEdit.id);
+      
+      if (error) throw error;
+    } else {
+      // Otherwise, create a new sub-goal
+      const { error } = await supabase
+        .from('sub_goals')
+        .insert(subGoalData);
+      
+      if (error) throw error;
+    }
+    
+    // Call the onSave callback to update UI
+    onSave({
+      title: values.title,
+      description: values.description,
+    });
   };
 
   const handleDelete = async () => {
@@ -149,98 +183,105 @@ const SubGoalDialog = ({
             </p>
           </DialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-200">Title</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="Enter sub-goal title"
-                        className="bg-slate-800 border-slate-700 text-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-200">Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Enter sub-goal description"
-                        className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-between pt-4">
-                {subGoalToEdit && subGoalToEdit.id && (
-                  <Button 
-                    variant="ghost" 
-                    type="button"
-                    onClick={() => setShowDeleteAlert(true)}
-                    className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </Button>
-                )}
-                <div className="flex gap-2 ml-auto">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    onClick={onClose}
-                    className="text-slate-400 hover:bg-slate-800/20 hover:text-slate-300"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="bg-emerald hover:bg-emerald-dark"
-                  >
-                    {subGoalToEdit ? "Update" : "Create"} Sub-Goal
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </Form>
+          <SubGoalForm 
+            form={form} 
+            onSubmit={onSubmit} 
+            subGoalToEdit={subGoalToEdit}
+            onClose={onClose}
+            onDelete={() => setShowDeleteAlert(true)}
+          />
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              This action cannot be undone. This will permanently delete the sub-goal.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog 
+        open={showDeleteAlert} 
+        onOpenChange={setShowDeleteAlert} 
+        onConfirmDelete={handleDelete} 
+      />
     </>
+  );
+};
+
+// Form component extracted for better organization
+interface SubGoalFormProps {
+  form: ReturnType<typeof useForm<SubGoalFormValues>>;
+  onSubmit: (values: SubGoalFormValues) => Promise<void>;
+  onClose: () => void;
+  onDelete: () => void;
+  subGoalToEdit: Goal | null;
+}
+
+const SubGoalForm = ({ form, onSubmit, onClose, onDelete, subGoalToEdit }: SubGoalFormProps) => {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-slate-200">Title</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="Enter sub-goal title"
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-slate-200">Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  {...field} 
+                  placeholder="Enter sub-goal description"
+                  className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-between pt-4">
+          {subGoalToEdit && subGoalToEdit.id && (
+            <Button 
+              variant="ghost" 
+              type="button"
+              onClick={onDelete}
+              className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
+            >
+              <Trash2 size={16} />
+              Delete
+            </Button>
+          )}
+          <div className="flex gap-2 ml-auto">
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={onClose}
+              className="text-slate-400 hover:bg-slate-800/20 hover:text-slate-300"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-emerald hover:bg-emerald-dark"
+            >
+              {subGoalToEdit ? "Update" : "Create"} Sub-Goal
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Form>
   );
 };
 
