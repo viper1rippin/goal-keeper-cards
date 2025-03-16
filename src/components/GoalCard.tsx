@@ -41,16 +41,6 @@ const progressGradientVariations = [
   "from-emerald/90 to-emerald-light",
 ];
 
-// Collection of glow gradients for mouse-following effect
-const glowGradientVariations = [
-  "rgba(16, 185, 129, 0.12)",  // emerald
-  "rgba(5, 150, 105, 0.14)",   // emerald-dark
-  "rgba(52, 211, 153, 0.11)",  // emerald-light
-  "rgba(16, 185, 129, 0.15)",  // slightly stronger emerald
-  "rgba(10, 170, 120, 0.13)",  // custom emerald tone
-  "rgba(20, 200, 140, 0.12)",  // custom emerald tone
-];
-
 const GoalCard = ({ 
   title, 
   description, 
@@ -89,19 +79,12 @@ const GoalCard = ({
     return progressGradientVariations[gradientIndex];
   }, [title]);
   
-  // Generate a consistent glow gradient for each card based on the title
-  const glowGradient = useMemo(() => {
-    const charSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    const gradientIndex = charSum % glowGradientVariations.length;
-    return glowGradientVariations[gradientIndex];
-  }, [title]);
-  
   // Handle mouse move for refined glow effect
   useEffect(() => {
     if (!cardRef.current) return;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!cardRef.current) return;
+      if (!cardRef.current || !isActiveFocus) return;
       
       // Get card dimensions and position
       const rect = cardRef.current.getBoundingClientRect();
@@ -111,16 +94,11 @@ const GoalCard = ({
       const y = e.clientY - rect.top;
       
       setMousePos({ x, y });
-      
-      // Only show the glow when the card is focused or hovered
-      if (isFocused || isHovered) {
-        setIsMouseInCard(true);
-      }
     };
     
     const handleMouseEnter = () => {
       setIsHovered(true);
-      setIsMouseInCard(true);
+      setIsMouseInCard(isActiveFocus); // Only set mouse in card if this card has active focus
     };
     
     const handleMouseLeave = () => {
@@ -138,7 +116,7 @@ const GoalCard = ({
       card.removeEventListener('mouseenter', handleMouseEnter);
       card.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [isFocused, isHovered]);
+  }, [isActiveFocus]); // Added isActiveFocus to dependency array
 
   // Reset mouse state when active focus changes
   useEffect(() => {
@@ -183,22 +161,22 @@ const GoalCard = ({
           <GripHorizontal size={14} />
         </div>
         
-        {/* Enhanced mouse-following glow effect */}
-        {isMouseInCard && (
+        {/* Subtle, focused glow effect that follows the mouse - only shown when card has active focus */}
+        {isMouseInCard && isActiveFocus && (
           <div 
-            className="absolute pointer-events-none transition-opacity duration-300"
+            className="absolute pointer-events-none"
             style={{
               left: `${mousePos.x}px`,
               top: `${mousePos.y}px`,
-              width: '100px',
-              height: '100px',
+              width: '80px',
+              height: '80px',
               transform: 'translate(-50%, -50%)',
-              background: `radial-gradient(circle, ${glowGradient} 0%, rgba(16, 185, 129, 0.05) 40%, transparent 70%)`,
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 40%, transparent 80%)',
               borderRadius: '50%',
               zIndex: 1,
               mixBlendMode: 'soft-light',
-              filter: 'blur(15px)',
-              opacity: isFocused ? 0.9 : 0.6,
+              filter: 'blur(12px)',
+              opacity: 0.7,
             }}
           />
         )}
