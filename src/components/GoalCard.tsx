@@ -19,24 +19,24 @@ export interface GoalCardProps {
   onEdit?: () => void;
 }
 
-// Collection of emerald-toned gradients for cards
+// Collection of sleek black-emerald gradients for cards
 const gradientVariations = [
   "from-emerald-dark/20 to-apple-dark",
-  "from-emerald-dark/30 to-emerald/5",
-  "from-emerald/10 to-apple-dark",
-  "from-emerald-light/10 to-apple-dark",
-  "from-emerald/5 to-emerald-dark/20",
-  "from-emerald-dark/25 to-emerald/10",
+  "from-black/90 to-emerald-dark/10",
+  "from-emerald-dark/15 to-black/80",
+  "from-slate-900/90 to-emerald-dark/5",
+  "from-emerald/5 to-black/90",
+  "from-black/95 to-emerald/10",
 ];
 
 // Collection of progress bar gradients
 const progressGradientVariations = [
-  "from-emerald to-emerald-light",
-  "from-emerald-light to-emerald",
-  "from-emerald-dark to-emerald",
-  "from-emerald to-emerald-dark",
-  "from-emerald-light/90 to-emerald",
-  "from-emerald/90 to-emerald-light",
+  "from-emerald to-emerald-light/90",
+  "from-emerald-light/80 to-emerald",
+  "from-emerald-dark to-emerald/90",
+  "from-emerald to-emerald-dark/90",
+  "from-emerald-light/90 to-emerald-dark",
+  "from-emerald/80 to-emerald-light/70",
 ];
 
 const GoalCard = ({ 
@@ -144,23 +144,43 @@ const GoalCard = ({
         )}
         onClick={handleClick}
       >
-        {/* Green lantern-like glow effect */}
+        {/* Emerald lantern-like glow effect */}
         {isMouseInCard && (
           <div 
             className="absolute pointer-events-none"
             style={{
               left: `${mousePos.x}px`,
               top: `${mousePos.y}px`,
-              width: '120px',
-              height: '120px',
+              width: '150px',
+              height: '150px',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.07) 40%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 40%, transparent 70%)',
               borderRadius: '50%',
               zIndex: 1,
               mixBlendMode: 'screen',
+              filter: 'blur(8px)',
             }}
           />
         )}
+        
+        {/* Ambient glow spots */}
+        <div 
+          className="absolute top-0 right-0 w-20 h-20 opacity-20 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%)',
+            filter: 'blur(15px)',
+            transform: 'translate(30%, -30%)',
+          }}
+        />
+        
+        <div 
+          className="absolute bottom-0 left-0 w-16 h-16 opacity-10 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%)',
+            filter: 'blur(10px)',
+            transform: 'translate(-30%, 30%)',
+          }}
+        />
         
         {/* Edit button - only visible on hover */}
         {onEdit && isHovered && (
