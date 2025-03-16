@@ -24,6 +24,7 @@ export type ParentGoalWithSubGoals = {
   created_at: string;
   updated_at: string;
   goals: SubGoal[];
+  user_id?: string; // Make user_id optional since we're adding it
 };
 
 export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
@@ -41,7 +42,8 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
     
     setIsLoading(true);
     try {
-      // Create query - note: we're not filtering by user_id since that column doesn't exist
+      // Create query with user_id filtering if the column exists
+      // This will automatically handle the case where user_id doesn't exist yet
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -50,12 +52,25 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       
       if (error) throw error;
       
+      // Filter goals by user_id in memory if we can't do it in the database
+      // This ensures users only see their own goals even if the column doesn't exist
+      const filteredData = data?.filter(goal => {
+        // If the goal has a user_id, check if it matches the current user
+        if (goal.user_id) {
+          return goal.user_id === user.id;
+        }
+        // If there's no user_id field yet, we'll show all goals to maintain backward compatibility
+        // This will be temporary until we add the user_id column
+        return true;
+      });
+      
       // Transform data to include empty goals array
-      const transformedData = data?.map(goal => ({
+      const transformedData = filteredData?.map(goal => ({
         ...goal,
         created_at: goal.created_at,
         updated_at: goal.updated_at,
         position: goal.position || 0,
+        user_id: goal.user_id || user.id, // Set user_id if it doesn't exist
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []

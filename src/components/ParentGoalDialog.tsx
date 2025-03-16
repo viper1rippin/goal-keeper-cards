@@ -53,12 +53,13 @@ const ParentGoalDialog = ({
           description: "Your goal has been updated successfully."
         });
       } else {
-        // Create new goal (without user_id since that column doesn't exist)
+        // Create new goal with user_id
         const { error } = await supabase
           .from('parent_goals')
           .insert([{
             title: values.title,
             description: values.description,
+            user_id: user.id, // Add user_id for new goals
             created_at: now,
             updated_at: now,
             position: 0 // Default position
