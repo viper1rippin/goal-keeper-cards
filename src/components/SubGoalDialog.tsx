@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -77,11 +76,6 @@ const SubGoalDialog = ({
           .eq('id', subGoalToEdit.id);
         
         if (error) throw error;
-        
-        toast({
-          title: "Sub-goal updated",
-          description: "Your sub-goal has been updated successfully.",
-        });
       } else {
         // Otherwise, create a new sub-goal
         const { error } = await supabase
@@ -89,11 +83,6 @@ const SubGoalDialog = ({
           .insert(subGoalData);
         
         if (error) throw error;
-        
-        toast({
-          title: "Sub-goal created",
-          description: "Your sub-goal has been created successfully.",
-        });
       }
       
       // Call the onSave callback to update UI

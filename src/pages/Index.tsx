@@ -152,12 +152,6 @@ const Index = () => {
       goals: updatedGoals
     };
     setParentGoals(updatedParentGoals);
-    
-    // Show success toast
-    toast({
-      title: "Success",
-      description: "Sub-goal updated successfully",
-    });
   };
   
   // Handle drag end event

@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import GoalCard, { GoalCardProps } from "./GoalCard";
 import AnimatedContainer from "./AnimatedContainer";
@@ -223,14 +222,6 @@ const GoalRow = ({
               .eq('id', updatedSubGoals[i].id);
             
             if (error) throw error;
-            
-            // Show success toast only after the last item is updated
-            if (i === updatedSubGoals.length - 1) {
-              toast({
-                title: "Success",
-                description: "Sub-goal order updated",
-              });
-            }
           }, delayOffset);
         }
       }
