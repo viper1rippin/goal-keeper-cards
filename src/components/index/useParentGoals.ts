@@ -21,7 +21,6 @@ export type ParentGoalWithSubGoals = {
   title: string;
   description: string;
   position: number;
-  user_id: string;
   created_at: string;
   updated_at: string;
   goals: SubGoal[];
@@ -42,29 +41,21 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
     
     setIsLoading(true);
     try {
-      // Create query
-      let query = supabase
+      // Create query - note: we're not filtering by user_id since that column doesn't exist
+      const { data, error } = await supabase
         .from('parent_goals')
-        .select('*');
-      
-      // Add filtering by user ID if available
-      if (user.id) {
-        // Note: If the column doesn't exist yet, this will be ignored by Supabase
-        // but won't cause an error in the code
-        query = query.eq('user_id', user.id);
-      }
-      
-      // Add ordering
-      const { data, error } = await query
+        .select('*')
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Transform data to include empty goals array and ensure user_id
+      // Transform data to include empty goals array
       const transformedData = data?.map(goal => ({
         ...goal,
-        user_id: goal.user_id || user.id, // Ensure user_id is set
+        created_at: goal.created_at,
+        updated_at: goal.updated_at,
+        position: goal.position || 0,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
@@ -93,8 +84,7 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
         const { error } = await supabase
           .from('parent_goals')
           .update({ position: i })
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user.id);
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }

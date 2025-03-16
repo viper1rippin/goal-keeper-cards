@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -95,7 +94,6 @@ const SubGoalDialog = ({
       title: values.title,
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
-      user_id: user.id,
       created_at: now,
       updated_at: now,
       position: 0,  // Default position
@@ -111,8 +109,7 @@ const SubGoalDialog = ({
           description: values.description,
           updated_at: now
         })
-        .eq('id', subGoalToEdit.id)
-        .eq('user_id', user.id);
+        .eq('id', subGoalToEdit.id);
       
       if (error) throw error;
     } else {
