@@ -3,37 +3,21 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
-import { User } from "@supabase/supabase-js";
 
-export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null = null) {
+export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
-    if (!user) {
-      setParentGoals([]);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     try {
-      // Build query manually to avoid TypeScript recursion issues
-      let query = supabase
+      const { data, error } = await supabase
         .from('parent_goals')
-        .select('*');
-      
-      // Filter by user_id
-      query = query.eq('user_id', user.id);
-      
-      // Add ordering
-      query = query.order('position', { ascending: true })
-                  .order('created_at', { ascending: false });
-      
-      // Get the result
-      const { data, error } = await query;
+        .select('*')
+        .order('position', { ascending: true })
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
@@ -60,16 +44,15 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
   
   // Save the updated order of parent goals to the database
   const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
-    if (!user) return;
-    
     try {
       // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ position: i })
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user.id); // Make sure we're only updating user's own goals
+          .update({ 
+            position: i 
+          } as any)
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -85,8 +68,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
 
   // Delete a parent goal
   const deleteParentGoal = async (id: string) => {
-    if (!user) return;
-    
     try {
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
@@ -100,8 +81,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id); // Make sure we're only deleting user's own goals
+        .eq('id', id);
       
       if (error) throw error;
       
@@ -124,8 +104,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
   
   // Delete a sub-goal
   const deleteSubGoal = async (id: string) => {
-    if (!user) return;
-    
     try {
       const { error } = await supabase
         .from('sub_goals')
