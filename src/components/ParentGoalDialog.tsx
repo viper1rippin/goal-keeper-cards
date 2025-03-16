@@ -72,57 +72,39 @@ const ParentGoalDialog = ({
     if (!goalToEdit?.id) return;
     
     try {
-      // First set the isDeleting flag to true to disable UI
       setIsDeleting(true);
       
-      // Stop focus first to prevent any state issues
-      console.log("ParentGoalDialog: Stopping focus before deletion");
+      // Stop focus first
       handleStopFocus();
       
       // Delete all sub-goals first
-      console.log("ParentGoalDialog: Deleting sub-goals for parent goal:", goalToEdit.id);
       const { error: subGoalsError } = await supabase
         .from('sub_goals')
         .delete()
         .eq('parent_goal_id', goalToEdit.id);
       
-      if (subGoalsError) {
-        console.error("Error deleting sub-goals:", subGoalsError);
-        throw subGoalsError;
-      }
+      if (subGoalsError) throw subGoalsError;
       
-      console.log("ParentGoalDialog: Sub-goals deleted, proceeding to delete parent goal");
-      
-      // Add a small delay to ensure sub-goals are fully deleted
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      console.log("ParentGoalDialog: Deleting parent goal:", goalToEdit.id);
       // Then delete the parent goal
       const { error } = await supabase
         .from('parent_goals')
         .delete()
         .eq('id', goalToEdit.id);
       
-      if (error) {
-        console.error("Error deleting parent goal:", error);
-        throw error;
-      }
-      
-      console.log("ParentGoalDialog: Parent goal deleted successfully");
+      if (error) throw error;
       
       toast({
         title: "Goal deleted",
         description: "The goal and all its sub-goals have been successfully deleted."
       });
       
-      // First close the delete alert
-      setShowDeleteAlert(false);
-      
-      // Refresh state before closing dialogs
+      // First fetch updated data
       await fetchParentGoals();
       
-      // Then close the main dialog
+      // Then close dialogs
+      setShowDeleteAlert(false);
       onClose();
+      
     } catch (error) {
       console.error("Error deleting goal:", error);
       toast({
@@ -131,7 +113,6 @@ const ParentGoalDialog = ({
         variant: "destructive",
       });
     } finally {
-      // Always reset the isDeleting state, even on error
       setIsDeleting(false);
     }
   };

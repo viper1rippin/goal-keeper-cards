@@ -8,8 +8,7 @@ import {
   AlertDialogDescription, 
   AlertDialogFooter, 
   AlertDialogHeader, 
-  AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
 
@@ -27,19 +26,15 @@ export const DeleteConfirmationDialog = ({
   isDeleting = false
 }: DeleteConfirmationDialogProps) => {
   const handleDelete = async (e: React.MouseEvent) => {
-    // Prevent any default actions
     e.preventDefault();
     e.stopPropagation();
     
     try {
-      console.log("DeleteConfirmationDialog: Starting delete operation");
       await onConfirmDelete();
-      console.log("DeleteConfirmationDialog: Delete operation completed");
-      // Let the parent component control dialog state
-      // The parent is responsible for calling onOpenChange(false)
+      // Close the dialog immediately after successful deletion
+      onOpenChange(false);
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
-      // Ensure dialog closes even if there's an error
       onOpenChange(false);
     }
   };
@@ -47,7 +42,11 @@ export const DeleteConfirmationDialog = ({
   return (
     <AlertDialog 
       open={open} 
-      onOpenChange={isDeleting ? undefined : onOpenChange}
+      onOpenChange={(open) => {
+        if (!isDeleting) {
+          onOpenChange(open);
+        }
+      }}
     >
       <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
         <AlertDialogHeader>

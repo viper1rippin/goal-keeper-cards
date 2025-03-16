@@ -104,40 +104,31 @@ const SubGoalDialog = ({
     if (!subGoalToEdit || !subGoalToEdit.id) return;
     
     try {
-      // First set the isDeleting flag to true to disable UI
       setIsDeleting(true);
       
-      // Stop focus first to prevent any state issues
-      console.log("SubGoalDialog: Stopping focus before deletion");
+      // Stop focus first
       handleStopFocus();
       
-      console.log("SubGoalDialog: Deleting sub-goal:", subGoalToEdit.id);
       const { error } = await supabase
         .from('sub_goals')
         .delete()
         .eq('id', subGoalToEdit.id);
       
-      if (error) {
-        console.error("Error deleting sub-goal:", error);
-        throw error;
-      }
-      
-      console.log("SubGoalDialog: Sub-goal deleted successfully");
+      if (error) throw error;
       
       toast({
         title: "Sub-goal deleted",
         description: "The sub-goal has been successfully deleted.",
       });
       
-      // Close the delete confirmation dialog first
-      setShowDeleteAlert(false);
-      
-      // Refresh state to ensure UI consistency
+      // First fetch updated data
       await fetchParentGoals();
       
-      // Then trigger parent update and close the main dialog
+      // Then close dialogs
+      setShowDeleteAlert(false);
       onSave({ title: "", description: "" }); // Trigger parent component update
       onClose();
+      
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
       toast({
@@ -146,7 +137,6 @@ const SubGoalDialog = ({
         variant: "destructive",
       });
     } finally {
-      // Always reset the isDeleting state, even on error
       setIsDeleting(false);
     }
   };

@@ -21,7 +21,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
+      // Transform data to include empty goals array
       const transformedData = data?.map(goal => ({
         ...goal,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
