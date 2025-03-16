@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from "react";
 import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
@@ -130,13 +129,26 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   
   // Run migration on component mount
   useEffect(() => {
-    // Migrate existing goals to the default user
-    migrateGoalsToUser(user?.email || 'thawlinoo2021@gmail.com').then(result => {
+    // Check if migration is needed and fetch goals
+    migrateGoalsToUser().then(result => {
       if (!result.success) {
         console.error("Goal migration failed:", result.error);
       }
-      // Fetch goals after migration
-      fetchParentGoals();
+      
+      // If migration returned goals directly, use them
+      if (result.goals) {
+        // Transform data to include empty goals array
+        const transformedData = result.goals.map(goal => ({
+          ...goal,
+          goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+            ? goalToEdit.goals
+            : []
+        }));
+        setParentGoals(transformedData);
+      } else {
+        // Otherwise fetch goals normally
+        fetchParentGoals();
+      }
     });
   }, [user?.email]);
 

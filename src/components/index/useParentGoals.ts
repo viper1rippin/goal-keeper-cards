@@ -10,16 +10,15 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
-  const userEmail = user?.email || 'thawlinoo2021@gmail.com'; // Default to thawlinoo2021@gmail.com
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
     setIsLoading(true);
     try {
+      // Get all goals without filtering by user_id (since the column doesn't exist yet)
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', userEmail)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -55,7 +54,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .from('parent_goals')
           .update({ 
             position: i 
-          } as any)
+          })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;

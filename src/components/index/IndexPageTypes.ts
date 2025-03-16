@@ -1,3 +1,4 @@
+
 import { Goal } from "@/components/GoalRow";
 import { DragEndEvent } from '@dnd-kit/core';
 
@@ -7,6 +8,7 @@ export interface ParentGoal {
   description: string;
   goals: Goal[];
   position?: number;
+  // Make user_id optional since the column doesn't exist yet
   user_id?: string;
 }
 
@@ -32,4 +34,3 @@ export interface IndexPageContextType {
   closeDialog: () => void;
   fetchParentGoals: () => Promise<void>;
 }
-
