@@ -1,18 +1,10 @@
-
 import React from "react";
 import GoalRow, { Goal } from "@/components/GoalRow";
 import { Button } from "@/components/ui/button";
 import AnimatedContainer from "./AnimatedContainer";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-
-interface ParentGoal {
-  id: string;
-  title: string;
-  description: string;
-  goals: Goal[];
-  position?: number;
-}
+import { ParentGoal } from "./index/IndexPageTypes";
 
 interface GoalsListProps {
   parentGoals: ParentGoal[];
