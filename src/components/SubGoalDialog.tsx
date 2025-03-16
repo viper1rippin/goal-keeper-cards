@@ -140,7 +140,7 @@ const SubGoalDialog = ({
           onSubmit={onSubmit} 
           subGoalToEdit={subGoalToEdit}
           onClose={onClose}
-          onDelete={subGoalToEdit?.id ? handleDeleteSubGoal : undefined}
+          onDelete={subGoalToEdit?.id && onDelete ? handleDeleteSubGoal : undefined}
         />
       </DialogContent>
     </Dialog>
