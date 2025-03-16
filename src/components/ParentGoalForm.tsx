@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Define form schema using zod
@@ -58,14 +57,7 @@ const ParentGoalForm = ({ initialData, onSubmit, onCancel }: ParentGoalFormProps
         <h3 className="text-lg font-medium">
           {initialData ? "Edit Goal" : "Create New Goal"}
         </h3>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onCancel}
-          className="h-7 w-7"
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        {/* Removed the duplicate X button that was here */}
       </div>
 
       <Form {...form}>

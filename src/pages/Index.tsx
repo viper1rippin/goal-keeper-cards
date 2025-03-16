@@ -17,6 +17,7 @@ interface ParentGoal {
   title: string;
   description: string;
   goals: Goal[];
+  position?: number;
 }
 
 const Index = () => {
@@ -56,6 +57,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
+        .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -78,6 +80,28 @@ const Index = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Save the updated order of parent goals to the database
+  const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
+    try {
+      // Update each goal with its new position
+      for (let i = 0; i < updatedGoals.length; i++) {
+        const { error } = await supabase
+          .from('parent_goals')
+          .update({ position: i })
+          .eq('id', updatedGoals[i].id);
+        
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error("Error saving goal order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save goal order. Please try again.",
+        variant: "destructive",
+      });
     }
   };
   
@@ -148,7 +172,12 @@ const Index = () => {
           }
         }
         
-        return arrayMove(items, oldIndex, newIndex);
+        const reorderedItems = arrayMove(items, oldIndex, newIndex);
+        
+        // Save the new order to the database
+        saveParentGoalOrder(reorderedItems);
+        
+        return reorderedItems;
       });
       
       toast({
