@@ -1,7 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
-import GoalRow from "@/components/GoalRow";
+import GoalRow, { Goal } from "@/components/GoalRow";
 import AnimatedContainer from "@/components/AnimatedContainer";
 
 // Sample data for our goals
@@ -87,9 +87,34 @@ const goalData = [
 ];
 
 const Index = () => {
+  // State for active focus goal
+  const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
+  const [activeGoalIndices, setActiveGoalIndices] = useState<{rowIndex: number, goalIndex: number} | null>(null);
+  
+  // State for focus timer visibility
+  const [showFocusTimer, setShowFocusTimer] = useState(false);
+  
+  // Handle goal focus
+  const handleGoalFocus = (goal: Goal, rowIndex: number, goalIndex: number) => {
+    setActiveGoal(goal);
+    setActiveGoalIndices({ rowIndex, goalIndex });
+    setShowFocusTimer(true);
+  };
+  
+  // Handle stopping focus
+  const handleStopFocus = () => {
+    setActiveGoal(null);
+    setActiveGoalIndices(null);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-apple-dark">
-      <Header />
+      <Header 
+        activeGoal={activeGoal}
+        showFocusTimer={showFocusTimer}
+        setShowFocusTimer={setShowFocusTimer}
+        onStopFocus={handleStopFocus}
+      />
       
       <main className="flex-1 py-10 px-6 sm:px-8 md:px-12 lg:px-16">
         <AnimatedContainer className="max-w-7xl mx-auto mb-12">
@@ -98,13 +123,15 @@ const Index = () => {
             <p className="text-slate-400">Track your progress and stay focused on your goals.</p>
           </div>
           
-          {goalData.map((rowData, index) => (
+          {goalData.map((rowData, rowIndex) => (
             <GoalRow
-              key={index}
+              key={rowIndex}
               title={rowData.title}
               description={rowData.description}
               goals={rowData.goals}
-              index={index}
+              index={rowIndex}
+              activeGoal={activeGoalIndices}
+              onGoalFocus={handleGoalFocus}
             />
           ))}
         </AnimatedContainer>

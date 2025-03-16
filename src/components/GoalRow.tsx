@@ -4,16 +4,31 @@ import GoalCard, { GoalCardProps } from "./GoalCard";
 import AnimatedContainer from "./AnimatedContainer";
 import { useState } from "react";
 
+export interface Goal {
+  title: string;
+  description: string;
+  progress: number;
+}
+
 interface GoalRowProps {
   title: string;
   description: string;
-  goals: Omit<GoalCardProps, 'index' | 'isFocused' | 'onFocus'>[];
+  goals: Goal[];
   index: number;
+  activeGoal?: {rowIndex: number, goalIndex: number} | null;
+  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
 }
 
-const GoalRow = ({ title, description, goals, index }: GoalRowProps) => {
+const GoalRow = ({ 
+  title, 
+  description, 
+  goals, 
+  index: rowIndex,
+  activeGoal,
+  onGoalFocus
+}: GoalRowProps) => {
   // Calculate delay based on row index for staggered animation
-  const rowDelay = index * 100;
+  const rowDelay = rowIndex * 100;
   
   // Track which goal is currently focused
   const [focusedGoalIndex, setFocusedGoalIndex] = useState<number | null>(null);
@@ -33,15 +48,23 @@ const GoalRow = ({ title, description, goals, index }: GoalRowProps) => {
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {goals.map((goal, idx) => (
-          <GoalCard 
-            key={idx}
-            {...goal}
-            index={idx}
-            isFocused={focusedGoalIndex === idx}
-            onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === idx ? null : idx)}
-          />
-        ))}
+        {goals.map((goal, goalIndex) => {
+          const isActiveGoal = activeGoal?.rowIndex === rowIndex && activeGoal?.goalIndex === goalIndex;
+          
+          return (
+            <GoalCard 
+              key={goalIndex}
+              title={goal.title}
+              description={goal.description}
+              progress={goal.progress}
+              index={goalIndex}
+              isFocused={focusedGoalIndex === goalIndex}
+              isActiveFocus={isActiveGoal}
+              onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === goalIndex ? null : goalIndex)}
+              onStartFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
+            />
+          );
+        })}
       </div>
     </AnimatedContainer>
   );

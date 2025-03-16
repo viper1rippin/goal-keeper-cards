@@ -7,6 +7,7 @@ import { Play, Pause, Timer, X } from "lucide-react";
 import UserBadge from "./UserBadge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Goal } from "./GoalRow";
 
 // Points earned per minute of focus (adjusted for 24-hour level-up)
 // 24 hours = 1440 minutes, so 1/1440 points per minute = 1 point per 24 hours
@@ -14,19 +15,32 @@ const POINTS_PER_MINUTE = 1 / 1440;
 
 interface FocusTimerProps {
   userLevel: number;
-  onLevelUp: (newLevel: number, points: number) => void;
+  onLevelUp: (newLevel: number) => void;
   onClose: () => void;
+  activeGoal?: Goal | null;
 }
 
 const FocusTimer: React.FC<FocusTimerProps> = ({ 
   userLevel, 
   onLevelUp,
-  onClose 
+  onClose,
+  activeGoal
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [time, setTime] = useState(0);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const { toast } = useToast();
+
+  // Auto-start timer when activeGoal changes to non-null
+  useEffect(() => {
+    if (activeGoal && !isActive) {
+      setIsActive(true);
+      toast({
+        title: `Focusing on: ${activeGoal.title}`,
+        description: "Timer started automatically. Stay focused!",
+      });
+    }
+  }, [activeGoal, toast]);
 
   // Calculate points needed for next level
   const getPointsForNextLevel = (level: number) => {
@@ -55,7 +69,9 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     
     if (!isActive) {
       toast({
-        title: "Focus mode activated",
+        title: activeGoal 
+          ? `Focusing on: ${activeGoal.title}` 
+          : "Focus mode activated",
         description: "Stay focused and earn points to level up",
       });
     }
@@ -73,7 +89,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
       // Check if user leveled up
       const totalPoints = earnedPoints + newPoints;
       if (totalPoints >= pointsForNextLevel) {
-        onLevelUp(userLevel + 1, totalPoints);
+        onLevelUp(userLevel + 1);
         
         toast({
           title: "Level Up!",
@@ -119,7 +135,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
         <CardTitle className="text-xl font-bold">
           <span className="flex items-center">
             <Timer className="mr-2" size={18} />
-            Johnomoto Focus Timer
+            {activeGoal ? `Focusing: ${activeGoal.title}` : "Focus Timer"}
           </span>
         </CardTitle>
         <Button 
@@ -134,6 +150,13 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
       
       <CardContent>
         <div className="space-y-4">
+          {activeGoal && (
+            <div className="glass-card p-3 rounded border border-emerald/20 mb-2 text-sm">
+              <div className="font-medium text-emerald-light mb-1">{activeGoal.title}</div>
+              <div className="text-slate-400 text-xs">{activeGoal.description}</div>
+            </div>
+          )}
+        
           <div className="flex items-center justify-between">
             <UserBadge level={userLevel} />
             <div className="text-xs text-slate-400">
