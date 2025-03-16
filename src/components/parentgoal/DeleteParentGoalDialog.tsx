@@ -28,7 +28,7 @@ const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+          className="text-slate-400 hover:text-white hover:bg-slate-800/30"
         >
           Delete
         </Button>
