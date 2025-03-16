@@ -112,36 +112,17 @@ const Index = () => {
     setIsDialogOpen(true);
   };
   
-  // Handle goal focus - this is the key function to ensure only one goal is active
+  // Handle goal focus
   const handleGoalFocus = (goal: Goal, rowIndex: number, goalIndex: number) => {
-    // If clicking on the already active goal, do nothing (maintain active state)
-    if (activeGoalIndices?.rowIndex === rowIndex && activeGoalIndices?.goalIndex === goalIndex) {
-      return;
-    }
-    
-    // Otherwise, set the new active goal
     setActiveGoal(goal);
     setActiveGoalIndices({ rowIndex, goalIndex });
     setShowFocusTimer(true);
-    
-    // Show toast to indicate the focus change
-    toast({
-      title: `Now focusing on: ${goal.title}`,
-      description: "Focus mode activated for this goal",
-    });
   };
   
   // Handle stopping focus
   const handleStopFocus = () => {
-    // Clear both the active goal and its indices
     setActiveGoal(null);
     setActiveGoalIndices(null);
-    
-    // Show toast to indicate focus has stopped
-    toast({
-      title: "Focus ended",
-      description: "You've stopped focusing on all goals",
-    });
   };
   
   // Handle updating sub-goals for a parent goal

@@ -140,7 +140,6 @@ const GoalCard = ({
         ref={cardRef}
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
-          // Only use the active gradients when this card is the active focused card
           isActiveFocus
             ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
