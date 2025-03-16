@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { KeyboardEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +24,16 @@ export const SubGoalForm = ({
   onDelete, 
   subGoalToEdit 
 }: SubGoalFormProps) => {
+  
+  // Handle key press in the description field
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Check if Enter is pressed (without Shift key to allow multiline text)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent new line
+      form.handleSubmit(onSubmit)(); // Submit the form
+    }
+  };
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -56,6 +66,7 @@ export const SubGoalForm = ({
                   {...field} 
                   placeholder="Enter sub-goal description"
                   className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
+                  onKeyDown={handleKeyDown}
                 />
               </FormControl>
               <FormMessage />
