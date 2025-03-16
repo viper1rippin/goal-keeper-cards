@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 import { DeleteConfirmationDialog } from "./parentgoal/DeleteConfirmationDialog";
+import { useIndexPage } from "./index/IndexPageContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ const ParentGoalDialog = ({
   onGoalSaved
 }: ParentGoalDialogProps) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const { handleStopFocus } = useIndexPage();
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
@@ -86,6 +88,9 @@ const ParentGoalDialog = ({
         .eq('id', goalToEdit.id);
       
       if (error) throw error;
+      
+      // Reset active goal focus before closing dialogs
+      handleStopFocus();
       
       toast({
         title: "Goal deleted",

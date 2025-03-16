@@ -25,7 +25,7 @@ export const DeleteConfirmationDialog = ({
   <AlertDialog open={open} onOpenChange={onOpenChange}>
     <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
       <AlertDialogHeader>
-        <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
+        <AlertDialogTitle className="text-white">Delete Sub-Goal</AlertDialogTitle>
         <AlertDialogDescription className="text-slate-400">
           This action cannot be undone. This will permanently delete the sub-goal.
         </AlertDialogDescription>

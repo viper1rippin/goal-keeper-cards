@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteConfirmationDialog } from './subgoal/DeleteConfirmationDialog';
 import { SubGoalForm } from './subgoal/SubGoalForm';
+import { useIndexPage } from './index/IndexPageContext';
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -36,6 +38,7 @@ const SubGoalDialog = ({
   parentGoalId
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
+  const { handleStopFocus, activeGoalIndices } = useIndexPage();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   
   // Initialize form with default values or editing values
@@ -109,6 +112,11 @@ const SubGoalDialog = ({
     if (!subGoalToEdit || !subGoalToEdit.id) return;
     
     try {
+      // Check if this sub-goal is the active one, if so, reset focus
+      if (activeGoalIndices && subGoalToEdit.id) {
+        handleStopFocus();
+      }
+      
       const { error } = await supabase
         .from('sub_goals')
         .delete()

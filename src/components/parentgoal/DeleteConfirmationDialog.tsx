@@ -37,6 +37,7 @@ export const DeleteConfirmationDialog = ({
         <AlertDialogAction 
           onClick={onConfirmDelete}
           className="bg-red-600 hover:bg-red-700 text-white"
+          data-testid="confirm-delete-button"
         >
           Delete
         </AlertDialogAction>
