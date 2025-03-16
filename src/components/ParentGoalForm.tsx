@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,15 @@ const ParentGoalForm = ({
     }
   };
 
+  // Handle key press in the description field
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Check if Enter is pressed (without Shift key to allow multiline text)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent new line
+      form.handleSubmit(handleSubmit)(); // Submit the form
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -99,6 +108,7 @@ const ParentGoalForm = ({
                     placeholder="Describe your goal" 
                     {...field}
                     className="min-h-[100px] bg-background/50 border-slate-800/30 focus:border-emerald/30"
+                    onKeyDown={handleKeyDown}
                   />
                 </FormControl>
                 <FormMessage />
