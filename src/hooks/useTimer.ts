@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { POINTS_PER_MINUTE, getPointsForNextLevel } from "@/utils/timerUtils";
 import { Goal } from "@/components/GoalRow";
@@ -16,42 +16,51 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
   const [earnedPoints, setEarnedPoints] = useState(0);
   const { toast } = useToast();
   
+  // Use a ref to track interval ID to prevent issues with stale closures
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
 
   // Auto-start timer when activeGoal changes to non-null
   useEffect(() => {
-    if (activeGoal && !isActive) {
+    if (activeGoal && !isActive && time === 0) {
+      // Only auto-start if the timer is not already running and at zero
       setIsActive(true);
-      toast({
-        title: `Focusing on: ${activeGoal.title}`,
-        description: "Timer started automatically. Stay focused!",
-      });
     }
-  }, [activeGoal, isActive, toast]);
+  }, [activeGoal, isActive, time]);
 
-  // Toggle timer
-  const toggleTimer = () => {
-    setIsActive((prevActive) => !prevActive);
-    
-    if (!isActive) {
+  // Show toast when timer starts/pauses, but separate from the state update
+  useEffect(() => {
+    if (isActive) {
       toast({
         title: activeGoal 
           ? `Focusing on: ${activeGoal.title}` 
           : "Focus mode activated",
         description: "Stay focused and earn points to level up",
       });
-    } else {
-      // When pausing
+    } else if (time > 0) { // Only show pause toast if timer was running
       toast({
         title: "Timer paused",
         description: "Your focus session is paused. Resume when you're ready.",
       });
     }
+  }, [isActive, activeGoal, toast, time]);
+
+  // Toggle timer separately from the toast notifications
+  const toggleTimer = () => {
+    setIsActive(prevActive => !prevActive);
   };
 
   // Reset timer
   const resetTimer = () => {
+    // First ensure timer is stopped
     setIsActive(false);
+    
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     
     // Only add points if there was some time spent
     if (time > 0) {
@@ -71,25 +80,33 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
       }
     }
     
+    // Reset the timer
     setTime(0);
   };
 
-  // Timer effect
+  // Timer effect, now using the ref to track the interval
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    
-    if (isActive) {
-      interval = setInterval(() => {
-        setTime(prevTime => prevTime + 1);
-      }, 1000);
-    } else if (!isActive && time !== 0) {
-      interval && clearInterval(interval);
+    // Clean up existing interval before setting a new one
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
     
+    if (isActive) {
+      // Set up a new interval if timer is active
+      intervalRef.current = setInterval(() => {
+        setTime(prevTime => prevTime + 1);
+      }, 1000);
+    }
+    
+    // Cleanup function
     return () => {
-      interval && clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [isActive, time]);
+  }, [isActive]); // Only depend on isActive
 
   return {
     isActive,

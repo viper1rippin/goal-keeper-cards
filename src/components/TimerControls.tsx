@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Timer } from "lucide-react";
+import { Pause, Play, TimerReset } from "lucide-react";
 
 interface TimerControlsProps {
   isActive: boolean;
@@ -24,6 +24,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
         className="w-full"
         disabled={time === 0}
       >
+        <TimerReset className="mr-2" size={16} />
         Reset
       </Button>
       <Button
