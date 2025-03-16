@@ -27,7 +27,7 @@ const GoalCardContent = ({
         "font-medium text-lg mb-2",
         isActiveFocus 
           ? "text-white" 
-          : (isFocused || isHovered ? "text-slate-100" : "text-slate-400")
+          : (isFocused || isHovered ? "text-slate-100" : "text-slate-300")
       )}>{title}</h3>
       <p className={cn(
         "text-sm flex-1 mb-4",

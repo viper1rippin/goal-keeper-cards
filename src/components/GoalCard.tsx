@@ -119,13 +119,13 @@ const GoalCard = ({
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
           // Only use the active gradients when this card is the active focused card
           isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/40 shadow-lg shadow-emerald/25`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-md shadow-emerald/20` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
-                : "bg-slate-900/80 border-slate-800/60 opacity-75",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-sm shadow-emerald/15 opacity-95`
+                : "bg-slate-900/90 border-slate-800/60 opacity-85",
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/20",
           isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
         )}
         onClick={handleClick}
@@ -142,9 +142,9 @@ const GoalCard = ({
         
         {/* Subtle depth-enhancing gradient overlay */}
         <div 
-          className="absolute inset-0 opacity-15 pointer-events-none"
+          className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, transparent 40%, rgba(0,0,0,0.15) 100%)',
             zIndex: 0,
           }}
         />

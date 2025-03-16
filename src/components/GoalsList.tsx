@@ -1,3 +1,4 @@
+
 import React from "react";
 import GoalRow, { Goal } from "@/components/GoalRow";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
   );
 
   return (
-    <AnimatedContainer className="max-w-7xl mx-auto">
+    <AnimatedContainer className="w-full max-w-6xl mx-auto">
       <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -46,7 +47,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
           strategy={verticalListSortingStrategy}
         >
           {parentGoals.map((parentGoal, rowIndex) => (
-            <div key={parentGoal.id} className="relative">
+            <div key={parentGoal.id} className="relative mb-8 last:mb-0">
               <GoalRow
                 id={parentGoal.id}
                 title={parentGoal.title}
