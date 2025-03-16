@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import GoalCard, { GoalCardProps } from "./GoalCard";
 import AnimatedContainer from "./AnimatedContainer";
 import { useState } from "react";
+import SubGoalAddCard from "./SubGoalAddCard";
 
 export interface Goal {
   title: string;
@@ -32,6 +33,12 @@ const GoalRow = ({
   
   // Track which goal is currently focused
   const [focusedGoalIndex, setFocusedGoalIndex] = useState<number | null>(null);
+  
+  // Handle adding a new sub-goal
+  const handleAddSubGoal = () => {
+    console.log("Add new sub-goal for parent goal:", title);
+    // This will be implemented later to open a dialog for adding a sub-goal
+  };
   
   return (
     <AnimatedContainer 
@@ -65,6 +72,12 @@ const GoalRow = ({
             />
           );
         })}
+        
+        {/* Add Sub-Goal Card */}
+        <SubGoalAddCard 
+          onClick={handleAddSubGoal} 
+          index={goals.length}
+        />
       </div>
     </AnimatedContainer>
   );
