@@ -1,11 +1,10 @@
 
 import React, { createContext, useContext, useEffect } from "react";
-import { Goal } from "@/components/GoalRow";
+import { Goal, IndexPageContextType } from "./IndexPageTypes";
 import { useToast } from "@/hooks/use-toast";
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
-import { IndexPageContextType } from "./IndexPageTypes";
-import { useParentGoals, ParentGoalWithSubGoals } from "./useParentGoals";
+import { useParentGoals, ParentGoalWithSubGoals, SubGoal } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
 
@@ -63,6 +62,7 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const parentGoal = updatedParentGoals[parentIndex];
     
     if (parentGoal) {
+      // Convert Goal to SubGoal when updating the goals array
       parentGoal.goals = parentGoal.goals.filter(goal => goal.id !== id);
       setParentGoals(updatedParentGoals);
     }
@@ -71,10 +71,22 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Handle updating sub-goals for a parent goal
   const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
     const updatedParentGoals = [...parentGoals];
+    
+    // Convert Goal[] to SubGoal[]
+    const convertedGoals: SubGoal[] = updatedGoals.map(goal => ({
+      id: goal.id || '',
+      title: goal.title,
+      description: goal.description,
+      progress: goal.progress,
+      completed: false,
+      position: 0
+    }));
+    
     updatedParentGoals[parentIndex] = {
       ...updatedParentGoals[parentIndex],
-      goals: updatedGoals
+      goals: convertedGoals
     };
+    
     setParentGoals(updatedParentGoals);
   };
   

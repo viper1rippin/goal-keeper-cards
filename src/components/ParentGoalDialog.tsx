@@ -45,8 +45,7 @@ const ParentGoalDialog = ({
             description: values.description,
             updated_at: now
           })
-          .eq('id', goalToEdit.id)
-          .eq('user_id', user.id);
+          .eq('id', goalToEdit.id);
 
         if (error) throw error;
         toast({ 
@@ -62,7 +61,8 @@ const ParentGoalDialog = ({
             description: values.description,
             user_id: user.id,
             created_at: now,
-            updated_at: now
+            updated_at: now,
+            position: 0 // Default position
           }]);
 
         if (error) throw error;
@@ -95,8 +95,7 @@ const ParentGoalDialog = ({
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', goalToEdit.id)
-        .eq('user_id', user.id);
+        .eq('parent_goal_id', goalToEdit.id);
       
       if (subGoalError) throw subGoalError;
       
@@ -104,8 +103,7 @@ const ParentGoalDialog = ({
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id)
-        .eq('user_id', user.id);
+        .eq('id', goalToEdit.id);
       
       if (error) throw error;
       

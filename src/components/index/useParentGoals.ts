@@ -3,14 +3,16 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Goal } from "./IndexPageTypes";
 
 // Define a simplified type for SubGoal that doesn't create circular references
-type SubGoal = {
+export type SubGoal = {
   id: string;
   title: string;
   description: string;
   completed: boolean;
   position: number;
+  progress?: number;
 };
 
 // Define a type for ParentGoal that uses the simplified SubGoal type
@@ -43,8 +45,12 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       // Create query
       let query = supabase
         .from('parent_goals')
-        .select('*')
-        .eq('user_id', user.id);
+        .select('*');
+      
+      // Add filtering by user ID if available
+      if (user.id) {
+        query = query.eq('user_id', user.id);
+      }
       
       // Add ordering
       const { data, error } = await query
@@ -56,10 +62,11 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       // Transform data to include empty goals array if no data
       const transformedData = data?.map(goal => ({
         ...goal,
+        user_id: goal.user_id || user.id, // Ensure user_id is set
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
-      })) || [];
+      })) as ParentGoalWithSubGoals[] || [];
       
       setParentGoals(transformedData);
     } catch (error) {
@@ -108,8 +115,7 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', id)
-        .eq('user_id', user.id);
+        .eq('parent_goal_id', id);
       
       if (subGoalError) throw subGoalError;
       
@@ -117,8 +123,7 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
       
       if (error) throw error;
       
@@ -147,8 +152,7 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       const { error } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
       
       if (error) throw error;
       

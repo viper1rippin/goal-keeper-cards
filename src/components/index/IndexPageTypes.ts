@@ -1,7 +1,14 @@
 
-import { Goal } from "@/components/GoalRow";
 import { DragEndEvent } from "@dnd-kit/core";
 import { ParentGoalWithSubGoals } from "./useParentGoals";
+
+// Define the Goal type here to avoid circular imports
+export interface Goal {
+  id?: string;
+  title: string;
+  description: string;
+  progress: number;
+}
 
 export interface IndexPageContextType {
   // State

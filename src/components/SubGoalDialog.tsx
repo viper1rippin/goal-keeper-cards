@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Goal } from './GoalRow';
+import { Goal } from './index/IndexPageTypes';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
@@ -97,7 +97,9 @@ const SubGoalDialog = ({
       progress: subGoalToEdit?.progress || 0,
       user_id: user.id,
       created_at: now,
-      updated_at: now
+      updated_at: now,
+      position: 0,  // Default position
+      completed: false // Default completed status
     };
     
     // If editing, update the existing sub-goal
