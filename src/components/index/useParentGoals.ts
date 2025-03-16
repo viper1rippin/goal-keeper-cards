@@ -18,21 +18,22 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
-      // First get all parent goals
+      // First get all parent goals - remove the user_id filter until the column exists
       const { data: parentData, error: parentError } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (parentError) throw parentError;
       
       // Initialize the results array with empty goals arrays
-      const results = (parentData || []).map(goal => ({
-        ...goal,
-        goals: [] as Goal[]
-      }));
+      const results = (parentData || []).map(goal => {
+        return {
+          ...goal,
+          goals: [] as Goal[]
+        };
+      });
       
       // If there's a specific goal being edited with goals already loaded, use those
       if (goalToEdit?.id && goalToEdit?.goals) {
@@ -65,8 +66,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         const { error } = await supabase
           .from('parent_goals')
           .update({ position: i })
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user.id);
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -97,8 +97,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
       
       if (error) throw error;
       
