@@ -56,7 +56,12 @@ const GoalsList: React.FC<GoalsListProps> = ({
                 id={parentGoal.id}
                 title={parentGoal.title}
                 description={parentGoal.description}
-                goals={parentGoal.goals}
+                goals={parentGoal.goals.map(g => ({
+                  id: g.id,
+                  title: g.title,
+                  description: g.description,
+                  progress: g.progress || 0 // Ensure progress is provided
+                }))}
                 index={rowIndex}
                 activeGoal={activeGoalIndices}
                 onGoalFocus={onGoalFocus}

@@ -62,7 +62,7 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const parentGoal = updatedParentGoals[parentIndex];
     
     if (parentGoal) {
-      // Convert Goal to SubGoal when updating the goals array
+      // Filter out the deleted sub-goal
       parentGoal.goals = parentGoal.goals.filter(goal => goal.id !== id);
       setParentGoals(updatedParentGoals);
     }
@@ -82,12 +82,14 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       position: 0
     }));
     
-    updatedParentGoals[parentIndex] = {
-      ...updatedParentGoals[parentIndex],
-      goals: convertedGoals
-    };
-    
-    setParentGoals(updatedParentGoals);
+    if (updatedParentGoals[parentIndex]) {
+      updatedParentGoals[parentIndex] = {
+        ...updatedParentGoals[parentIndex],
+        goals: convertedGoals
+      };
+      
+      setParentGoals(updatedParentGoals);
+    }
   };
   
   // Handle drag end event

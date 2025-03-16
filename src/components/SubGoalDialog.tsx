@@ -1,14 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Goal } from './index/IndexPageTypes';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/contexts/AuthContext";
+import { Goal } from './index/IndexPageTypes';
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -51,7 +51,7 @@ const SubGoalDialog = ({
   });
 
   // Reset form when dialog opens/closes or when editing a different goal
-  useEffect(() => {
+  React.useEffect(() => {
     if (isOpen) {
       form.reset({
         title: subGoalToEdit?.title || "",

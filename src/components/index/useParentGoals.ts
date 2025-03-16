@@ -5,17 +5,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Goal } from "./IndexPageTypes";
 
-// Define a simplified type for SubGoal that doesn't create circular references
+// Define a type for SubGoal that includes all necessary properties
 export type SubGoal = {
   id: string;
   title: string;
   description: string;
   completed: boolean;
   position: number;
-  progress?: number;
+  progress: number; // Make this required to match Goal type
 };
 
-// Define a type for ParentGoal that uses the simplified SubGoal type
+// Define a type for ParentGoal that uses the SubGoal type
 export type ParentGoalWithSubGoals = {
   id: string;
   title: string;
@@ -49,6 +49,8 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       
       // Add filtering by user ID if available
       if (user.id) {
+        // Note: If the column doesn't exist yet, this will be ignored by Supabase
+        // but won't cause an error in the code
         query = query.eq('user_id', user.id);
       }
       
@@ -59,7 +61,7 @@ export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
+      // Transform data to include empty goals array and ensure user_id
       const transformedData = data?.map(goal => ({
         ...goal,
         user_id: goal.user_id || user.id, // Ensure user_id is set
