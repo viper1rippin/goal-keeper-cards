@@ -8,6 +8,8 @@ export interface GoalCardProps {
   description: string;
   progress: number;
   index: number;
+  isFocused: boolean;
+  onFocus: () => void;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -30,7 +32,7 @@ const progressGradientVariations = [
   "from-emerald/90 to-emerald-light",
 ];
 
-const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
+const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
@@ -55,14 +57,25 @@ const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
       delay={delay}
       className="w-full"
     >
-      <div className={cn(
-        "glass-card rounded-lg p-5 h-full hover-scale bg-gradient-to-br",
-        cardGradient,
-        progress === 100 && "border-emerald/20 shadow-lg shadow-emerald/5"
-      )}>
+      <div 
+        className={cn(
+          "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300",
+          isFocused 
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
+            : "bg-slate-900/70 border-slate-800/50 opacity-70 hover:opacity-90",
+          progress === 100 && !isFocused && "border-emerald/10"
+        )}
+        onClick={onFocus}
+      >
         <div className="flex flex-col h-full">
-          <h3 className="font-medium text-lg mb-2">{title}</h3>
-          <p className="text-slate-400 text-sm flex-1 mb-4">{description}</p>
+          <h3 className={cn(
+            "font-medium text-lg mb-2",
+            isFocused ? "text-slate-100" : "text-slate-400"
+          )}>{title}</h3>
+          <p className={cn(
+            "text-sm flex-1 mb-4",
+            isFocused ? "text-slate-300" : "text-slate-500"
+          )}>{description}</p>
           
           <div className="mt-auto">
             <div className="flex justify-between text-xs text-slate-400 mb-1.5">
@@ -73,7 +86,7 @@ const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
               <div 
                 className={cn(
                   "h-full bg-gradient-to-r transition-all duration-700 ease-out",
-                  progressGradient
+                  isFocused ? progressGradient : "from-emerald/40 to-emerald-light/40"
                 )}
                 style={{ width: `${progress}%` }}
               />
