@@ -29,24 +29,30 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
     }
   }, [activeGoal, isActive, toast]);
 
-  // Toggle timer
+  // Toggle timer - this is the function that will be called when the pause/play button is clicked
   const toggleTimer = () => {
-    setIsActive((prevActive) => !prevActive);
-    
-    if (!isActive) {
-      toast({
-        title: activeGoal 
-          ? `Focusing on: ${activeGoal.title}` 
-          : "Focus mode activated",
-        description: "Stay focused and earn points to level up",
-      });
-    } else {
-      // When pausing
-      toast({
-        title: "Timer paused",
-        description: "Your focus session is paused. Resume when you're ready.",
-      });
-    }
+    // Explicitly toggle the state using a function to ensure we get the latest state
+    setIsActive((prevActive) => {
+      const newActiveState = !prevActive;
+      
+      if (newActiveState) {
+        // Starting/resuming timer
+        toast({
+          title: activeGoal 
+            ? `Focusing on: ${activeGoal.title}` 
+            : "Focus mode activated",
+          description: "Stay focused and earn points to level up",
+        });
+      } else {
+        // Pausing timer
+        toast({
+          title: "Timer paused",
+          description: "Your focus session is paused. Resume when you're ready.",
+        });
+      }
+      
+      return newActiveState;
+    });
   };
 
   // Reset timer
@@ -74,22 +80,22 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
     setTime(0);
   };
 
-  // Timer effect
+  // Timer effect - this should run when isActive changes
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     
     if (isActive) {
+      // Start the timer
       interval = setInterval(() => {
         setTime(prevTime => prevTime + 1);
       }, 1000);
-    } else if (!isActive && time !== 0) {
-      interval && clearInterval(interval);
-    }
+    } 
     
+    // Clean up function
     return () => {
-      interval && clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, [isActive, time]);
+  }, [isActive]); // Only re-run when isActive changes
 
   return {
     isActive,
