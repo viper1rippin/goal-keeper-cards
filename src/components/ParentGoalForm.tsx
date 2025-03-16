@@ -108,8 +108,7 @@ const ParentGoalForm = ({
                   <Textarea 
                     placeholder="Describe your goal" 
                     {...field}
-                    softFocus
-                    className="min-h-[100px] bg-background/50 border-slate-800/30"
+                    className="min-h-[100px] bg-background/50 border-slate-800/30 focus:border-emerald/30 focus:ring-emerald/20"
                     onKeyDown={handleKeyDown}
                   />
                 </FormControl>
