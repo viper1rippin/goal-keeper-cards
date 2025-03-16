@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 
 // Define form schema using zod
 const formSchema = z.object({
@@ -21,12 +22,14 @@ interface ParentGoalFormProps {
   initialData?: { id?: string; title: string; description: string } | null;
   onSubmit: (values: FormValues) => Promise<void>;
   onCancel: () => void;
+  onDelete?: () => Promise<void>;
 }
 
 const ParentGoalForm = ({ 
   initialData, 
   onSubmit, 
-  onCancel
+  onCancel,
+  onDelete
 }: ParentGoalFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -111,8 +114,20 @@ const ParentGoalForm = ({
             )}
           />
 
-          <div className="flex justify-end pt-4">
-            <div className="flex gap-2">
+          <div className="flex justify-between pt-4">
+            {/* Delete button shown only for existing goals */}
+            {initialData && onDelete && (
+              <Button 
+                variant="ghost" 
+                type="button"
+                onClick={onDelete}
+                className="text-red-400 hover:bg-red-900/20 hover:text-red-300"
+              >
+                <Trash2 size={16} className="mr-1" />
+                Delete
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
               <Button 
                 variant="ghost" 
                 onClick={onCancel}
