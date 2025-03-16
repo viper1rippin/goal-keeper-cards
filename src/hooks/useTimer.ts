@@ -31,7 +31,7 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
 
   // Toggle timer
   const toggleTimer = () => {
-    setIsActive(!isActive);
+    setIsActive((prevActive) => !prevActive);
     
     if (!isActive) {
       toast({
@@ -55,7 +55,7 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
     
     // Only add points if there was some time spent
     if (time > 0) {
-      const newPoints = (time / 60) * POINTS_PER_MINUTE;
+      const newPoints = Math.floor((time / 60) * POINTS_PER_MINUTE);
       setEarnedPoints(prev => prev + newPoints);
       
       // Check if user leveled up
@@ -80,7 +80,7 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
     
     if (isActive) {
       interval = setInterval(() => {
-        setTime(time => time + 1);
+        setTime(prevTime => prevTime + 1);
       }, 1000);
     } else if (!isActive && time !== 0) {
       interval && clearInterval(interval);
