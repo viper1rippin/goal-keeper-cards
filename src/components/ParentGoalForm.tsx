@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 
 // Define form schema using zod
 const formSchema = z.object({
@@ -21,9 +22,17 @@ interface ParentGoalFormProps {
   initialData?: { id?: string; title: string; description: string } | null;
   onSubmit: (values: FormValues) => Promise<void>;
   onCancel: () => void;
+  showDelete?: boolean;
+  onDelete?: () => void;
 }
 
-const ParentGoalForm = ({ initialData, onSubmit, onCancel }: ParentGoalFormProps) => {
+const ParentGoalForm = ({ 
+  initialData, 
+  onSubmit, 
+  onCancel, 
+  showDelete = false,
+  onDelete 
+}: ParentGoalFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
@@ -57,7 +66,6 @@ const ParentGoalForm = ({ initialData, onSubmit, onCancel }: ParentGoalFormProps
         <h3 className="text-lg font-medium">
           {initialData ? "Edit Goal" : "Create New Goal"}
         </h3>
-        {/* Removed the duplicate X button that was here */}
       </div>
 
       <Form {...form}>
@@ -98,22 +106,35 @@ const ParentGoalForm = ({ initialData, onSubmit, onCancel }: ParentGoalFormProps
             )}
           />
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button 
-              variant="outline" 
-              onClick={onCancel}
-              type="button"
-              className="border-slate-800/30 hover:bg-slate-800/20"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="bg-emerald hover:bg-emerald-dark"
-            >
-              {isSubmitting ? "Saving..." : initialData ? "Update Goal" : "Create Goal"}
-            </Button>
+          <div className="flex justify-between pt-4">
+            {showDelete && (
+              <Button 
+                variant="outline" 
+                type="button"
+                onClick={onDelete}
+                className="border-slate-800/30 hover:bg-red-900/20 text-slate-400 hover:text-red-400 flex gap-2 transition-colors"
+              >
+                <Trash2 size={16} />
+                Delete
+              </Button>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+                type="button"
+                className="border-slate-800/30 hover:bg-slate-800/20"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="bg-emerald hover:bg-emerald-dark"
+              >
+                {isSubmitting ? "Saving..." : initialData ? "Update Goal" : "Create Goal"}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>

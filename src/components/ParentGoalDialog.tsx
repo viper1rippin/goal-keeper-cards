@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -113,23 +112,12 @@ const ParentGoalDialog = ({
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="bg-apple-dark border-slate-800/80 text-white max-w-md">
-          <div className="flex justify-end">
-            {goalToEdit && goalToEdit.id && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowDeleteAlert(true)}
-                className="h-8 w-8 p-0 text-slate-400 hover:text-red-400 hover:bg-transparent absolute top-6 right-12 z-10"
-                aria-label="Delete goal"
-              >
-                <Trash2 size={16} />
-              </Button>
-            )}
-          </div>
           <ParentGoalForm
             initialData={goalToEdit}
             onSubmit={handleSubmit}
             onCancel={onClose}
+            showDelete={!!goalToEdit?.id}
+            onDelete={() => setShowDeleteAlert(true)}
           />
         </DialogContent>
       </Dialog>

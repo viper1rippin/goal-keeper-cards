@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,22 +140,9 @@ const SubGoalDialog = ({
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-semibold">
-                {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
-              </DialogTitle>
-              {subGoalToEdit && subGoalToEdit.id && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowDeleteAlert(true)}
-                  className="h-8 w-8 p-0 text-slate-400 hover:text-red-400 hover:bg-transparent"
-                  aria-label="Delete sub-goal"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              )}
-            </div>
+            <DialogTitle className="text-xl font-semibold">
+              {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
+            </DialogTitle>
             <p className="text-slate-400 mt-1">
               {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
             </p>
@@ -200,22 +186,35 @@ const SubGoalDialog = ({
                 )}
               />
 
-              <DialogFooter className="pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={onClose}
-                  className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  className="bg-emerald hover:bg-emerald-dark"
-                >
-                  {subGoalToEdit ? "Update" : "Create"} Sub-Goal
-                </Button>
-              </DialogFooter>
+              <div className="flex justify-between pt-4">
+                {subGoalToEdit && subGoalToEdit.id && (
+                  <Button 
+                    variant="outline" 
+                    type="button"
+                    onClick={() => setShowDeleteAlert(true)}
+                    className="border-slate-700 hover:bg-red-900/20 text-slate-400 hover:text-red-400 flex gap-2 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </Button>
+                )}
+                <div className="flex gap-2 ml-auto">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={onClose}
+                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="bg-emerald hover:bg-emerald-dark"
+                  >
+                    {subGoalToEdit ? "Update" : "Create"} Sub-Goal
+                  </Button>
+                </div>
+              </div>
             </form>
           </Form>
         </DialogContent>
