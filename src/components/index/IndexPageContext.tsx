@@ -8,11 +8,13 @@ import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
 import { useParentGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const IndexPageContext = createContext<IndexPageContextType | undefined>(undefined);
 
 export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Use our custom hooks
   const { isDialogOpen, goalToEdit, handleCreateOrEditGoal, closeDialog } = useGoalDialog();
@@ -24,7 +26,7 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     saveParentGoalOrder,
     deleteParentGoal: deleteParentGoalFromSupabase,
     deleteSubGoal: deleteSubGoalFromSupabase
-  } = useParentGoals(goalToEdit);
+  } = useParentGoals(goalToEdit, user);
   
   const { 
     activeGoal, 
@@ -127,8 +129,10 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   
   // Fetch goals on component mount
   useEffect(() => {
-    fetchParentGoals();
-  }, []);
+    if (user) {
+      fetchParentGoals();
+    }
+  }, [user]);
 
   const contextValue: IndexPageContextType = {
     // State
