@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,8 +10,6 @@ import * as z from "zod";
 import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -40,7 +37,6 @@ const SubGoalDialog = ({
   parentGoalId
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   
   // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
@@ -106,152 +102,76 @@ const SubGoalDialog = ({
     }
   };
 
-  // Handle delete functionality
-  const handleDelete = async () => {
-    try {
-      if (subGoalToEdit && subGoalToEdit.id) {
-        const { error } = await supabase
-          .from('sub_goals')
-          .delete()
-          .eq('id', subGoalToEdit.id);
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Sub-goal deleted",
-          description: "The sub-goal has been deleted successfully.",
-        });
-        
-        // Close both dialogs
-        setIsDeleteDialogOpen(false);
-        onClose();
-        
-        // Call onSave to refresh the UI
-        onSave({
-          title: "",
-          description: "",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting sub-goal:", error);
-      toast({
-        title: "Error deleting sub-goal",
-        description: "There was an error deleting your sub-goal. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
-            </DialogTitle>
-            <p className="text-slate-400 mt-1">
-              {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
-            </p>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
+          </DialogTitle>
+          <p className="text-slate-400 mt-1">
+            {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
+          </p>
+        </DialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-200">Title</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="Enter sub-goal title"
-                        className="bg-slate-800 border-slate-700 text-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Title</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      placeholder="Enter sub-goal title"
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-slate-200">Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Enter sub-goal description"
-                        className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      placeholder="Enter sub-goal description"
+                      className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <DialogFooter className="pt-4 flex items-center justify-between">
-                <div>
-                  {subGoalToEdit && (
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      className="text-red-500 hover:text-red-400 hover:bg-slate-800"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                    >
-                      <Trash2 size={16} className="mr-1" />
-                      Delete
-                    </Button>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={onClose}
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="bg-emerald hover:bg-emerald-dark"
-                  >
-                    {subGoalToEdit ? "Update" : "Create"} Sub-Goal
-                  </Button>
-                </div>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              This will permanently delete this sub-goal. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white border-none"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            <DialogFooter className="pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="bg-emerald hover:bg-emerald-dark"
+              >
+                {subGoalToEdit ? "Update" : "Create"} Sub-Goal
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
