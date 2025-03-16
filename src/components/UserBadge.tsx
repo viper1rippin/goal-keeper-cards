@@ -1,37 +1,43 @@
+import { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
-import React from 'react';
-import { Button } from './ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { LogOut } from 'lucide-react';
+// Add this import at the top
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "./ui/button";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
-interface UserBadgeProps {
-  level: number;
-}
-
-const UserBadge = ({ level }: UserBadgeProps) => {
+// Update the existing component to include logout functionality
+const UserBadge = ({ level }: { level: number }) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   
-  const userEmail = user?.email || 'User';
-  const displayName = userEmail.split('@')[0];
-  
-  return (
-    <div className="flex gap-3 items-center">
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
-        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-xs font-semibold text-white">
-          {level}
+  // Add a logout button if the user is logged in
+  if (user) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
+          <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
+            {level}
+          </div>
+          <span className="text-slate-200 truncate max-w-[100px]">
+            {user.email?.split('@')[0] || 'User'}
+          </span>
         </div>
-        <span className="text-sm font-medium text-white">{displayName}</span>
+        <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-8 px-2">
+          <LogOut size={16} />
+        </Button>
       </div>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={signOut}
-        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
-        title="Sign out"
-      >
-        <LogOut size={16} />
-      </Button>
+    );
+  }
+  
+  // Return the default badge for non-logged in users
+  return (
+    <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
+      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
+        {level}
+      </div>
+      <span className="text-slate-200">Guest</span>
     </div>
   );
 };
