@@ -3,19 +3,27 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
+import { User } from "@supabase/supabase-js";
 
-export function useParentGoals(goalToEdit: ParentGoal | null) {
+export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null = null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
+    if (!user) {
+      setParentGoals([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
+        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
