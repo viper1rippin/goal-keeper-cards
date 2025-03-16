@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -89,8 +90,8 @@ const SubGoalDialog = ({
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
-      progress: subGoalToEdit?.progress || 0
-      // Note: Not including user_id since it doesn't exist in the schema yet
+      progress: subGoalToEdit?.progress || 0,
+      user_id: user?.id
     };
     
     // If editing, update the existing sub-goal
