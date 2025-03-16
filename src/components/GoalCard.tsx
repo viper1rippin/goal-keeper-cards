@@ -7,6 +7,7 @@ import GoalCardContent from "./GoalCardContent";
 import GoalCardGlow from "./GoalCardGlow";
 import GoalCardEditButton from "./GoalCardEditButton";
 import GoalCardDragHandle from "./GoalCardDragHandle";
+import { Trash2 } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -20,6 +21,8 @@ export interface GoalCardProps {
   onStartFocus?: () => void;
   // Add edit functionality
   onEdit?: () => void;
+  // Add delete functionality
+  onDelete?: () => void;
   // Add drag state
   isDragging?: boolean;
 }
@@ -34,6 +37,7 @@ const GoalCard = ({
   isActiveFocus = false,
   onStartFocus,
   onEdit,
+  onDelete,
   isDragging = false
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
@@ -111,7 +115,7 @@ const GoalCard = ({
     <AnimatedContainer 
       animation="scale-in"
       delay={delay}
-      className="w-full"
+      className="w-full group"
     >
       <div 
         ref={cardRef}
@@ -151,6 +155,20 @@ const GoalCard = ({
         
         {/* Edit button - only visible on hover */}
         <GoalCardEditButton isHovered={isHovered} onEdit={onEdit} />
+        
+        {/* Delete button - only visible on hover */}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="absolute bottom-2 right-2 p-1.5 rounded-full bg-red-800/60 text-red-300 hover:bg-red-800/90 transition-colors z-10 opacity-0 group-hover:opacity-100"
+            aria-label="Delete sub-goal"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
         
         {/* Content area with title, description and progress */}
         <GoalCardContent

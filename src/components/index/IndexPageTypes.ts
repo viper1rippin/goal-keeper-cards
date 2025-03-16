@@ -27,6 +27,8 @@ export interface IndexPageContextType {
   handleCreateOrEditGoal: (goal: ParentGoal | null) => void;
   handleUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   handleDragEnd: (event: DragEndEvent) => void;
+  deleteParentGoal: (id: string) => Promise<void>;
+  deleteSubGoal: (id: string, parentIndex: number) => Promise<void>;
   closeDialog: () => void;
   fetchParentGoals: () => Promise<void>;
 }

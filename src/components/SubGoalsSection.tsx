@@ -22,6 +22,16 @@ import {
 import GoalCard from './GoalCard';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -31,6 +41,7 @@ interface SubGoalsSectionProps {
   activeGoal?: {rowIndex: number, goalIndex: number} | null;
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (updatedGoals: Goal[]) => void;
+  onDeleteSubGoal: (subGoalId: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -42,6 +53,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   activeGoal,
   onGoalFocus,
   onUpdateSubGoals,
+  onDeleteSubGoal,
   isLoading
 }) => {
   const { toast } = useToast();
@@ -54,6 +66,10 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   const [isSubGoalDialogOpen, setIsSubGoalDialogOpen] = useState(false);
   const [subGoalToEdit, setSubGoalToEdit] = useState<Goal | null>(null);
   const [editingGoalIndex, setEditingGoalIndex] = useState<number | null>(null);
+  
+  // State for delete confirmation dialog
+  const [subGoalToDelete, setSubGoalToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   // Setup sensors for drag and drop
   const sensors = useSensors(
@@ -76,6 +92,21 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     setSubGoalToEdit(goal);
     setEditingGoalIndex(index);
     setIsSubGoalDialogOpen(true);
+  };
+  
+  // Handle confirming sub-goal deletion
+  const handleConfirmDeleteSubGoal = (subGoalId: string) => {
+    setSubGoalToDelete(subGoalId);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  // Execute sub-goal deletion
+  const executeDeleteSubGoal = async () => {
+    if (subGoalToDelete) {
+      await onDeleteSubGoal(subGoalToDelete);
+      setSubGoalToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
   };
   
   // Handle saving sub-goal (both add and edit)
@@ -187,6 +218,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
                   isActiveGoal={isActiveGoal}
                   onGoalFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
                   onEdit={() => handleEditSubGoal(goal, goalIndex)}
+                  onDelete={goal.id ? () => handleConfirmDeleteSubGoal(goal.id as string) : undefined}
                   isDragging={activeSubGoalId === goal.id}
                 />
               );
@@ -230,6 +262,33 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         parentGoalTitle={parentTitle}
         parentGoalId={parentId}
       />
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog 
+        open={isDeleteDialogOpen} 
+        onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}
+      >
+        <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Sub-Goal</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure you want to delete this sub-goal? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent text-slate-400 hover:bg-slate-800 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={executeDeleteSubGoal}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

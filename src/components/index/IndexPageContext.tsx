@@ -16,7 +16,16 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   
   // Use our custom hooks
   const { isDialogOpen, goalToEdit, handleCreateOrEditGoal, closeDialog } = useGoalDialog();
-  const { parentGoals, setParentGoals, isLoading, fetchParentGoals, saveParentGoalOrder } = useParentGoals(goalToEdit);
+  const { 
+    parentGoals, 
+    setParentGoals, 
+    isLoading, 
+    fetchParentGoals, 
+    saveParentGoalOrder,
+    deleteParentGoal: deleteParentGoalFromSupabase,
+    deleteSubGoal: deleteSubGoalFromSupabase
+  } = useParentGoals(goalToEdit);
+  
   const { 
     activeGoal, 
     activeGoalIndices, 
@@ -26,6 +35,38 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     handleStopFocus,
     setActiveGoalIndices
   } = useGoalFocus();
+  
+  // Handle deleting a parent goal
+  const deleteParentGoal = async (id: string) => {
+    // If the active goal belongs to this parent, clear it
+    if (activeGoalIndices && parentGoals[activeGoalIndices.rowIndex]?.id === id) {
+      handleStopFocus();
+    }
+    
+    await deleteParentGoalFromSupabase(id);
+  };
+  
+  // Handle deleting a sub-goal
+  const deleteSubGoal = async (id: string, parentIndex: number) => {
+    // Clear active goal if it's being deleted
+    if (activeGoalIndices && 
+        activeGoalIndices.rowIndex === parentIndex && 
+        parentGoals[parentIndex]?.goals[activeGoalIndices.goalIndex]?.id === id) {
+      handleStopFocus();
+    }
+    
+    // Delete from Supabase
+    await deleteSubGoalFromSupabase(id);
+    
+    // Update local state
+    const updatedParentGoals = [...parentGoals];
+    const parentGoal = updatedParentGoals[parentIndex];
+    
+    if (parentGoal) {
+      parentGoal.goals = parentGoal.goals.filter(goal => goal.id !== id);
+      setParentGoals(updatedParentGoals);
+    }
+  };
   
   // Handle updating sub-goals for a parent goal
   const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
@@ -106,6 +147,8 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     handleCreateOrEditGoal,
     handleUpdateSubGoals,
     handleDragEnd,
+    deleteParentGoal,
+    deleteSubGoal,
     closeDialog,
     fetchParentGoals
   };
