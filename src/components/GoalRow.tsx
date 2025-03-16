@@ -65,8 +65,8 @@ const GoalRow = ({
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
-  // Track which goal is currently focused
-  const [focusedGoalIndex, setFocusedGoalIndex] = useState<number | null>(null);
+  // Remove local focused state - we'll only use the activeGoal from props to determine focus
+  // This ensures only one card is highlighted across the entire app
   
   // State for sub-goal dialog
   const [isSubGoalDialogOpen, setIsSubGoalDialogOpen] = useState(false);
@@ -180,9 +180,9 @@ const GoalRow = ({
                     description={goal.description}
                     progress={goal.progress}
                     index={goalIndex}
-                    isFocused={focusedGoalIndex === goalIndex}
+                    isFocused={isActiveGoal} // Now only one card can be focused at a time
                     isActiveFocus={isActiveGoal}
-                    onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === goalIndex ? null : goalIndex)}
+                    onFocus={() => onGoalFocus(goal, rowIndex, goalIndex)} // Always call the parent focus handler
                     onStartFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
                     onEdit={() => handleEditSubGoal(goal, goalIndex)}
                   />
