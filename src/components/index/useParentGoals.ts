@@ -20,12 +20,19 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Use a more specific type for the query to avoid TypeScript recursion issues
+      const query = supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
+      
+      // If user_id column exists, filter by it
+      if (user) {
+        query.eq('user_id', user.id);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -52,6 +59,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
   
   // Save the updated order of parent goals to the database
   const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
+    if (!user) return;
+    
     try {
       // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
@@ -59,7 +68,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
           .from('parent_goals')
           .update({ 
             position: i 
-          } as any)
+          })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
@@ -76,6 +85,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
 
   // Delete a parent goal
   const deleteParentGoal = async (id: string) => {
+    if (!user) return;
+    
     try {
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
@@ -112,6 +123,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
   
   // Delete a sub-goal
   const deleteSubGoal = async (id: string) => {
+    if (!user) return;
+    
     try {
       const { error } = await supabase
         .from('sub_goals')
