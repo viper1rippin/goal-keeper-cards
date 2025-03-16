@@ -66,7 +66,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
               <GoalRowActions
                 title={parentGoal.title}
                 onEdit={() => onEditGoal(parentGoal)}
-                onDelete={async () => Promise.resolve()} // Return a resolved Promise to match the expected type
+                onDelete={() => onDeleteParentGoal(parentGoal.id)}
               />
             </div>
           ))}

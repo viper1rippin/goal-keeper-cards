@@ -20,18 +20,16 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
 
     setIsLoading(true);
     try {
-      // Use a more specific type for the query to avoid TypeScript recursion issues
-      const query = supabase
+      // Build query manually to avoid TypeScript recursion issues
+      let query = supabase
         .from('parent_goals')
-        .select('*')
-        .order('position', { ascending: true })
-        .order('created_at', { ascending: false });
+        .select('*');
       
-      // If user_id column exists, filter by it
-      if (user) {
-        query.eq('user_id', user.id);
-      }
+      // Add ordering
+      query = query.order('position', { ascending: true })
+                  .order('created_at', { ascending: false });
       
+      // Get the result
       const { data, error } = await query;
       
       if (error) throw error;
@@ -66,9 +64,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null, user: User | null 
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          })
+          .update({ position: i })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;

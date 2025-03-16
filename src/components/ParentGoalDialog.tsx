@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
+import { useAuth } from "@/context/AuthContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -17,7 +18,18 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
+  const { user } = useAuth();
+
   const handleSubmit = async (values: { title: string; description: string }) => {
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to save goals.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       if (goalToEdit?.id) {
         // Update existing goal
@@ -41,7 +53,10 @@ const ParentGoalDialog = ({
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description
+            description: values.description,
+            user_id: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }]);
 
         if (error) throw error;
