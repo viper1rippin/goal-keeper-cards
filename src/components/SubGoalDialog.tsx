@@ -36,7 +36,7 @@ const SubGoalDialog = ({
   parentGoalId
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const { handleStopFocus } = useIndexPage();
+  const { handleStopFocus, fetchParentGoals } = useIndexPage();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -131,6 +131,10 @@ const SubGoalDialog = ({
       
       // Close the delete confirmation dialog first
       setShowDeleteAlert(false);
+      
+      // Refresh state to ensure UI consistency
+      await fetchParentGoals();
+      
       // Then trigger parent update and close the main dialog
       onSave({ title: "", description: "" }); // Trigger parent component update
       onClose();

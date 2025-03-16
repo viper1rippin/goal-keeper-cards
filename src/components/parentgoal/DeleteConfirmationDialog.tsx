@@ -25,12 +25,17 @@ export const DeleteConfirmationDialog = ({
   onConfirmDelete,
   isDeleting = false
 }: DeleteConfirmationDialogProps) => {
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    // Prevent any default actions
+    e.preventDefault();
+    e.stopPropagation();
+    
     try {
       console.log("ParentGoal DeleteConfirmationDialog: Starting delete operation");
       await onConfirmDelete();
       console.log("ParentGoal DeleteConfirmationDialog: Delete operation completed");
-      // Dialog will be closed by parent component
+      // Let the parent component control dialog state
+      // The parent is responsible for calling onOpenChange(false)
     } catch (error) {
       console.error("Error deleting goal:", error);
       // Ensure dialog closes even if there's an error
@@ -39,7 +44,10 @@ export const DeleteConfirmationDialog = ({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={isDeleting ? undefined : onOpenChange}>
+    <AlertDialog 
+      open={open} 
+      onOpenChange={isDeleting ? undefined : onOpenChange}
+    >
       <AlertDialogContent className="bg-apple-dark border-slate-800/80 text-white">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white">Delete Goal</AlertDialogTitle>
