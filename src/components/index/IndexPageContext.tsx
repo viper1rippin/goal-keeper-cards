@@ -76,6 +76,11 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         return reorderedItems;
       });
+      
+      toast({
+        title: "Success",
+        description: "Goal order updated",
+      });
     }
   };
   
@@ -83,18 +88,6 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     fetchParentGoals();
   }, []);
-  
-  // Reset active goal if it's deleted
-  useEffect(() => {
-    if (activeGoalIndices && parentGoals.length > 0) {
-      // Check if the active goal still exists
-      const { rowIndex } = activeGoalIndices;
-      if (rowIndex >= parentGoals.length) {
-        // The active goal's parent has been deleted, reset the focus
-        handleStopFocus();
-      }
-    }
-  }, [parentGoals, activeGoalIndices]);
 
   const contextValue: IndexPageContextType = {
     // State
