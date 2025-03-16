@@ -3,28 +3,19 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
-import { useAuth } from "@/context/AuthContext";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
     setIsLoading(true);
     try {
-      if (!user) {
-        setParentGoals([]);
-        setIsLoading(false);
-        return;
-      }
-      
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -61,8 +52,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .update({ 
             position: i 
           } as any)
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user?.id);
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -91,8 +81,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user?.id);
+        .eq('id', id);
       
       if (error) throw error;
       
