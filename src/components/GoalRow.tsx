@@ -2,21 +2,17 @@
 import { cn } from "@/lib/utils";
 import GoalCard, { GoalCardProps } from "./GoalCard";
 import AnimatedContainer from "./AnimatedContainer";
-import { useState } from "react";
 
 interface GoalRowProps {
   title: string;
   description: string;
-  goals: Omit<GoalCardProps, 'index' | 'isFocused' | 'onFocus'>[];
+  goals: Omit<GoalCardProps, 'index'>[];
   index: number;
 }
 
 const GoalRow = ({ title, description, goals, index }: GoalRowProps) => {
   // Calculate delay based on row index for staggered animation
   const rowDelay = index * 100;
-  
-  // Track which goal is currently focused
-  const [focusedGoalIndex, setFocusedGoalIndex] = useState<number | null>(null);
   
   return (
     <AnimatedContainer 
@@ -38,8 +34,6 @@ const GoalRow = ({ title, description, goals, index }: GoalRowProps) => {
             key={idx}
             {...goal}
             index={idx}
-            isFocused={focusedGoalIndex === idx}
-            onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === idx ? null : idx)}
           />
         ))}
       </div>
