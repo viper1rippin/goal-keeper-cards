@@ -37,6 +37,23 @@ const ParentGoalDialog = ({
       const now = new Date().toISOString();
       
       if (goalToEdit?.id) {
+        // First verify that this goal belongs to the current user
+        const { data: goalData, error: verifyError } = await supabase
+          .from('parent_goals')
+          .select('id')
+          .eq('id', goalToEdit.id)
+          .eq('user_id', user.id)
+          .single();
+          
+        if (verifyError || !goalData) {
+          toast({
+            title: "Access denied",
+            description: "You don't have permission to edit this goal.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         // Update existing goal
         const { error } = await supabase
           .from('parent_goals')
@@ -45,7 +62,8 @@ const ParentGoalDialog = ({
             description: values.description,
             updated_at: now
           })
-          .eq('id', goalToEdit.id);
+          .eq('id', goalToEdit.id)
+          .eq('user_id', user.id); // Add user_id check for extra security
 
         if (error) throw error;
         toast({ 
@@ -69,6 +87,7 @@ const ParentGoalDialog = ({
           if (error) {
             // If error is about user_id column not existing, try without it
             if (error.message && error.message.includes("user_id")) {
+              console.warn("user_id column doesn't exist yet, creating goal without it");
               const { error: fallbackError } = await supabase
                 .from('parent_goals')
                 .insert([{
@@ -114,6 +133,23 @@ const ParentGoalDialog = ({
     if (!user || !goalToEdit?.id) return;
     
     try {
+      // Verify this goal belongs to the current user
+      const { data: goalData, error: verifyError } = await supabase
+        .from('parent_goals')
+        .select('id')
+        .eq('id', goalToEdit.id)
+        .eq('user_id', user.id)
+        .single();
+        
+      if (verifyError || !goalData) {
+        toast({
+          title: "Access denied",
+          description: "You don't have permission to delete this goal.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
@@ -126,7 +162,8 @@ const ParentGoalDialog = ({
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id);
+        .eq('id', goalToEdit.id)
+        .eq('user_id', user.id); // Add user_id check for extra security
       
       if (error) throw error;
       

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -71,6 +72,29 @@ const SubGoalDialog = ({
     }
     
     try {
+      // First, verify that the parent goal belongs to the current user
+      const { data: parentGoalData, error: verifyError } = await supabase
+        .from('parent_goals')
+        .select('id')
+        .eq('id', parentGoalId)
+        .eq('user_id', user.id)
+        .single();
+        
+      // If the parent goal belongs to another user
+      if (verifyError) {
+        // If there's an error related to user_id (column doesn't exist), skip verification
+        if (!verifyError.message || !verifyError.message.includes("user_id")) {
+          console.warn("Skipping parent goal ownership verification due to user_id column missing");
+        }
+      } else if (!parentGoalData) {
+        toast({
+          title: "Access denied",
+          description: "You don't have permission to add sub-goals to this goal.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       await saveSubGoal(values);
       form.reset();
     } catch (error) {
@@ -88,20 +112,51 @@ const SubGoalDialog = ({
     
     const now = new Date().toISOString();
     
-    // Prepare sub-goal data
-    const subGoalData = {
-      parent_goal_id: parentGoalId,
-      title: values.title,
-      description: values.description,
-      progress: subGoalToEdit?.progress || 0,
-      created_at: now,
-      updated_at: now,
-      position: 0,  // Default position
-      completed: false // Default completed status
-    };
-    
-    // If editing, update the existing sub-goal
+    // If editing, first verify the sub-goal belongs to a parent goal owned by the current user
     if (subGoalToEdit && subGoalToEdit.id) {
+      const { data: subGoalData, error: fetchError } = await supabase
+        .from('sub_goals')
+        .select('parent_goal_id')
+        .eq('id', subGoalToEdit.id)
+        .single();
+        
+      if (fetchError) {
+        console.error("Error fetching sub-goal:", fetchError);
+        throw fetchError;
+      }
+      
+      // Verify the parent goal belongs to the current user
+      if (subGoalData && subGoalData.parent_goal_id) {
+        const { data: parentGoalData, error: verifyError } = await supabase
+          .from('parent_goals')
+          .select('id')
+          .eq('id', subGoalData.parent_goal_id)
+          .eq('user_id', user.id)
+          .single();
+          
+        if (verifyError) {
+          // If there's an error related to user_id (column doesn't exist), skip verification
+          if (!verifyError.message || !verifyError.message.includes("user_id")) {
+            console.error("Error verifying goal ownership:", verifyError);
+            toast({
+              title: "Error",
+              description: "Failed to verify goal ownership. Please try again.",
+              variant: "destructive",
+            });
+            return;
+          }
+        } else if (!parentGoalData) {
+          // If the parent goal doesn't belong to this user
+          toast({
+            title: "Access denied",
+            description: "You don't have permission to edit this sub-goal.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+      
+      // Now update the sub-goal
       const { error } = await supabase
         .from('sub_goals')
         .update({
@@ -113,7 +168,19 @@ const SubGoalDialog = ({
       
       if (error) throw error;
     } else {
-      // Otherwise, create a new sub-goal
+      // Prepare sub-goal data for a new sub-goal
+      const subGoalData = {
+        parent_goal_id: parentGoalId,
+        title: values.title,
+        description: values.description,
+        progress: subGoalToEdit?.progress || 0,
+        created_at: now,
+        updated_at: now,
+        position: 0,  // Default position
+        completed: false // Default completed status
+      };
+      
+      // Create a new sub-goal
       const { error } = await supabase
         .from('sub_goals')
         .insert(subGoalData);
