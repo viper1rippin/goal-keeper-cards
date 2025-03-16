@@ -5,6 +5,9 @@ import AnimatedContainer from "./AnimatedContainer";
 import { useState } from "react";
 import SubGoalAddCard from "./SubGoalAddCard";
 import SubGoalDialog from "./SubGoalDialog";
+import { CSS } from "@dnd-kit/utilities";
+import { useSortable } from "@dnd-kit/sortable";
+import { GripVertical } from "lucide-react";
 
 export interface Goal {
   title: string;
@@ -20,6 +23,7 @@ interface GoalRowProps {
   activeGoal?: {rowIndex: number, goalIndex: number} | null;
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
+  id: string; // Added id prop for drag and drop
 }
 
 const GoalRow = ({ 
@@ -29,8 +33,26 @@ const GoalRow = ({
   index: rowIndex,
   activeGoal,
   onGoalFocus,
-  onUpdateSubGoals
+  onUpdateSubGoals,
+  id
 }: GoalRowProps) => {
+  // Setup sortable hook from dnd-kit
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id });
+
+  // Apply transform styles from dnd-kit
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
@@ -80,59 +102,73 @@ const GoalRow = ({
   };
   
   return (
-    <AnimatedContainer 
-      animation="fade-in" 
-      delay={rowDelay}
-      className="mb-12 last:mb-0"
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="mb-12 last:mb-0 relative"
     >
-      <div className="mb-4">
-        <div className="py-1 px-3 bg-slate-800/50 rounded-md inline-block mb-2">
-          <span className="text-xs font-medium text-emerald/90">Parent Goal</span>
+      <AnimatedContainer 
+        animation="fade-in" 
+        delay={rowDelay}
+      >
+        <div className="mb-4 flex items-start">
+          <div 
+            className="mt-2 mr-3 cursor-grab p-1 hover:bg-slate-800/50 rounded text-slate-500 hover:text-emerald transition-colors"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical size={16} />
+          </div>
+          <div className="flex-1">
+            <div className="py-1 px-3 bg-slate-800/50 rounded-md inline-block mb-2">
+              <span className="text-xs font-medium text-emerald/90">Parent Goal</span>
+            </div>
+            <h2 className="text-2xl font-semibold mb-1">{title}</h2>
+            <p className="text-slate-400">{description}</p>
+          </div>
         </div>
-        <h2 className="text-2xl font-semibold mb-1">{title}</h2>
-        <p className="text-slate-400">{description}</p>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {goals.map((goal, goalIndex) => {
-          const isActiveGoal = activeGoal?.rowIndex === rowIndex && activeGoal?.goalIndex === goalIndex;
-          
-          return (
-            <GoalCard 
-              key={goalIndex}
-              title={goal.title}
-              description={goal.description}
-              progress={goal.progress}
-              index={goalIndex}
-              isFocused={focusedGoalIndex === goalIndex}
-              isActiveFocus={isActiveGoal}
-              onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === goalIndex ? null : goalIndex)}
-              onStartFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
-              onEdit={() => handleEditSubGoal(goal, goalIndex)}
-            />
-          );
-        })}
         
-        {/* Add Sub-Goal Card */}
-        <SubGoalAddCard 
-          onClick={handleAddSubGoal} 
-          index={goals.length}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pl-8">
+          {goals.map((goal, goalIndex) => {
+            const isActiveGoal = activeGoal?.rowIndex === rowIndex && activeGoal?.goalIndex === goalIndex;
+            
+            return (
+              <GoalCard 
+                key={goalIndex}
+                title={goal.title}
+                description={goal.description}
+                progress={goal.progress}
+                index={goalIndex}
+                isFocused={focusedGoalIndex === goalIndex}
+                isActiveFocus={isActiveGoal}
+                onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === goalIndex ? null : goalIndex)}
+                onStartFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
+                onEdit={() => handleEditSubGoal(goal, goalIndex)}
+              />
+            );
+          })}
+          
+          {/* Add Sub-Goal Card */}
+          <SubGoalAddCard 
+            onClick={handleAddSubGoal} 
+            index={goals.length}
+          />
+        </div>
+        
+        {/* Sub-Goal Dialog for adding/editing */}
+        <SubGoalDialog
+          isOpen={isSubGoalDialogOpen}
+          onClose={() => {
+            setIsSubGoalDialogOpen(false);
+            setSubGoalToEdit(null);
+            setEditingGoalIndex(null);
+          }}
+          onSave={handleSaveSubGoal}
+          subGoalToEdit={subGoalToEdit}
+          parentGoalTitle={title}
         />
-      </div>
-      
-      {/* Sub-Goal Dialog for adding/editing */}
-      <SubGoalDialog
-        isOpen={isSubGoalDialogOpen}
-        onClose={() => {
-          setIsSubGoalDialogOpen(false);
-          setSubGoalToEdit(null);
-          setEditingGoalIndex(null);
-        }}
-        onSave={handleSaveSubGoal}
-        subGoalToEdit={subGoalToEdit}
-        parentGoalTitle={title}
-      />
-    </AnimatedContainer>
+      </AnimatedContainer>
+    </div>
   );
 };
 

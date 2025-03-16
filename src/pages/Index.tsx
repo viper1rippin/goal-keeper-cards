@@ -8,6 +8,9 @@ import { Plus } from "lucide-react";
 import ParentGoalDialog from "@/components/ParentGoalDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { arrayMove } from '@dnd-kit/sortable';
 
 interface ParentGoal {
   id: string;
@@ -17,6 +20,18 @@ interface ParentGoal {
 }
 
 const Index = () => {
+  // Setup DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   // State for active focus goal
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
   const [activeGoalIndices, setActiveGoalIndices] = useState<{rowIndex: number, goalIndex: number} | null>(null);
@@ -101,6 +116,48 @@ const Index = () => {
     });
   };
   
+  // Handle drag end event
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+    
+    if (active.id !== over.id) {
+      setParentGoals((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        
+        // Update parent goal indices in activeGoalIndices if needed
+        if (activeGoalIndices) {
+          const { rowIndex, goalIndex } = activeGoalIndices;
+          if (rowIndex === oldIndex) {
+            setActiveGoalIndices({
+              rowIndex: newIndex,
+              goalIndex
+            });
+          } else if (rowIndex > oldIndex && rowIndex <= newIndex) {
+            setActiveGoalIndices({
+              rowIndex: rowIndex - 1,
+              goalIndex
+            });
+          } else if (rowIndex < oldIndex && rowIndex >= newIndex) {
+            setActiveGoalIndices({
+              rowIndex: rowIndex + 1,
+              goalIndex
+            });
+          }
+        }
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+      
+      toast({
+        title: "Success",
+        description: "Goal order updated",
+      });
+    }
+  };
+  
   // Fetch goals on component mount
   useEffect(() => {
     fetchParentGoals();
@@ -150,27 +207,39 @@ const Index = () => {
               </Button>
             </div>
           ) : (
-            parentGoals.map((parentGoal, rowIndex) => (
-              <div key={parentGoal.id} className="relative mb-12 last:mb-0">
-                <GoalRow
-                  title={parentGoal.title}
-                  description={parentGoal.description}
-                  goals={parentGoal.goals}
-                  index={rowIndex}
-                  activeGoal={activeGoalIndices}
-                  onGoalFocus={handleGoalFocus}
-                  onUpdateSubGoals={handleUpdateSubGoals}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-0 right-0 text-slate-400 hover:text-white hover:bg-slate-800/30"
-                  onClick={() => handleCreateOrEditGoal(parentGoal)}
-                >
-                  Edit
-                </Button>
-              </div>
-            ))
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={parentGoals.map(goal => goal.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {parentGoals.map((parentGoal, rowIndex) => (
+                  <div key={parentGoal.id} className="relative">
+                    <GoalRow
+                      id={parentGoal.id}
+                      title={parentGoal.title}
+                      description={parentGoal.description}
+                      goals={parentGoal.goals}
+                      index={rowIndex}
+                      activeGoal={activeGoalIndices}
+                      onGoalFocus={handleGoalFocus}
+                      onUpdateSubGoals={handleUpdateSubGoals}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-0 right-0 text-slate-400 hover:text-white hover:bg-slate-800/30"
+                      onClick={() => handleCreateOrEditGoal(parentGoal)}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                ))}
+              </SortableContext>
+            </DndContext>
           )}
         </AnimatedContainer>
       </main>
