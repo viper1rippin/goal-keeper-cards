@@ -51,6 +51,7 @@ export function useGoalFocus() {
     // Clear both the active goal and its indices
     setActiveGoal(null);
     setActiveGoalIndices(null);
+    setShowFocusTimer(false);
   };
   
   return {
