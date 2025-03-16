@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Goal } from "./GoalRow";
 
-// Points earned per minute of focus (adjusted for 24-hour level-up)
-// 24 hours = 1440 minutes, so 1/1440 points per minute = 1 point per 24 hours
-const POINTS_PER_MINUTE = 1 / 1440;
+// Points earned per minute of focus
+// 24 hours = 1440 minutes, so we need 1 point per 24 hours
+const POINTS_PER_MINUTE = 1;
 
 interface FocusTimerProps {
   userLevel: number;
@@ -125,9 +125,9 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     (earnedPoints / pointsForNextLevel) * 100
   );
 
-  // Calculate time needed for next level
+  // Calculate time needed for next level (in hours)
   const minutesForNextLevel = Math.ceil((pointsForNextLevel - earnedPoints) / POINTS_PER_MINUTE);
-  const hoursForNextLevel = (minutesForNextLevel / 60).toFixed(1);
+  const hoursForNextLevel = Math.ceil(minutesForNextLevel / 60);
 
   return (
     <Card className="w-full max-w-md glass-card border-emerald/20">
@@ -160,7 +160,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
           <div className="flex items-center justify-between">
             <UserBadge level={userLevel} />
             <div className="text-xs text-slate-400">
-              {earnedPoints.toFixed(4)}/{pointsForNextLevel} points
+              {earnedPoints.toFixed(1)}/{pointsForNextLevel} points
             </div>
           </div>
           
