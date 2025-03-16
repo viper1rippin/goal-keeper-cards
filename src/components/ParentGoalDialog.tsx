@@ -3,7 +3,6 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
-import { useAuth } from "@/context/AuthContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -18,12 +17,10 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
-  const { user } = useAuth();
-  
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
       if (goalToEdit?.id) {
-        // Update existing goal (don't include user_id since the column doesn't exist)
+        // Update existing goal
         const { error } = await supabase
           .from('parent_goals')
           .update({
@@ -39,12 +36,12 @@ const ParentGoalDialog = ({
           description: "Your goal has been updated successfully."
         });
       } else {
-        // Create new goal (don't include user_id since the column doesn't exist)
+        // Create new goal
         const { error } = await supabase
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description,
+            description: values.description
           }]);
 
         if (error) throw error;

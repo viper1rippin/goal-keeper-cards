@@ -8,8 +8,6 @@ export interface ParentGoal {
   description: string;
   goals: Goal[];
   position?: number;
-  // Make user_id optional since the column doesn't exist yet
-  user_id?: string;
 }
 
 export interface IndexPageContextType {

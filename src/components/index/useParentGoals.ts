@@ -3,19 +3,16 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
-import { useAuth } from "@/context/AuthContext";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
     setIsLoading(true);
     try {
-      // Get all goals without filtering by user_id (since the column doesn't exist)
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -54,7 +51,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .from('parent_goals')
           .update({ 
             position: i 
-          })
+          } as any)
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;

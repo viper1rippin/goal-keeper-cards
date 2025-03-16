@@ -8,14 +8,11 @@ import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
 import { useParentGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
-import { migrateGoalsToUser } from "@/utils/migrateGoals";
-import { useAuth } from "@/context/AuthContext";
 
 const IndexPageContext = createContext<IndexPageContextType | undefined>(undefined);
 
 export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   
   // Use our custom hooks
   const { isDialogOpen, goalToEdit, handleCreateOrEditGoal, closeDialog } = useGoalDialog();
@@ -128,29 +125,9 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Run migration on component mount to get all goals
+  // Fetch goals on component mount
   useEffect(() => {
-    const loadGoals = async () => {
-      // Try to get all goals through the migration function
-      const migrationResult = await migrateGoalsToUser();
-      
-      if (migrationResult.success && migrationResult.goals) {
-        // Transform data to include empty goals array
-        const transformedData = migrationResult.goals.map(goal => ({
-          ...goal,
-          goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-            ? goalToEdit.goals
-            : []
-        }));
-        setParentGoals(transformedData);
-        setIsLoading(false);
-      } else {
-        // If migration fails for some reason, try regular fetch
-        fetchParentGoals();
-      }
-    };
-    
-    loadGoals();
+    fetchParentGoals();
   }, []);
 
   const contextValue: IndexPageContextType = {
