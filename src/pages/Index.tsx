@@ -1,90 +1,20 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import GoalRow, { Goal } from "@/components/GoalRow";
 import AnimatedContainer from "@/components/AnimatedContainer";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import ParentGoalDialog from "@/components/ParentGoalDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// Sample data for our goals
-const goalData = [
-  {
-    title: "Financial Independence",
-    description: "Steps to achieve financial stability and growth",
-    goals: [
-      {
-        title: "Emergency Fund",
-        description: "Save 6 months of expenses for emergencies",
-        progress: 75
-      },
-      {
-        title: "Debt Reduction",
-        description: "Pay off all high-interest debt",
-        progress: 60
-      },
-      {
-        title: "Investment Portfolio",
-        description: "Diversify investments for long-term growth",
-        progress: 45
-      },
-      {
-        title: "Retirement Planning",
-        description: "Maximize contributions to retirement accounts",
-        progress: 30
-      }
-    ]
-  },
-  {
-    title: "Professional Development",
-    description: "Advance career and build professional skills",
-    goals: [
-      {
-        title: "New Certification",
-        description: "Complete advanced industry certification",
-        progress: 100
-      },
-      {
-        title: "Networking",
-        description: "Attend 2 industry conferences this year",
-        progress: 50
-      },
-      {
-        title: "Skill Building",
-        description: "Learn a new programming language",
-        progress: 85
-      },
-      {
-        title: "Publication",
-        description: "Publish 2 articles in industry journals",
-        progress: 10
-      }
-    ]
-  },
-  {
-    title: "Health & Wellness",
-    description: "Improve physical and mental wellbeing",
-    goals: [
-      {
-        title: "Exercise Routine",
-        description: "Establish consistent weekly workout schedule",
-        progress: 90
-      },
-      {
-        title: "Nutrition",
-        description: "Meal planning and balanced diet",
-        progress: 65
-      },
-      {
-        title: "Mental Health",
-        description: "Practice daily meditation and mindfulness",
-        progress: 40
-      },
-      {
-        title: "Sleep Quality",
-        description: "Improve sleep habits and environment",
-        progress: 70
-      }
-    ]
-  }
-];
+interface ParentGoal {
+  id: string;
+  title: string;
+  description: string;
+  goals: Goal[];
+}
 
 const Index = () => {
   // State for active focus goal
@@ -93,6 +23,58 @@ const Index = () => {
   
   // State for focus timer visibility
   const [showFocusTimer, setShowFocusTimer] = useState(false);
+  
+  // State for parent goals
+  const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // State for parent goal dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [goalToEdit, setGoalToEdit] = useState<ParentGoal | null>(null);
+  
+  const { toast } = useToast();
+  
+  // Fetch parent goals from Supabase
+  const fetchParentGoals = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('parent_goals')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform data to include empty goals array if no data
+      const transformedData = data?.map(goal => ({
+        ...goal,
+        goals: [
+          {
+            title: "Sample Subgoal",
+            description: "This is a placeholder. You'll be able to add real subgoals soon.",
+            progress: 0
+          }
+        ]
+      })) || [];
+      
+      setParentGoals(transformedData);
+    } catch (error) {
+      console.error("Error fetching parent goals:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your goals. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Handle creating or editing goal
+  const handleCreateOrEditGoal = (goal: ParentGoal | null = null) => {
+    setGoalToEdit(goal);
+    setIsDialogOpen(true);
+  };
   
   // Handle goal focus
   const handleGoalFocus = (goal: Goal, rowIndex: number, goalIndex: number) => {
@@ -106,6 +88,11 @@ const Index = () => {
     setActiveGoal(null);
     setActiveGoalIndices(null);
   };
+  
+  // Fetch goals on component mount
+  useEffect(() => {
+    fetchParentGoals();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-apple-dark">
@@ -119,21 +106,59 @@ const Index = () => {
       <main className="flex-1 py-10 px-6 sm:px-8 md:px-12 lg:px-16">
         <AnimatedContainer className="max-w-7xl mx-auto mb-12">
           <div className="glass-card p-6 rounded-lg border border-slate-800/80 mb-12">
-            <h2 className="text-lg font-medium mb-1">Welcome back, John</h2>
-            <p className="text-slate-400">Track your progress and stay focused on your goals.</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-medium mb-1">Welcome back, John</h2>
+                <p className="text-slate-400">Track your progress and stay focused on your goals.</p>
+              </div>
+              <Button 
+                onClick={() => handleCreateOrEditGoal()}
+                className="bg-emerald hover:bg-emerald-dark"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Goal
+              </Button>
+            </div>
           </div>
           
-          {goalData.map((rowData, rowIndex) => (
-            <GoalRow
-              key={rowIndex}
-              title={rowData.title}
-              description={rowData.description}
-              goals={rowData.goals}
-              index={rowIndex}
-              activeGoal={activeGoalIndices}
-              onGoalFocus={handleGoalFocus}
-            />
-          ))}
+          {isLoading ? (
+            <div className="py-20 text-center text-slate-400">
+              <p>Loading your goals...</p>
+            </div>
+          ) : parentGoals.length === 0 ? (
+            <div className="py-20 text-center">
+              <h3 className="text-xl font-medium mb-2">No goals yet</h3>
+              <p className="text-slate-400 mb-6">Create your first goal to get started</p>
+              <Button 
+                onClick={() => handleCreateOrEditGoal()} 
+                className="bg-emerald hover:bg-emerald-dark"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Goal
+              </Button>
+            </div>
+          ) : (
+            parentGoals.map((parentGoal, rowIndex) => (
+              <div key={parentGoal.id} className="relative mb-12 last:mb-0">
+                <GoalRow
+                  title={parentGoal.title}
+                  description={parentGoal.description}
+                  goals={parentGoal.goals}
+                  index={rowIndex}
+                  activeGoal={activeGoalIndices}
+                  onGoalFocus={handleGoalFocus}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-0 right-0 text-slate-400 hover:text-white hover:bg-slate-800/30"
+                  onClick={() => handleCreateOrEditGoal(parentGoal)}
+                >
+                  Edit
+                </Button>
+              </div>
+            ))
+          )}
         </AnimatedContainer>
       </main>
       
@@ -142,6 +167,16 @@ const Index = () => {
           <p>John's App © {new Date().getFullYear()} · Progress Tracker</p>
         </div>
       </footer>
+      
+      <ParentGoalDialog
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setGoalToEdit(null);
+        }}
+        goalToEdit={goalToEdit}
+        onGoalSaved={fetchParentGoals}
+      />
     </div>
   );
 };
