@@ -1,9 +1,11 @@
+
 import React, { createContext, useContext, useEffect } from "react";
-import { Goal, IndexPageContextType, ParentGoalWithSubGoals } from "./IndexPageTypes";
+import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
-import { useParentGoals, SubGoal } from "./useParentGoals";
+import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
+import { useParentGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
 
@@ -61,7 +63,6 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const parentGoal = updatedParentGoals[parentIndex];
     
     if (parentGoal) {
-      // Filter out the deleted sub-goal
       parentGoal.goals = parentGoal.goals.filter(goal => goal.id !== id);
       setParentGoals(updatedParentGoals);
     }
@@ -70,25 +71,11 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Handle updating sub-goals for a parent goal
   const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
     const updatedParentGoals = [...parentGoals];
-    
-    // Convert Goal[] to SubGoal[]
-    const convertedGoals: SubGoal[] = updatedGoals.map(goal => ({
-      id: goal.id || '',
-      title: goal.title,
-      description: goal.description,
-      progress: goal.progress,
-      completed: false,
-      position: 0
-    }));
-    
-    if (updatedParentGoals[parentIndex]) {
-      updatedParentGoals[parentIndex] = {
-        ...updatedParentGoals[parentIndex],
-        goals: convertedGoals
-      };
-      
-      setParentGoals(updatedParentGoals);
-    }
+    updatedParentGoals[parentIndex] = {
+      ...updatedParentGoals[parentIndex],
+      goals: updatedGoals
+    };
+    setParentGoals(updatedParentGoals);
   };
   
   // Handle drag end event
@@ -180,3 +167,5 @@ export const useIndexPage = () => {
   }
   return context;
 };
+
+export { type ParentGoal };

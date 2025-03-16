@@ -1,42 +1,30 @@
 
-import { DragEndEvent } from "@dnd-kit/core";
-import { SubGoal } from "./useParentGoals";
+import { Goal } from "@/components/GoalRow";
+import { DragEndEvent } from '@dnd-kit/core';
 
-// Define the Goal type here to avoid circular imports
-export interface Goal {
-  id?: string;
-  title: string;
-  description: string;
-  progress: number;
-}
-
-// Define ParentGoalWithSubGoals type to avoid circular dependencies
-export interface ParentGoalWithSubGoals {
+export interface ParentGoal {
   id: string;
   title: string;
   description: string;
-  position: number;
-  created_at: string;
-  updated_at: string;
-  goals: SubGoal[];
-  user_id?: string;
+  goals: Goal[];
+  position?: number;
 }
 
 export interface IndexPageContextType {
   // State
-  parentGoals: ParentGoalWithSubGoals[];
+  parentGoals: ParentGoal[];
   isLoading: boolean;
   activeGoal: Goal | null;
-  activeGoalIndices: { rowIndex: number; goalIndex: number } | null;
+  activeGoalIndices: {rowIndex: number, goalIndex: number} | null;
   showFocusTimer: boolean;
   isDialogOpen: boolean;
-  goalToEdit: ParentGoalWithSubGoals | null;
+  goalToEdit: ParentGoal | null;
   
   // Actions
   setShowFocusTimer: (show: boolean) => void;
   handleGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   handleStopFocus: () => void;
-  handleCreateOrEditGoal: (goal?: ParentGoalWithSubGoals | null) => void;
+  handleCreateOrEditGoal: (goal: ParentGoal | null) => void;
   handleUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   handleDragEnd: (event: DragEndEvent) => void;
   deleteParentGoal: (id: string) => Promise<void>;

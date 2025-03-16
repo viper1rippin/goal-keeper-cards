@@ -1,13 +1,13 @@
 
 import { useState } from "react";
-import { ParentGoalWithSubGoals } from "./useParentGoals";
+import { ParentGoal } from "./IndexPageTypes";
 
 export function useGoalDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [goalToEdit, setGoalToEdit] = useState<ParentGoalWithSubGoals | null>(null);
+  const [goalToEdit, setGoalToEdit] = useState<ParentGoal | null>(null);
   
   // Handle creating or editing goal
-  const handleCreateOrEditGoal = (goal: ParentGoalWithSubGoals | null = null) => {
+  const handleCreateOrEditGoal = (goal: ParentGoal | null = null) => {
     setGoalToEdit(goal);
     setIsDialogOpen(true);
   };
