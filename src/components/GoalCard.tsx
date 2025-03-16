@@ -10,8 +10,8 @@ export interface GoalCardProps {
   index: number;
 }
 
-// Define gradient variations for emerald tones
-const gradientVariations = [
+// Define gradient variations for emerald tones for progress bars
+const progressGradientVariations = [
   "from-emerald to-emerald-light",
   "from-emerald-dark to-emerald",
   "from-teal-500 to-emerald-400",
@@ -22,16 +22,33 @@ const gradientVariations = [
   "from-emerald-500 to-teal-300",
 ];
 
+// Define card background gradient variations
+const cardGradientVariations = [
+  "from-emerald/10 to-emerald-dark/20",
+  "from-emerald-dark/15 to-emerald/10",
+  "from-teal-500/10 to-emerald-400/15",
+  "from-green-400/10 to-emerald-500/15",
+  "from-emerald-300/10 to-teal-600/20",
+  "from-emerald-400/10 to-green-300/15",
+  "from-teal-400/15 to-emerald-300/10",
+  "from-emerald-500/15 to-teal-300/10",
+];
+
 const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
-  // Select a consistent gradient based on the title (this ensures the same card always gets the same gradient)
-  const gradientClass = useMemo(() => {
+  // Select consistent gradients based on the title
+  const gradients = useMemo(() => {
     // Use the sum of character codes from the title to create a deterministic but seemingly random choice
     const titleSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    const gradientIndex = titleSum % gradientVariations.length;
-    return gradientVariations[gradientIndex];
+    const progressGradientIndex = titleSum % progressGradientVariations.length;
+    const cardGradientIndex = (titleSum + 3) % cardGradientVariations.length; // Offset to get different gradient
+    
+    return {
+      progressGradient: progressGradientVariations[progressGradientIndex],
+      cardGradient: cardGradientVariations[cardGradientIndex]
+    };
   }, [title]);
   
   return (
@@ -41,8 +58,9 @@ const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
       className="w-full"
     >
       <div className={cn(
-        "glass-card rounded-lg p-5 h-full hover-scale",
-        progress === 100 && "glass-card-emerald"
+        "rounded-lg p-5 h-full hover-scale bg-gradient-to-br border border-slate-800/80 shadow-lg",
+        gradients.cardGradient,
+        progress === 100 ? "glass-card-emerald" : "from-apple-light to-apple-dark backdrop-blur-sm"
       )}>
         <div className="flex flex-col h-full">
           <h3 className="font-medium text-lg mb-2">{title}</h3>
@@ -55,7 +73,7 @@ const GoalCard = ({ title, description, progress, index }: GoalCardProps) => {
             </div>
             <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className={`h-full bg-gradient-to-r ${gradientClass} transition-all duration-700 ease-out`}
+                className={`h-full bg-gradient-to-r ${gradients.progressGradient} transition-all duration-700 ease-out`}
                 style={{ width: `${progress}%` }}
               />
             </div>
