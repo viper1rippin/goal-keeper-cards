@@ -19,24 +19,24 @@ export interface GoalCardProps {
   onEdit?: () => void;
 }
 
-// Enhanced collection of emerald-toned gradients for cards
+// Collection of emerald-toned gradients for cards
 const gradientVariations = [
-  "from-emerald-dark/30 to-emerald/10",
-  "from-emerald/20 to-emerald-dark/30",
-  "from-emerald-light/20 to-emerald-dark/20",
-  "from-emerald/15 to-emerald-light/5",
-  "from-emerald-dark/35 to-emerald/15",
-  "from-emerald/25 to-emerald-dark/15",
+  "from-emerald-dark/20 to-apple-dark",
+  "from-emerald-dark/30 to-emerald/5",
+  "from-emerald/10 to-apple-dark",
+  "from-emerald-light/10 to-apple-dark",
+  "from-emerald/5 to-emerald-dark/20",
+  "from-emerald-dark/25 to-emerald/10",
 ];
 
-// Enhanced collection of progress bar gradients
+// Collection of progress bar gradients
 const progressGradientVariations = [
   "from-emerald to-emerald-light",
   "from-emerald-light to-emerald",
-  "from-emerald-dark to-emerald-light",
+  "from-emerald-dark to-emerald",
   "from-emerald to-emerald-dark",
-  "from-emerald-light to-emerald-dark",
-  "from-emerald/90 to-emerald-light/90",
+  "from-emerald-light/90 to-emerald",
+  "from-emerald/90 to-emerald-light",
 ];
 
 const GoalCard = ({ 
@@ -134,38 +134,33 @@ const GoalCard = ({
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
           isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/50 shadow-lg shadow-emerald/40 animate-emerald-pulse`
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/40 shadow-lg shadow-emerald/30` 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-md shadow-emerald/25 opacity-95`
-                : "bg-gradient-to-br from-slate-900/70 to-apple-dark/90 border-slate-800/50 opacity-80",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/20 shadow-emerald/15"
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
+                : "bg-slate-900/70 border-slate-800/50 opacity-70",
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/10"
         )}
         onClick={handleClick}
       >
-        {/* Enhanced green lantern-like glow effect */}
+        {/* Green lantern-like glow effect */}
         {isMouseInCard && (
           <div 
-            className="absolute pointer-events-none animate-glow-move"
+            className="absolute pointer-events-none"
             style={{
               left: `${mousePos.x}px`,
               top: `${mousePos.y}px`,
-              width: '180px',
-              height: '180px',
+              width: '120px',
+              height: '120px',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(5, 150, 105, 0.2) 40%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.07) 40%, transparent 70%)',
               borderRadius: '50%',
               zIndex: 1,
               mixBlendMode: 'screen',
-              filter: 'blur(8px)',
             }}
           />
         )}
-        
-        {/* Background subtle glow spots */}
-        <div className="absolute top-1/4 right-1/4 w-20 h-20 rounded-full bg-emerald/10 blur-xl opacity-60"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-16 h-16 rounded-full bg-emerald-light/10 blur-xl opacity-50"></div>
         
         {/* Edit button - only visible on hover */}
         {onEdit && isHovered && (
@@ -185,7 +180,7 @@ const GoalCard = ({
           <h3 className={cn(
             "font-medium text-lg mb-2",
             isActiveFocus 
-              ? "text-white text-gradient" 
+              ? "text-white" 
               : (isFocused || isHovered ? "text-slate-100" : "text-slate-400")
           )}>{title}</h3>
           <p className={cn(
@@ -205,7 +200,7 @@ const GoalCard = ({
                 className={cn(
                   "h-full bg-gradient-to-r transition-all duration-700 ease-out",
                   isActiveFocus 
-                    ? `${progressGradient} animate-pulse animate-gradient-flow` 
+                    ? `${progressGradient} animate-pulse` 
                     : (isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40")
                 )}
                 style={{ width: `${progress}%` }}
