@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
@@ -20,12 +19,6 @@ export function useGoalFocus() {
     setActiveGoal(goal);
     setActiveGoalIndices({ rowIndex, goalIndex });
     setShowFocusTimer(true);
-    
-    // Show toast to indicate the focus change
-    toast({
-      title: `Now focusing on: ${goal.title}`,
-      description: "Focus mode activated for this goal",
-    });
   };
   
   // Handle stopping focus
@@ -33,12 +26,6 @@ export function useGoalFocus() {
     // Clear both the active goal and its indices
     setActiveGoal(null);
     setActiveGoalIndices(null);
-    
-    // Show toast to indicate focus has stopped
-    toast({
-      title: "Focus ended",
-      description: "You've stopped focusing on all goals",
-    });
   };
   
   return {

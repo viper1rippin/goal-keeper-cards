@@ -38,22 +38,8 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
     }
   }, [activeGoal, timerState, time]);
 
-  // Show toast based on timer state changes
-  useEffect(() => {
-    if (timerState === "RUNNING") {
-      toast({
-        title: activeGoal 
-          ? `Focusing on: ${activeGoal.title}` 
-          : "Focus mode activated",
-        description: "Stay focused and earn points to level up",
-      });
-    } else if (timerState === "PAUSED" && time > 0) {
-      toast({
-        title: "Timer paused",
-        description: "Your focus session is paused. Resume when you're ready.",
-      });
-    }
-  }, [timerState, activeGoal, toast, time]);
+  // Remove toast notifications for timer state changes
+  // useEffect for timer state changes removed
 
   // Toggle timer with debouncing to prevent rapid state changes
   const toggleTimer = () => {
@@ -104,6 +90,7 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
       if (totalPoints >= pointsForNextLevel) {
         onLevelUp(userLevel + 1);
         
+        // Level up notification still shown but can be removed if needed
         toast({
           title: "Level Up!",
           description: `Congratulations! You've reached level ${userLevel + 1}`,
