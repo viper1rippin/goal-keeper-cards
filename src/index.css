@@ -71,3 +71,42 @@
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
   }
 }
+
+/* Animations for our components */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes badge-glow {
+  0% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.4); }
+  100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-badge-glow {
+  animation: badge-glow 2s infinite;
+}
+
