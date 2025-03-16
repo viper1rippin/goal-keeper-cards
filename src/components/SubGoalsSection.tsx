@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -8,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
-import { useAuth } from "@/context/AuthContext";
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -34,7 +32,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   isLoading
 }) => {
   const { toast } = useToast();
-  const { userId } = useAuth();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
@@ -108,8 +105,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      if (!userId) return;
-      
       for (let i = 0; i < updatedSubGoals.length; i++) {
         if (updatedSubGoals[i].id) {
           const delayOffset = i * 50;
@@ -120,8 +115,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
               .update({ 
                 updated_at: new Date().toISOString()
               })
-              .eq('id', updatedSubGoals[i].id)
-              .eq('user_id', userId);
+              .eq('id', updatedSubGoals[i].id);
             
             if (error) throw error;
           }, delayOffset);

@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import GoalRowHeader from "./GoalRowHeader";
 import SubGoalsSection from "./SubGoalsSection";
-import { useAuth } from "@/context/AuthContext";
 
 export interface Goal {
   id?: string;
@@ -51,7 +50,6 @@ const GoalRow = ({
   } = useSortable({ id });
 
   const { toast } = useToast();
-  const { userId } = useAuth();
   
   // State for sub-goals loaded from the database
   const [subGoals, setSubGoals] = useState<Goal[]>(goals);
@@ -71,17 +69,10 @@ const GoalRow = ({
   const fetchSubGoals = async () => {
     try {
       setIsLoading(true);
-      
-      if (!userId) {
-        setSubGoals([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .eq('user_id', userId)
         .order('created_at', { ascending: true });
       
       if (error) {
@@ -115,7 +106,7 @@ const GoalRow = ({
   // Fetch sub-goals when the component mounts
   useEffect(() => {
     fetchSubGoals();
-  }, [id, userId]);
+  }, [id]);
   
   // Handler to update sub-goals from child component
   const handleUpdateSubGoals = (updatedGoals: Goal[]) => {
