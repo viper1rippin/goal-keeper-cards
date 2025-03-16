@@ -1,7 +1,8 @@
 
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 export interface GoalCardProps {
   title: string;
@@ -36,6 +37,9 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
+  // State to track hover status
+  const [isHovered, setIsHovered] = useState(false);
+  
   // Generate a consistent gradient for each card based on the title
   const cardGradient = useMemo(() => {
     // Use the title to create a deterministic but seemingly random index
@@ -62,19 +66,23 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300",
           isFocused 
             ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
-            : "bg-slate-900/70 border-slate-800/50 opacity-70 hover:opacity-90",
+            : isHovered
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
+              : "bg-slate-900/70 border-slate-800/50 opacity-70",
           progress === 100 && !isFocused && "border-emerald/10"
         )}
         onClick={onFocus}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         <div className="flex flex-col h-full">
           <h3 className={cn(
             "font-medium text-lg mb-2",
-            isFocused ? "text-slate-100" : "text-slate-400"
+            isFocused || isHovered ? "text-slate-100" : "text-slate-400"
           )}>{title}</h3>
           <p className={cn(
             "text-sm flex-1 mb-4",
-            isFocused ? "text-slate-300" : "text-slate-500"
+            isFocused || isHovered ? "text-slate-300" : "text-slate-500"
           )}>{description}</p>
           
           <div className="mt-auto">
@@ -86,7 +94,7 @@ const GoalCard = ({ title, description, progress, index, isFocused, onFocus }: G
               <div 
                 className={cn(
                   "h-full bg-gradient-to-r transition-all duration-700 ease-out",
-                  isFocused ? progressGradient : "from-emerald/40 to-emerald-light/40"
+                  isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40"
                 )}
                 style={{ width: `${progress}%` }}
               />
