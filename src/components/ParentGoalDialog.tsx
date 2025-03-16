@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -17,8 +18,21 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
+  const { user } = useAuth();
+  
   const handleSubmit = async (values: { title: string; description: string }) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save goals.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
+      const now = new Date().toISOString();
+      
       if (goalToEdit?.id) {
         // Update existing goal
         const { error } = await supabase
@@ -26,9 +40,10 @@ const ParentGoalDialog = ({
           .update({
             title: values.title,
             description: values.description,
-            updated_at: new Date().toISOString()
+            updated_at: now
           })
-          .eq('id', goalToEdit.id);
+          .eq('id', goalToEdit.id)
+          .eq('user_id', user.id);
 
         if (error) throw error;
         toast({ 
@@ -41,7 +56,10 @@ const ParentGoalDialog = ({
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description
+            description: values.description,
+            user_id: user.id,
+            created_at: now,
+            updated_at: now
           }]);
 
         if (error) throw error;
@@ -65,14 +83,15 @@ const ParentGoalDialog = ({
   };
 
   const handleDelete = async () => {
-    if (!goalToEdit?.id) return;
+    if (!user || !goalToEdit?.id) return;
     
     try {
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', goalToEdit.id);
+        .eq('parent_goal_id', goalToEdit.id)
+        .eq('user_id', user.id);
       
       if (subGoalError) throw subGoalError;
       
@@ -80,7 +99,8 @@ const ParentGoalDialog = ({
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id);
+        .eq('id', goalToEdit.id)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       

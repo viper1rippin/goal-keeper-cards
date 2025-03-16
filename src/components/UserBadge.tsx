@@ -1,112 +1,38 @@
 
-import React from "react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Shield, Sword, Award, Crown, Trophy } from "lucide-react";
-
-export type BadgeLevel = 
-  | "soldier" 
-  | "knight" 
-  | "elite_knight" 
-  | "general" 
-  | "commander" 
-  | "king" 
-  | "emperor";
-
-interface BadgeConfig {
-  name: string;
-  level: number;
-  icon: React.ReactNode;
-  color: string;
-}
-
-export const badgeConfigs: Record<BadgeLevel, BadgeConfig> = {
-  soldier: {
-    name: "Soldier",
-    level: 10,
-    icon: <Shield className="mr-1" size={14} />,
-    color: "bg-slate-500"
-  },
-  knight: {
-    name: "Knight",
-    level: 20,
-    icon: <Sword className="mr-1" size={14} />,
-    color: "bg-slate-400"
-  },
-  elite_knight: {
-    name: "Elite Knight",
-    level: 45,
-    icon: <Sword className="mr-1" size={14} strokeWidth={2.5} />,
-    color: "bg-blue-500"
-  },
-  general: {
-    name: "General",
-    level: 70,
-    icon: <Award className="mr-1" size={14} />,
-    color: "bg-purple-500"
-  },
-  commander: {
-    name: "Commander",
-    level: 100,
-    icon: <Award className="mr-1" size={14} strokeWidth={2.5} />,
-    color: "bg-purple-400"
-  },
-  king: {
-    name: "King",
-    level: 120,
-    icon: <Crown className="mr-1" size={14} />,
-    color: "bg-amber-500"
-  },
-  emperor: {
-    name: "Emperor",
-    level: 200,
-    icon: <Trophy className="mr-1" size={14} />,
-    color: "bg-emerald"
-  }
-};
+import React from 'react';
+import { Button } from './ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut } from 'lucide-react';
 
 interface UserBadgeProps {
   level: number;
-  showLevel?: boolean;
-  size?: "sm" | "md" | "lg";
 }
 
-export const getBadgeByLevel = (level: number): BadgeLevel => {
-  if (level >= 200) return "emperor";
-  if (level >= 120) return "king";
-  if (level >= 100) return "commander";
-  if (level >= 70) return "general";
-  if (level >= 45) return "elite_knight";
-  if (level >= 20) return "knight";
-  return "soldier";
-};
-
-const UserBadge: React.FC<UserBadgeProps> = ({ 
-  level, 
-  showLevel = true,
-  size = "md" 
-}) => {
-  const badgeType = getBadgeByLevel(level);
-  const badge = badgeConfigs[badgeType];
+const UserBadge = ({ level }: UserBadgeProps) => {
+  const { user, signOut } = useAuth();
   
-  const sizeClasses = {
-    sm: "text-xs py-0 px-1.5",
-    md: "text-xs py-0.5 px-2",
-    lg: "text-sm py-1 px-2.5"
-  };
-
+  const userEmail = user?.email || 'User';
+  const displayName = userEmail.split('@')[0];
+  
   return (
-    <Badge 
-      className={cn(
-        "flex items-center font-medium", 
-        badge.color,
-        sizeClasses[size]
-      )}
-    >
-      {badge.icon}
-      {badge.name}
-      {showLevel && <span className="ml-1 opacity-80">Lvl {level}</span>}
-    </Badge>
+    <div className="flex gap-3 items-center">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
+        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-xs font-semibold text-white">
+          {level}
+        </div>
+        <span className="text-sm font-medium text-white">{displayName}</span>
+      </div>
+      
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={signOut}
+        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+        title="Sign out"
+      >
+        <LogOut size={16} />
+      </Button>
+    </div>
   );
 };
 
