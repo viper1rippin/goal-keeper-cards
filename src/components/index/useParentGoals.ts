@@ -15,7 +15,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const fetchParentGoals = async () => {
     setIsLoading(true);
     try {
-      // Get all goals without filtering by user_id (since the column doesn't exist yet)
+      // Get all goals without filtering by user_id (since the column doesn't exist)
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')

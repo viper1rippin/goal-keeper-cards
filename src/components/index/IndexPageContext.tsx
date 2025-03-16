@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect } from "react";
 import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
@@ -127,30 +128,30 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Run migration on component mount
+  // Run migration on component mount to get all goals
   useEffect(() => {
-    // Check if migration is needed and fetch goals
-    migrateGoalsToUser().then(result => {
-      if (!result.success) {
-        console.error("Goal migration failed:", result.error);
-      }
+    const loadGoals = async () => {
+      // Try to get all goals through the migration function
+      const migrationResult = await migrateGoalsToUser();
       
-      // If migration returned goals directly, use them
-      if (result.goals) {
+      if (migrationResult.success && migrationResult.goals) {
         // Transform data to include empty goals array
-        const transformedData = result.goals.map(goal => ({
+        const transformedData = migrationResult.goals.map(goal => ({
           ...goal,
           goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
             ? goalToEdit.goals
             : []
         }));
         setParentGoals(transformedData);
+        setIsLoading(false);
       } else {
-        // Otherwise fetch goals normally
+        // If migration fails for some reason, try regular fetch
         fetchParentGoals();
       }
-    });
-  }, [user?.email]);
+    };
+    
+    loadGoals();
+  }, []);
 
   const contextValue: IndexPageContextType = {
     // State

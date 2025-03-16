@@ -23,7 +23,7 @@ const ParentGoalDialog = ({
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
       if (goalToEdit?.id) {
-        // Update existing goal
+        // Update existing goal (don't include user_id since the column doesn't exist)
         const { error } = await supabase
           .from('parent_goals')
           .update({
@@ -39,7 +39,7 @@ const ParentGoalDialog = ({
           description: "Your goal has been updated successfully."
         });
       } else {
-        // Create new goal (without user_id since the column doesn't exist)
+        // Create new goal (don't include user_id since the column doesn't exist)
         const { error } = await supabase
           .from('parent_goals')
           .insert([{
