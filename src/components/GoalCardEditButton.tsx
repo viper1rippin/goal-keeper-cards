@@ -1,5 +1,5 @@
 
-import { Edit2 } from "lucide-react";
+import { Edit3, PenBox } from "lucide-react";
 
 interface GoalCardEditButtonProps {
   isHovered: boolean;
@@ -16,10 +16,10 @@ const GoalCardEditButton = ({ isHovered, onEdit, size = 14 }: GoalCardEditButton
         e.stopPropagation();
         onEdit();
       }}
-      className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-800/70 text-emerald hover:bg-slate-700/80 transition-colors z-10"
+      className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-800/80 text-emerald/90 hover:text-emerald hover:bg-slate-700/90 hover:shadow-emerald/10 hover:shadow-sm transition-all duration-200 z-10"
       aria-label="Edit sub-goal"
     >
-      <Edit2 size={size} />
+      <PenBox size={size} strokeWidth={2} className="animate-fade-in" />
     </button>
   );
 };
