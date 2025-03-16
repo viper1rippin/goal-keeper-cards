@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ const SubGoalDialog = ({
       };
       
       // If editing, update the existing sub-goal
-      if (subGoalToEdit) {
+      if (subGoalToEdit && subGoalToEdit.id) {
         const { error } = await supabase
           .from('sub_goals')
           .update(subGoalData)

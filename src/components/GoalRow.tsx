@@ -80,17 +80,23 @@ const GoalRow = ({
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
-        .eq('parent_goal_id', id)
-        .order('created_at', { ascending: true });
+        .eq('parent_goal_id', id);
       
       if (error) {
         throw error;
       }
       
       if (data) {
-        setSubGoals(data);
+        const formattedData = data.map(goal => ({
+          id: goal.id,
+          title: goal.title,
+          description: goal.description,
+          progress: goal.progress
+        }));
+        
+        setSubGoals(formattedData);
         // Also update the parent component's state
-        onUpdateSubGoals(rowIndex, data);
+        onUpdateSubGoals(rowIndex, formattedData);
       }
     } catch (error) {
       console.error("Error fetching sub-goals:", error);

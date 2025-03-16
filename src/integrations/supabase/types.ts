@@ -33,6 +33,44 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_goals: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          parent_goal_id: string
+          progress: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          parent_goal_id: string
+          progress?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          parent_goal_id?: string
+          progress?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_goals_parent_goal_id_fkey"
+            columns: ["parent_goal_id"]
+            isOneToOne: false
+            referencedRelation: "parent_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
