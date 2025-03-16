@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { POINTS_PER_MINUTE } from "@/utils/timerUtils";
 import { Goal } from "@/components/GoalRow";
@@ -33,33 +33,35 @@ export const useTimer = ({ userLevel, onLevelUp, activeGoal }: UseTimerProps) =>
     
     if (isActive) {
       interval = setInterval(() => {
-        setTime(time => time + 1);
+        setTime(prevTime => prevTime + 1);
       }, 1000);
-    } else if (!isActive && time !== 0) {
-      interval && clearInterval(interval);
     }
     
     return () => {
-      interval && clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, [isActive, time]);
+  }, [isActive]);
 
   // Toggle timer
-  const toggleTimer = () => {
-    setIsActive(!isActive);
-    
-    if (!isActive) {
-      toast({
-        title: activeGoal 
-          ? `Focusing on: ${activeGoal.title}` 
-          : "Focus mode activated",
-        description: "Stay focused and earn points to level up",
-      });
-    }
-  };
+  const toggleTimer = useCallback(() => {
+    setIsActive(prevIsActive => {
+      const newIsActive = !prevIsActive;
+      
+      if (newIsActive) {
+        toast({
+          title: activeGoal 
+            ? `Focusing on: ${activeGoal.title}` 
+            : "Focus mode activated",
+          description: "Stay focused and earn points to level up",
+        });
+      }
+      
+      return newIsActive;
+    });
+  }, [activeGoal, toast]);
 
   // Reset timer
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsActive(false);
     
     // Only add points if there was some time spent
@@ -83,7 +85,7 @@ export const useTimer = ({ userLevel, onLevelUp, activeGoal }: UseTimerProps) =>
     }
     
     setTime(0);
-  };
+  }, [time, earnedPoints, userLevel, onLevelUp, toast]);
 
   return {
     isActive,

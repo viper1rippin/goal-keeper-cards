@@ -16,6 +16,12 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   toggleTimer, 
   resetTimer 
 }) => {
+  // Create a debounced version of toggleTimer to prevent rapid clicks
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toggleTimer();
+  };
+
   return (
     <div className="flex justify-between space-x-2">
       <Button
@@ -28,8 +34,9 @@ const TimerControls: React.FC<TimerControlsProps> = ({
       </Button>
       <Button
         variant={isActive ? "secondary" : "default"}
-        onClick={toggleTimer}
+        onClick={handleToggle}
         className="w-full"
+        aria-label={isActive ? "Pause" : "Start Focus"}
       >
         {isActive ? (
           <><Pause className="mr-2" size={16} /> Pause</>
