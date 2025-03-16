@@ -95,9 +95,6 @@ const GoalRow = ({
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
-  // Remove local focused state - we'll only use the activeGoal from props to determine focus
-  // This ensures only one card is highlighted across the entire app
-  
   // State for sub-goal dialog
   const [isSubGoalDialogOpen, setIsSubGoalDialogOpen] = useState(false);
   const [subGoalToEdit, setSubGoalToEdit] = useState<Goal | null>(null);
@@ -111,7 +108,7 @@ const GoalRow = ({
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .order('position', { ascending: true });
+        .order('created_at', { ascending: true });
       
       if (error) {
         throw error;
@@ -209,23 +206,34 @@ const GoalRow = ({
   // Save the updated order of sub-goals to the database
   const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      // Update each sub-goal with its new position
+      // Since there's no position field in the database,
+      // we'll need to update the goals one by one with a timestamp to maintain order
+      // We'll use the updated_at field to maintain order
       for (let i = 0; i < updatedSubGoals.length; i++) {
         if (updatedSubGoals[i].id) {
-          const { error } = await supabase
-            .from('sub_goals')
-            .update({ position: i })
-            .eq('id', updatedSubGoals[i].id);
+          // Add a small delay between updates to ensure ordering by updated_at works correctly
+          const delayOffset = i * 50; // 50ms spacing between updates
           
-          if (error) throw error;
+          setTimeout(async () => {
+            const { error } = await supabase
+              .from('sub_goals')
+              .update({ 
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', updatedSubGoals[i].id);
+            
+            if (error) throw error;
+            
+            // Show success toast only after the last item is updated
+            if (i === updatedSubGoals.length - 1) {
+              toast({
+                title: "Success",
+                description: "Sub-goal order updated",
+              });
+            }
+          }, delayOffset);
         }
       }
-      
-      // Show success toast
-      toast({
-        title: "Success",
-        description: "Sub-goal order updated",
-      });
     } catch (error) {
       console.error("Error saving sub-goal order:", error);
       toast({
