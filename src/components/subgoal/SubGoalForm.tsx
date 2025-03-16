@@ -103,7 +103,8 @@ export const SubGoalForm = ({
               {subGoalToEdit ? "Update" : "Create"} Sub-Goal
             </Button>
           </div>
-        </form>
+        </div>
+      </form>
     </Form>
   );
 };
