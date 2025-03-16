@@ -1,17 +1,18 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import DeleteParentGoalDialog from './DeleteParentGoalDialog';
 
 interface GoalRowActionsProps {
+  title: string;
   onEdit: () => void;
-  onDelete?: () => Promise<void>;
-  title?: string;
+  onDelete: () => Promise<void>;
 }
 
 const GoalRowActions: React.FC<GoalRowActionsProps> = ({
+  title,
   onEdit,
-  onDelete,
-  title
+  onDelete
 }) => {
   return (
     <div className="absolute top-0 right-0 flex space-x-2">
@@ -23,6 +24,11 @@ const GoalRowActions: React.FC<GoalRowActionsProps> = ({
       >
         Edit
       </Button>
+      
+      <DeleteParentGoalDialog
+        title={title}
+        onDelete={onDelete}
+      />
     </div>
   );
 };
