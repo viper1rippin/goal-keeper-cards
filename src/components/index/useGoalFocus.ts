@@ -9,8 +9,8 @@ export function useGoalFocus() {
   const [showFocusTimer, setShowFocusTimer] = useState(false);
   const { toast } = useToast();
   
-  // Flag to prevent scrolling when a goal is focused
-  const preventScroll = useRef(false);
+  // More reliable approach to prevent scrolling
+  const scrollPosition = useRef({ x: 0, y: 0 });
   
   // Handle goal focus - this is the key function to ensure only one goal is active
   const handleGoalFocus = (goal: Goal, rowIndex: number, goalIndex: number) => {
@@ -19,38 +19,39 @@ export function useGoalFocus() {
       return;
     }
     
-    // Set prevent scroll flag
-    preventScroll.current = true;
+    // Save current scroll position BEFORE state updates
+    scrollPosition.current = {
+      x: window.scrollX,
+      y: window.scrollY
+    };
     
-    // Otherwise, set the new active goal
+    // First set the new active goal
     setActiveGoal(goal);
     setActiveGoalIndices({ rowIndex, goalIndex });
     setShowFocusTimer(true);
+    
+    // Use requestAnimationFrame to restore scroll position AFTER rendering
+    requestAnimationFrame(() => {
+      window.scrollTo(scrollPosition.current.x, scrollPosition.current.y);
+    });
   };
-  
-  // Effect to prevent scrolling
-  useEffect(() => {
-    if (preventScroll.current) {
-      // Store current scroll position
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
-      
-      // Set a short timeout to restore scroll position after the DOM updates
-      setTimeout(() => {
-        window.scrollTo(scrollX, scrollY);
-        preventScroll.current = false;
-      }, 10);
-    }
-  }, [activeGoal, activeGoalIndices]);
   
   // Handle stopping focus
   const handleStopFocus = () => {
-    // Set prevent scroll flag
-    preventScroll.current = true;
+    // Save current scroll position BEFORE state updates
+    scrollPosition.current = {
+      x: window.scrollX,
+      y: window.scrollY
+    };
     
     // Clear both the active goal and its indices
     setActiveGoal(null);
     setActiveGoalIndices(null);
+    
+    // Use requestAnimationFrame to restore scroll position AFTER rendering
+    requestAnimationFrame(() => {
+      window.scrollTo(scrollPosition.current.x, scrollPosition.current.y);
+    });
   };
   
   return {
