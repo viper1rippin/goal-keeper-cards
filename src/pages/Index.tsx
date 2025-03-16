@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import GoalRow, { Goal } from "@/components/GoalRow";
@@ -90,7 +89,9 @@ const Index = () => {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ position: i })
+          .update({ 
+            position: i 
+          } as any)
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
