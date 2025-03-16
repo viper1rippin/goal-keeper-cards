@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import { Edit2 } from "lucide-react";
+import { Edit2, GripHorizontal } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -17,6 +17,8 @@ export interface GoalCardProps {
   onStartFocus?: () => void;
   // Add edit functionality
   onEdit?: () => void;
+  // Add drag state
+  isDragging?: boolean;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -48,7 +50,8 @@ const GoalCard = ({
   onFocus, 
   isActiveFocus = false,
   onStartFocus,
-  onEdit
+  onEdit,
+  isDragging = false
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
@@ -140,6 +143,7 @@ const GoalCard = ({
         ref={cardRef}
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
+          // Only use the active gradients when this card is the active focused card
           isActiveFocus
             ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
@@ -147,10 +151,16 @@ const GoalCard = ({
               : isHovered
                 ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
                 : "bg-slate-900/80 border-slate-800/60 opacity-75",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15"
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
+          isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
         )}
         onClick={handleClick}
       >
+        {/* Drag handle indicator */}
+        <div className="absolute top-2 left-2 p-1.5 text-slate-500 opacity-50 hover:opacity-100 transition-opacity cursor-grab">
+          <GripHorizontal size={14} />
+        </div>
+        
         {/* Subtle, focused glow effect that follows the mouse - only shown when card has active focus */}
         {isMouseInCard && isActiveFocus && (
           <div 
@@ -194,7 +204,7 @@ const GoalCard = ({
           </button>
         )}
         
-        <div className="flex flex-col h-full relative z-2">
+        <div className="flex flex-col h-full relative z-2 pt-4">
           <h3 className={cn(
             "font-medium text-lg mb-2",
             isActiveFocus 
