@@ -12,8 +12,7 @@ import {
   useSensors,
   DragEndEvent,
   DragStartEvent,
-  DragOverlay,
-  DragOverEvent
+  DragOverlay
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -33,7 +32,6 @@ interface SubGoalsSectionProps {
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (updatedGoals: Goal[]) => void;
   isLoading: boolean;
-  onDeleteSubGoal: (id: string) => void;
 }
 
 const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
@@ -44,8 +42,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   activeGoal,
   onGoalFocus,
   onUpdateSubGoals,
-  isLoading,
-  onDeleteSubGoal
+  isLoading
 }) => {
   const { toast } = useToast();
   
@@ -104,13 +101,8 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     const { active, over } = event;
     
     if (!over) return;
-
-    // If dropped on trash zone, handle delete
-    if (over.id === 'trash-zone') {
-      if (activeSubGoalId && activeSubGoal?.id) {
-        onDeleteSubGoal(activeSubGoal.id);
-      }
-    } else if (active.id !== over.id) {
+    
+    if (active.id !== over.id) {
       const reorderedGoals = [...subGoals];
       const oldIndex = reorderedGoals.findIndex(item => item.id === active.id);
       const newIndex = reorderedGoals.findIndex(item => item.id === over.id);

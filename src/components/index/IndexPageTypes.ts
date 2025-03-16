@@ -29,6 +29,4 @@ export interface IndexPageContextType {
   handleDragEnd: (event: DragEndEvent) => void;
   closeDialog: () => void;
   fetchParentGoals: () => Promise<void>;
-  handleDeleteParentGoal: (id: string) => void;
-  handleDeleteSubGoal: (id: string) => void;
 }
