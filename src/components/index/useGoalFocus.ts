@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +47,7 @@ export function useGoalFocus() {
     showFocusTimer,
     setShowFocusTimer,
     handleGoalFocus,
-    handleStopFocus
+    handleStopFocus,
+    setActiveGoalIndices  // Export this function so it can be used in IndexPageContext
   };
 }

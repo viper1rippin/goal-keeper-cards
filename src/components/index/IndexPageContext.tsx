@@ -23,7 +23,8 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showFocusTimer, 
     setShowFocusTimer, 
     handleGoalFocus, 
-    handleStopFocus 
+    handleStopFocus,
+    setActiveGoalIndices
   } = useGoalFocus();
   
   // Handle updating sub-goals for a parent goal
