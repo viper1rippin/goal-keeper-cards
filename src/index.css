@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,7 +59,7 @@
   }
   
   .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-dark/20 to-apple-dark border border-emerald/15 shadow-md shadow-emerald/10;
+    @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
   }
 
   .text-gradient {
@@ -69,31 +68,6 @@
 
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
-  }
-  
-  /* Sidebar active state highlight */
-  .sidebar-item-active {
-    @apply relative bg-emerald/10 text-emerald;
-  }
-  
-  .sidebar-item-active::before {
-    content: '';
-    @apply absolute left-0 top-0 h-full w-1 bg-emerald rounded-r;
-  }
-  
-  /* Enhanced card focus for better visual hierarchy */
-  .card-focus {
-    @apply ring-2 ring-emerald/25 shadow-lg shadow-emerald/15;
-  }
-  
-  /* Subtle background elements */
-  .subtle-bg {
-    @apply opacity-75 transition-opacity duration-300 hover:opacity-95;
-  }
-  
-  /* Center content vertically and horizontally */
-  .center-content {
-    @apply flex items-center justify-center;
   }
 }
 

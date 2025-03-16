@@ -18,27 +18,23 @@ const GoalsContent: React.FC = () => {
   } = useIndexPage();
 
   return (
-    <main className="flex-1 py-6 px-6 sm:px-8 md:px-12 lg:px-16 flex flex-col">
-      <div className="mb-6">
-        <WelcomeCard onAddGoal={() => handleCreateOrEditGoal(null)} />
-      </div>
+    <main className="flex-1 py-10 px-6 sm:px-8 md:px-12 lg:px-16">
+      <WelcomeCard onAddGoal={() => handleCreateOrEditGoal(null)} />
       
-      <div className="flex-1 flex items-start justify-center">
-        {isLoading ? (
-          <LoadingGoals />
-        ) : parentGoals.length === 0 ? (
-          <EmptyGoalsList onCreateGoal={() => handleCreateOrEditGoal(null)} />
-        ) : (
-          <GoalsList 
-            parentGoals={parentGoals}
-            activeGoalIndices={activeGoalIndices}
-            onGoalFocus={handleGoalFocus}
-            onUpdateSubGoals={handleUpdateSubGoals}
-            onEditGoal={handleCreateOrEditGoal}
-            onDragEnd={handleDragEnd}
-          />
-        )}
-      </div>
+      {isLoading ? (
+        <LoadingGoals />
+      ) : parentGoals.length === 0 ? (
+        <EmptyGoalsList onCreateGoal={() => handleCreateOrEditGoal(null)} />
+      ) : (
+        <GoalsList 
+          parentGoals={parentGoals}
+          activeGoalIndices={activeGoalIndices}
+          onGoalFocus={handleGoalFocus}
+          onUpdateSubGoals={handleUpdateSubGoals}
+          onEditGoal={handleCreateOrEditGoal}
+          onDragEnd={handleDragEnd}
+        />
+      )}
     </main>
   );
 };

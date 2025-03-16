@@ -75,14 +75,6 @@ export default {
 					dark: '#0a0a0a',
 					DEFAULT: '#121212',
 					light: '#1c1c1e'
-				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--background))',
-					foreground: 'hsl(var(--foreground))',
-					border: 'hsl(var(--border))',
-					accent: 'hsl(var(--accent))',
-					'accent-foreground': 'hsl(var(--accent-foreground))',
-					ring: 'hsl(var(--ring))'
 				}
 			},
 			borderRadius: {

@@ -28,22 +28,22 @@ const Header = ({
   };
   
   return (
-    <header className="w-full py-4 px-6 sm:px-8 md:px-12 lg:px-16 border-b border-slate-800/60">
+    <header className="w-full py-8 px-6 sm:px-8 md:px-12 lg:px-16 border-b border-slate-800/80">
       <AnimatedContainer animation="slide-up" className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight">
               <span className="text-gradient">John's App</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">Set, track, and accomplish your goals</p>
+            <p className="text-slate-400 mt-1">Set, track, and accomplish your goals</p>
           </div>
           
-          <div className="flex items-center space-x-3">
-            <div className="hidden sm:flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
+            <div className="hidden sm:flex items-center space-x-4">
               <UserBadge level={userLevel} />
               
-              <div className="glass-card px-3 py-1.5 rounded-lg text-xs text-slate-300">
-                Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              <div className="glass-card px-4 py-2 rounded-lg text-sm text-slate-300">
+                Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
             </div>
             
@@ -57,14 +57,14 @@ const Header = ({
                   : "border-emerald/20 hover:border-emerald/40"
               )}
             >
-              <Timer className="mr-1.5" size={14} />
+              <Timer className="mr-2" size={16} />
               {activeGoal ? "Focusing" : "Focus"}
             </Button>
           </div>
         </div>
         
         {showFocusTimer && (
-          <div className="mt-4">
+          <div className="mt-6">
             <FocusTimer 
               userLevel={userLevel} 
               onLevelUp={handleLevelUp}
