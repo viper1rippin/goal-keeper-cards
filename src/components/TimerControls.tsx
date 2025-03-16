@@ -31,17 +31,13 @@ const TimerControls: React.FC<TimerControlsProps> = ({
         variant={isActive ? "secondary" : "default"}
         onClick={toggleTimer}
         className="w-full"
-        disabled={false} // Remove any conditional disabling that might cause the glitch
       >
         {isActive ? (
-          <>
-            <Pause className="mr-2" size={16} />
-            Pause
-          </>
+          <><Pause className="mr-2" size={16} /> Pause</>
         ) : (
           <>
             <Play className="mr-2" size={16} /> 
-            {time > 0 ? "Resume" : "Start Focus"}
+            {time > 0 ? "Resume Focus" : "Start Focus"}
           </>
         )}
       </Button>

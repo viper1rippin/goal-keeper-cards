@@ -7,24 +7,19 @@ import { Button } from "./ui/button";
 import { Timer } from "lucide-react";
 import FocusTimer from "./FocusTimer";
 import { Goal } from "./GoalRow";
-import { ParentGoal } from "./index/IndexPageTypes";
 
 interface HeaderProps {
   activeGoal?: Goal | null;
-  parentGoals?: ParentGoal[];
   showFocusTimer: boolean;
   setShowFocusTimer: (show: boolean) => void;
   onStopFocus?: () => void;
-  onGoalSelect?: (goal: Goal) => void;
 }
 
 const Header = ({ 
   activeGoal,
-  parentGoals = [],
   showFocusTimer,
   setShowFocusTimer,
-  onStopFocus,
-  onGoalSelect
+  onStopFocus
 }: HeaderProps) => {
   const [userLevel, setUserLevel] = useState(10); // Default starting level
   
@@ -78,8 +73,6 @@ const Header = ({
                 if (onStopFocus) onStopFocus();
               }}
               activeGoal={activeGoal}
-              parentGoals={parentGoals}
-              onGoalSelect={onGoalSelect}
             />
           </div>
         )}

@@ -48,13 +48,6 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
 
   // Toggle timer separately from the toast notifications
   const toggleTimer = () => {
-    // Clean up existing interval before toggling state to prevent race conditions
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    
-    // Then toggle the state
     setIsActive(prevActive => !prevActive);
   };
 
