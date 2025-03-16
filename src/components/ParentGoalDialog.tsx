@@ -1,10 +1,9 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 import { DeleteConfirmationDialog } from "./parentgoal/DeleteConfirmationDialog";
-import { useIndexPage } from "./index/IndexPageContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -20,13 +19,11 @@ const ParentGoalDialog = ({
   onGoalSaved
 }: ParentGoalDialogProps) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const { toast } = useToast();
-  const { handleStopFocus, fetchParentGoals } = useIndexPage();
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
       if (goalToEdit?.id) {
+        // Update existing goal
         const { error } = await supabase
           .from('parent_goals')
           .update({
@@ -42,6 +39,7 @@ const ParentGoalDialog = ({
           description: "Your goal has been updated successfully."
         });
       } else {
+        // Create new goal
         const { error } = await supabase
           .from('parent_goals')
           .insert([{
@@ -56,6 +54,7 @@ const ParentGoalDialog = ({
         });
       }
       
+      // Close dialog and refresh goals
       onClose();
       onGoalSaved();
     } catch (error) {
@@ -68,16 +67,11 @@ const ParentGoalDialog = ({
     }
   };
 
-  const handleDelete = async (): Promise<void> => {
+  const handleDelete = async () => {
     if (!goalToEdit?.id) return;
     
     try {
-      setIsDeleting(true);
-      
-      // Stop focus first
-      handleStopFocus();
-      
-      // Delete all sub-goals first
+      // First delete all sub-goals associated with this parent goal
       const { error: subGoalsError } = await supabase
         .from('sub_goals')
         .delete()
@@ -98,13 +92,10 @@ const ParentGoalDialog = ({
         description: "The goal and all its sub-goals have been successfully deleted."
       });
       
-      // First fetch updated data
-      await fetchParentGoals();
-      
-      // Then close dialogs
+      // Close dialogs and refresh goals
       setShowDeleteAlert(false);
       onClose();
-      
+      onGoalSaved();
     } catch (error) {
       console.error("Error deleting goal:", error);
       toast({
@@ -112,15 +103,13 @@ const ParentGoalDialog = ({
         description: "Failed to delete the goal. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsDeleting(false);
     }
   };
 
   return (
     <>
       <ParentGoalDialogContent 
-        isOpen={isOpen && !isDeleting}
+        isOpen={isOpen}
         onClose={onClose}
         goalToEdit={goalToEdit}
         onSubmit={handleSubmit}
@@ -131,7 +120,6 @@ const ParentGoalDialog = ({
         open={showDeleteAlert} 
         onOpenChange={setShowDeleteAlert}
         onConfirmDelete={handleDelete}
-        isDeleting={isDeleting}
       />
     </>
   );

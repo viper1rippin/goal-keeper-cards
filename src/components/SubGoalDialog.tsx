@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -9,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteConfirmationDialog } from './subgoal/DeleteConfirmationDialog';
 import { SubGoalForm } from './subgoal/SubGoalForm';
-import { useIndexPage } from './index/IndexPageContext';
 
+// Form validation schema
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
@@ -27,6 +26,7 @@ interface SubGoalDialogProps {
   parentGoalId: string;
 }
 
+// Main component
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -36,10 +36,9 @@ const SubGoalDialog = ({
   parentGoalId
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const { handleStopFocus, fetchParentGoals } = useIndexPage();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   
+  // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
     resolver: zodResolver(subGoalSchema),
     defaultValues: {
@@ -48,6 +47,7 @@ const SubGoalDialog = ({
     },
   });
 
+  // Reset form when dialog opens/closes or when editing a different goal
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -57,6 +57,7 @@ const SubGoalDialog = ({
     }
   }, [isOpen, subGoalToEdit, form]);
 
+  // Handle form submission
   const onSubmit = async (values: SubGoalFormValues) => {
     try {
       await saveSubGoal(values);
@@ -72,6 +73,7 @@ const SubGoalDialog = ({
   };
 
   const saveSubGoal = async (values: SubGoalFormValues) => {
+    // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
@@ -79,6 +81,7 @@ const SubGoalDialog = ({
       progress: subGoalToEdit?.progress || 0
     };
     
+    // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
       const { error } = await supabase
         .from('sub_goals')
@@ -87,6 +90,7 @@ const SubGoalDialog = ({
       
       if (error) throw error;
     } else {
+      // Otherwise, create a new sub-goal
       const { error } = await supabase
         .from('sub_goals')
         .insert(subGoalData);
@@ -94,21 +98,17 @@ const SubGoalDialog = ({
       if (error) throw error;
     }
     
+    // Call the onSave callback to update UI
     onSave({
       title: values.title,
       description: values.description,
     });
   };
 
-  const handleDelete = async (): Promise<void> => {
+  const handleDelete = async () => {
     if (!subGoalToEdit || !subGoalToEdit.id) return;
     
     try {
-      setIsDeleting(true);
-      
-      // Stop focus first
-      handleStopFocus();
-      
       const { error } = await supabase
         .from('sub_goals')
         .delete()
@@ -121,14 +121,10 @@ const SubGoalDialog = ({
         description: "The sub-goal has been successfully deleted.",
       });
       
-      // First fetch updated data
-      await fetchParentGoals();
-      
-      // Then close dialogs
       setShowDeleteAlert(false);
-      onSave({ title: "", description: "" }); // Trigger parent component update
       onClose();
-      
+      // Pass empty object to trigger refresh
+      onSave({ title: "", description: "" });
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
       toast({
@@ -136,14 +132,12 @@ const SubGoalDialog = ({
         description: "There was an error deleting your sub-goal. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsDeleting(false);
     }
   };
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && !isDeleting && onClose()}>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
@@ -167,8 +161,7 @@ const SubGoalDialog = ({
       <DeleteConfirmationDialog 
         open={showDeleteAlert} 
         onOpenChange={setShowDeleteAlert} 
-        onConfirmDelete={handleDelete}
-        isDeleting={isDeleting}
+        onConfirmDelete={handleDelete} 
       />
     </>
   );
