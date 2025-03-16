@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -11,7 +10,6 @@ import { DeleteConfirmationDialog } from './subgoal/DeleteConfirmationDialog';
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useIndexPage } from './index/IndexPageContext';
 
-// Form validation schema
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
@@ -28,7 +26,6 @@ interface SubGoalDialogProps {
   parentGoalId: string;
 }
 
-// Main component
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -40,8 +37,8 @@ const SubGoalDialog = ({
   const { toast } = useToast();
   const { handleStopFocus, activeGoalIndices } = useIndexPage();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
     resolver: zodResolver(subGoalSchema),
     defaultValues: {
@@ -50,7 +47,6 @@ const SubGoalDialog = ({
     },
   });
 
-  // Reset form when dialog opens/closes or when editing a different goal
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -60,7 +56,6 @@ const SubGoalDialog = ({
     }
   }, [isOpen, subGoalToEdit, form]);
 
-  // Handle form submission
   const onSubmit = async (values: SubGoalFormValues) => {
     try {
       await saveSubGoal(values);
@@ -76,7 +71,6 @@ const SubGoalDialog = ({
   };
 
   const saveSubGoal = async (values: SubGoalFormValues) => {
-    // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
@@ -84,7 +78,6 @@ const SubGoalDialog = ({
       progress: subGoalToEdit?.progress || 0
     };
     
-    // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
       const { error } = await supabase
         .from('sub_goals')
@@ -93,7 +86,6 @@ const SubGoalDialog = ({
       
       if (error) throw error;
     } else {
-      // Otherwise, create a new sub-goal
       const { error } = await supabase
         .from('sub_goals')
         .insert(subGoalData);
@@ -101,21 +93,19 @@ const SubGoalDialog = ({
       if (error) throw error;
     }
     
-    // Call the onSave callback to update UI
     onSave({
       title: values.title,
       description: values.description,
     });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     if (!subGoalToEdit || !subGoalToEdit.id) return;
     
     try {
-      // Check if this sub-goal is the active one, if so, reset focus
-      if (activeGoalIndices && subGoalToEdit.id) {
-        handleStopFocus();
-      }
+      setIsDeleting(true);
+      
+      handleStopFocus();
       
       const { error } = await supabase
         .from('sub_goals')
@@ -131,7 +121,6 @@ const SubGoalDialog = ({
       
       setShowDeleteAlert(false);
       onClose();
-      // Pass empty object to trigger refresh
       onSave({ title: "", description: "" });
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
@@ -140,6 +129,8 @@ const SubGoalDialog = ({
         description: "There was an error deleting your sub-goal. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

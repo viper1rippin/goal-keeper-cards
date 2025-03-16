@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -20,12 +19,12 @@ const ParentGoalDialog = ({
   onGoalSaved
 }: ParentGoalDialogProps) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { handleStopFocus } = useIndexPage();
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
       if (goalToEdit?.id) {
-        // Update existing goal
         const { error } = await supabase
           .from('parent_goals')
           .update({
@@ -41,7 +40,6 @@ const ParentGoalDialog = ({
           description: "Your goal has been updated successfully."
         });
       } else {
-        // Create new goal
         const { error } = await supabase
           .from('parent_goals')
           .insert([{
@@ -56,7 +54,6 @@ const ParentGoalDialog = ({
         });
       }
       
-      // Close dialog and refresh goals
       onClose();
       onGoalSaved();
     } catch (error) {
@@ -69,11 +66,14 @@ const ParentGoalDialog = ({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     if (!goalToEdit?.id) return;
     
     try {
-      // First delete all sub-goals associated with this parent goal
+      setIsDeleting(true);
+      
+      handleStopFocus();
+      
       const { error: subGoalsError } = await supabase
         .from('sub_goals')
         .delete()
@@ -81,7 +81,6 @@ const ParentGoalDialog = ({
       
       if (subGoalsError) throw subGoalsError;
       
-      // Then delete the parent goal
       const { error } = await supabase
         .from('parent_goals')
         .delete()
@@ -89,15 +88,11 @@ const ParentGoalDialog = ({
       
       if (error) throw error;
       
-      // Reset active goal focus before closing dialogs
-      handleStopFocus();
-      
       toast({
         title: "Goal deleted",
         description: "The goal and all its sub-goals have been successfully deleted."
       });
       
-      // Close dialogs and refresh goals
       setShowDeleteAlert(false);
       onClose();
       onGoalSaved();
@@ -108,6 +103,8 @@ const ParentGoalDialog = ({
         description: "Failed to delete the goal. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
