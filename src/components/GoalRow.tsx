@@ -2,14 +2,17 @@
 import { cn } from "@/lib/utils";
 import GoalCard, { GoalCardProps } from "./GoalCard";
 import AnimatedContainer from "./AnimatedContainer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SubGoalAddCard from "./SubGoalAddCard";
 import SubGoalDialog from "./SubGoalDialog";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import { GripVertical } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Goal {
+  id?: string;
   title: string;
   description: string;
   progress: number;
@@ -46,6 +49,12 @@ const GoalRow = ({
     isDragging
   } = useSortable({ id });
 
+  const { toast } = useToast();
+  
+  // State for sub-goals loaded from the database
+  const [subGoals, setSubGoals] = useState<Goal[]>(goals);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Apply transform styles from dnd-kit
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -64,6 +73,42 @@ const GoalRow = ({
   const [subGoalToEdit, setSubGoalToEdit] = useState<Goal | null>(null);
   const [editingGoalIndex, setEditingGoalIndex] = useState<number | null>(null);
   
+  // Fetch sub-goals for this parent goal
+  const fetchSubGoals = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('sub_goals')
+        .select('*')
+        .eq('parent_goal_id', id)
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        setSubGoals(data);
+        // Also update the parent component's state
+        onUpdateSubGoals(rowIndex, data);
+      }
+    } catch (error) {
+      console.error("Error fetching sub-goals:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load sub-goals. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch sub-goals when the component mounts
+  useEffect(() => {
+    fetchSubGoals();
+  }, [id]);
+  
   // Handle adding a new sub-goal
   const handleAddSubGoal = () => {
     setSubGoalToEdit(null);
@@ -80,25 +125,9 @@ const GoalRow = ({
   
   // Handle saving sub-goal (both add and edit)
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
-    let updatedGoals: Goal[];
-    
-    if (editingGoalIndex !== null) {
-      // Edit existing sub-goal
-      updatedGoals = [...goals];
-      updatedGoals[editingGoalIndex] = {
-        ...updatedGoals[editingGoalIndex],
-        ...subGoal
-      };
-    } else {
-      // Add new sub-goal
-      updatedGoals = [
-        ...goals,
-        { ...subGoal, progress: 0 }
-      ];
-    }
-    
-    onUpdateSubGoals(rowIndex, updatedGoals);
+    // Close the dialog and refresh sub-goals
     setIsSubGoalDialogOpen(false);
+    fetchSubGoals();
   };
   
   return (
@@ -129,30 +158,38 @@ const GoalRow = ({
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pl-8">
-          {goals.map((goal, goalIndex) => {
-            const isActiveGoal = activeGoal?.rowIndex === rowIndex && activeGoal?.goalIndex === goalIndex;
-            
-            return (
-              <GoalCard 
-                key={goalIndex}
-                title={goal.title}
-                description={goal.description}
-                progress={goal.progress}
-                index={goalIndex}
-                isFocused={focusedGoalIndex === goalIndex}
-                isActiveFocus={isActiveGoal}
-                onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === goalIndex ? null : goalIndex)}
-                onStartFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
-                onEdit={() => handleEditSubGoal(goal, goalIndex)}
+          {isLoading ? (
+            <div className="col-span-4 py-8 text-center text-slate-400">
+              Loading sub-goals...
+            </div>
+          ) : (
+            <>
+              {subGoals.map((goal, goalIndex) => {
+                const isActiveGoal = activeGoal?.rowIndex === rowIndex && activeGoal?.goalIndex === goalIndex;
+                
+                return (
+                  <GoalCard 
+                    key={goal.id || goalIndex}
+                    title={goal.title}
+                    description={goal.description}
+                    progress={goal.progress}
+                    index={goalIndex}
+                    isFocused={focusedGoalIndex === goalIndex}
+                    isActiveFocus={isActiveGoal}
+                    onFocus={() => setFocusedGoalIndex(prevIndex => prevIndex === goalIndex ? null : goalIndex)}
+                    onStartFocus={() => onGoalFocus(goal, rowIndex, goalIndex)}
+                    onEdit={() => handleEditSubGoal(goal, goalIndex)}
+                  />
+                );
+              })}
+              
+              {/* Add Sub-Goal Card */}
+              <SubGoalAddCard 
+                onClick={handleAddSubGoal} 
+                index={subGoals.length}
               />
-            );
-          })}
-          
-          {/* Add Sub-Goal Card */}
-          <SubGoalAddCard 
-            onClick={handleAddSubGoal} 
-            index={goals.length}
-          />
+            </>
+          )}
         </div>
         
         {/* Sub-Goal Dialog for adding/editing */}
@@ -166,6 +203,7 @@ const GoalRow = ({
           onSave={handleSaveSubGoal}
           subGoalToEdit={subGoalToEdit}
           parentGoalTitle={title}
+          parentGoalId={id}
         />
       </AnimatedContainer>
     </div>

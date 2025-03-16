@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Goal } from './GoalRow';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -24,6 +25,7 @@ interface SubGoalDialogProps {
   onSave: (goal: Omit<Goal, 'progress'>) => void;
   subGoalToEdit: Goal | null;
   parentGoalTitle: string;
+  parentGoalId: string;
 }
 
 const SubGoalDialog = ({ 
@@ -31,8 +33,11 @@ const SubGoalDialog = ({
   onClose, 
   onSave, 
   subGoalToEdit,
-  parentGoalTitle
+  parentGoalTitle,
+  parentGoalId
 }: SubGoalDialogProps) => {
+  const { toast } = useToast();
+  
   // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
     resolver: zodResolver(subGoalSchema),
@@ -53,12 +58,58 @@ const SubGoalDialog = ({
   }, [isOpen, subGoalToEdit, form]);
 
   // Handle form submission
-  const onSubmit = (values: SubGoalFormValues) => {
-    onSave({
-      title: values.title,
-      description: values.description,
-    });
-    form.reset();
+  const onSubmit = async (values: SubGoalFormValues) => {
+    try {
+      // Prepare sub-goal data
+      const subGoalData = {
+        parent_goal_id: parentGoalId,
+        title: values.title,
+        description: values.description,
+        progress: subGoalToEdit?.progress || 0
+      };
+      
+      // If editing, update the existing sub-goal
+      if (subGoalToEdit) {
+        const { error } = await supabase
+          .from('sub_goals')
+          .update(subGoalData)
+          .eq('id', subGoalToEdit.id);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Sub-goal updated",
+          description: "Your sub-goal has been updated successfully.",
+        });
+      } else {
+        // Otherwise, create a new sub-goal
+        const { error } = await supabase
+          .from('sub_goals')
+          .insert(subGoalData);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Sub-goal created",
+          description: "Your sub-goal has been created successfully.",
+        });
+      }
+      
+      // Call the onSave callback to update UI
+      onSave({
+        title: values.title,
+        description: values.description,
+      });
+      
+      form.reset();
+    } catch (error) {
+      console.error("Error saving sub-goal:", error);
+      toast({
+        title: "Error saving sub-goal",
+        description: "There was an error saving your sub-goal. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
