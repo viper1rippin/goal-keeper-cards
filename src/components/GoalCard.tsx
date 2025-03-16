@@ -81,7 +81,7 @@ const GoalCard = ({
     if (!cardRef.current) return;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!cardRef.current) return;
+      if (!cardRef.current || !isActiveFocus) return;
       
       // Get card dimensions and position
       const rect = cardRef.current.getBoundingClientRect();
@@ -95,7 +95,7 @@ const GoalCard = ({
     
     const handleMouseEnter = () => {
       setIsHovered(true);
-      setIsMouseInCard(true);
+      setIsMouseInCard(isActiveFocus); // Only set mouse in card if this card has active focus
     };
     
     const handleMouseLeave = () => {
@@ -113,7 +113,14 @@ const GoalCard = ({
       card.removeEventListener('mouseenter', handleMouseEnter);
       card.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, []);
+  }, [isActiveFocus]); // Added isActiveFocus to dependency array
+
+  // Reset mouse state when active focus changes
+  useEffect(() => {
+    if (!isActiveFocus) {
+      setIsMouseInCard(false);
+    }
+  }, [isActiveFocus]);
 
   // Handle card click to start focus timer
   const handleClick = () => {
@@ -144,8 +151,8 @@ const GoalCard = ({
         )}
         onClick={handleClick}
       >
-        {/* Subtle, focused glow effect that follows the mouse with minimal intensity */}
-        {isMouseInCard && (
+        {/* Subtle, focused glow effect that follows the mouse - only shown when card has active focus */}
+        {isMouseInCard && isActiveFocus && (
           <div 
             className="absolute pointer-events-none"
             style={{
