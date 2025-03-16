@@ -21,12 +21,14 @@ interface ParentGoalFormProps {
   initialData?: { id?: string; title: string; description: string } | null;
   onSubmit: (values: FormValues) => Promise<void>;
   onCancel: () => void;
+  showHeader?: boolean;
 }
 
 const ParentGoalForm = ({ 
   initialData, 
   onSubmit, 
-  onCancel
+  onCancel,
+  showHeader = true
 }: ParentGoalFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -66,11 +68,13 @@ const ParentGoalForm = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">
-          {initialData ? "Edit Goal" : "Create New Goal"}
-        </h3>
-      </div>
+      {showHeader && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">
+            {initialData ? "Edit Goal" : "Create New Goal"}
+          </h3>
+        </div>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">

@@ -64,12 +64,51 @@ const ParentGoalDialog = ({
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      if (goalToEdit?.id) {
+        // First delete all sub-goals associated with this parent goal
+        const { error: subGoalError } = await supabase
+          .from('sub_goals')
+          .delete()
+          .eq('parent_goal_id', goalToEdit.id);
+        
+        if (subGoalError) throw subGoalError;
+        
+        // Then delete the parent goal
+        const { error } = await supabase
+          .from('parent_goals')
+          .delete()
+          .eq('id', goalToEdit.id);
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Goal Deleted",
+          description: "The goal and all its sub-goals have been deleted."
+        });
+        
+        // Close dialog and refresh goals
+        onClose();
+        onGoalSaved();
+      }
+    } catch (error) {
+      console.error("Error deleting goal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the goal. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <ParentGoalDialogContent 
       isOpen={isOpen}
       onClose={onClose}
       goalToEdit={goalToEdit}
       onSubmit={handleSubmit}
+      onDelete={goalToEdit ? handleDelete : undefined}
     />
   );
 };
