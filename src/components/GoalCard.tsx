@@ -21,12 +21,12 @@ export interface GoalCardProps {
 
 // Collection of emerald-toned gradients for cards
 const gradientVariations = [
-  "from-emerald-dark/20 to-apple-dark",
-  "from-emerald-dark/30 to-emerald/5",
-  "from-emerald/10 to-apple-dark",
-  "from-emerald-light/10 to-apple-dark",
-  "from-emerald/5 to-emerald-dark/20",
-  "from-emerald-dark/25 to-emerald/10",
+  "from-emerald-dark/30 to-apple-dark",
+  "from-emerald-dark/40 to-emerald/10",
+  "from-emerald/15 to-apple-dark",
+  "from-emerald-light/15 to-apple-dark",
+  "from-emerald/10 to-emerald-dark/25",
+  "from-emerald-dark/35 to-emerald/15",
 ];
 
 // Collection of progress bar gradients
@@ -134,41 +134,41 @@ const GoalCard = ({
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
           isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/40 shadow-lg shadow-emerald/30 animate-emerald-pulse`
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20` 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-md shadow-emerald/15 opacity-90`
-                : "bg-slate-900/70 border-slate-800/50 opacity-70",
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
+                : "bg-slate-900/80 border-slate-800/60 opacity-75",
           progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15"
         )}
         onClick={handleClick}
       >
-        {/* Enhanced green lantern-like glow effect - more refined with proper z-indexing and blend mode */}
+        {/* Subtle, focused glow effect that follows the mouse with minimal intensity */}
         {isMouseInCard && (
           <div 
             className="absolute pointer-events-none"
             style={{
               left: `${mousePos.x}px`,
               top: `${mousePos.y}px`,
-              width: '120px',
-              height: '120px',
+              width: '80px',
+              height: '80px',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.30) 0%, rgba(5, 150, 105, 0.15) 30%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 40%, transparent 80%)',
               borderRadius: '50%',
               zIndex: 1,
-              mixBlendMode: 'screen',
-              filter: 'blur(8px)',
-              opacity: 0.85,
+              mixBlendMode: 'soft-light',
+              filter: 'blur(12px)',
+              opacity: 0.7,
             }}
           />
         )}
         
-        {/* Subtle inner glow effect */}
+        {/* Subtle depth-enhancing gradient overlay */}
         <div 
-          className="absolute inset-0 opacity-20 pointer-events-none"
+          className="absolute inset-0 opacity-15 pointer-events-none"
           style={{
-            background: 'radial-gradient(circle at center, rgba(16, 185, 129, 0.05) 0%, transparent 70%)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)',
             zIndex: 0,
           }}
         />
@@ -211,7 +211,7 @@ const GoalCard = ({
                 className={cn(
                   "h-full bg-gradient-to-r transition-all duration-700 ease-out",
                   isActiveFocus 
-                    ? `${progressGradient} animate-pulse` 
+                    ? `${progressGradient}` 
                     : (isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40")
                 )}
                 style={{ width: `${progress}%` }}

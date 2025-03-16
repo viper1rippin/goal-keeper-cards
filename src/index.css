@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,7 +59,7 @@
   }
   
   .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-dark/20 to-apple-dark border border-emerald/20 shadow-lg shadow-emerald/10;
+    @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
   }
 
   .text-gradient {
@@ -94,17 +93,17 @@
   100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
 }
 
-/* Enhanced glow effects */
+/* Enhanced glow effects - toned down for better eye comfort */
 @keyframes emerald-pulse {
-  0% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
-  50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.7); }
-  100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
+  0% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
+  50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+  100% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
 }
 
 @keyframes green-lantern-pulse {
-  0% { opacity: 0.7; filter: blur(8px); }
-  50% { opacity: 0.9; filter: blur(7px); }
-  100% { opacity: 0.7; filter: blur(8px); }
+  0% { opacity: 0.5; filter: blur(10px); }
+  50% { opacity: 0.6; filter: blur(8px); }
+  100% { opacity: 0.5; filter: blur(10px); }
 }
 
 .animate-fade-in {
@@ -124,9 +123,9 @@
 }
 
 .animate-emerald-pulse {
-  animation: emerald-pulse 2s infinite;
+  animation: emerald-pulse 2.5s infinite;
 }
 
 .animate-green-lantern {
-  animation: green-lantern-pulse 3s infinite;
+  animation: green-lantern-pulse 4s infinite;
 }

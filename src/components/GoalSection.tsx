@@ -12,12 +12,12 @@ const GoalSection: React.FC<GoalSectionProps> = ({ activeGoal }) => {
   if (!activeGoal) return null;
   
   return (
-    <div className="glass-card-emerald p-3 rounded border border-emerald/20 mb-2 text-sm relative overflow-hidden">
-      {/* Subtle background glow effect */}
+    <div className="glass-card-emerald p-3 rounded border border-emerald/15 mb-2 text-sm relative overflow-hidden">
+      {/* Subtle depth enhancer - very low opacity to create dimension without distraction */}
       <div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
+        className="absolute inset-0 opacity-5 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(16, 185, 129, 0.2) 0%, transparent 70%)',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, transparent 70%, rgba(0,0,0,0.05) 100%)',
           zIndex: 0,
         }}
       />
