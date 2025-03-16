@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
-import { Edit2, GripHorizontal } from "lucide-react";
+import { Edit2 } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -17,8 +17,6 @@ export interface GoalCardProps {
   onStartFocus?: () => void;
   // Add edit functionality
   onEdit?: () => void;
-  // Add drag state
-  isDragging?: boolean;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -50,8 +48,7 @@ const GoalCard = ({
   onFocus, 
   isActiveFocus = false,
   onStartFocus,
-  onEdit,
-  isDragging = false
+  onEdit
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
@@ -151,16 +148,10 @@ const GoalCard = ({
               : isHovered
                 ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
                 : "bg-slate-900/80 border-slate-800/60 opacity-75",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
-          isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15"
         )}
         onClick={handleClick}
       >
-        {/* Drag handle indicator */}
-        <div className="absolute top-2 left-2 p-1.5 text-slate-500 opacity-50 hover:opacity-100 transition-opacity cursor-grab">
-          <GripHorizontal size={14} />
-        </div>
-        
         {/* Subtle, focused glow effect that follows the mouse - only shown when card has active focus */}
         {isMouseInCard && isActiveFocus && (
           <div 
@@ -204,7 +195,7 @@ const GoalCard = ({
           </button>
         )}
         
-        <div className="flex flex-col h-full relative z-2 pt-4">
+        <div className="flex flex-col h-full relative z-2">
           <h3 className={cn(
             "font-medium text-lg mb-2",
             isActiveFocus 
