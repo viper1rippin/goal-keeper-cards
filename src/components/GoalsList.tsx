@@ -25,6 +25,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
   onUpdateSubGoals,
   onEditGoal,
   onDragEnd,
+  onDeleteParentGoal,
   onDeleteSubGoal
 }) => {
   const sensors = useSensors(
@@ -65,7 +66,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
               <GoalRowActions
                 title={parentGoal.title}
                 onEdit={() => onEditGoal(parentGoal)}
-                onDelete={() => {}} // We're keeping this prop to avoid TypeScript errors, but it won't be used
+                onDelete={async () => Promise.resolve()} // Return a resolved Promise to match the expected type
               />
             </div>
           ))}
