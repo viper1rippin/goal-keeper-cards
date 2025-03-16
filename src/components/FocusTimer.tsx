@@ -10,8 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Goal } from "./GoalRow";
 
 // Points earned per minute of focus
-// 24 hours = 1440 minutes, so we need 1440 points for a level up
-// 1 point per minute = 1440 points per day = 1 level per day (24 hours)
+// 24 hours = 1440 minutes, so we need 1 point per 24 hours
 const POINTS_PER_MINUTE = 1;
 
 interface FocusTimerProps {
@@ -45,8 +44,13 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
 
   // Calculate points needed for next level
   const getPointsForNextLevel = (level: number) => {
-    // Each level requires 24 hours (1440 minutes) of focus time
-    return 1440;
+    if (level >= 200) return Infinity;
+    if (level >= 120) return (level + 1) * 15;
+    if (level >= 100) return (level + 1) * 12;
+    if (level >= 70) return (level + 1) * 10;
+    if (level >= 45) return (level + 1) * 8;
+    if (level >= 20) return (level + 1) * 6;
+    return (level + 1) * 5;
   };
 
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
