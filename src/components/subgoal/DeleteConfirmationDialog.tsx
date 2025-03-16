@@ -15,12 +15,14 @@ interface DeleteConfirmationDialogProps {
   open: boolean; 
   onOpenChange: (open: boolean) => void; 
   onConfirmDelete: () => Promise<void>;
+  isDeleting?: boolean;
 }
 
 export const DeleteConfirmationDialog = ({ 
   open, 
   onOpenChange, 
-  onConfirmDelete 
+  onConfirmDelete,
+  isDeleting = false
 }: DeleteConfirmationDialogProps) => {
   const handleDelete = async () => {
     try {
@@ -43,12 +45,18 @@ export const DeleteConfirmationDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+          <AlertDialogCancel 
+            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            disabled={isDeleting}
+          >
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleDelete}
             className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={isDeleting}
           >
-            Delete
+            {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

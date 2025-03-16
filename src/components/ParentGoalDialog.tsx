@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -72,30 +73,41 @@ const ParentGoalDialog = ({
     try {
       setIsDeleting(true);
       
+      // Stop focus first to prevent any state issues
       handleStopFocus();
       
+      // Delete all sub-goals first
+      console.log("Deleting sub-goals for parent goal:", goalToEdit.id);
       const { error: subGoalsError } = await supabase
         .from('sub_goals')
         .delete()
         .eq('parent_goal_id', goalToEdit.id);
       
-      if (subGoalsError) throw subGoalsError;
+      if (subGoalsError) {
+        console.error("Error deleting sub-goals:", subGoalsError);
+        throw subGoalsError;
+      }
       
+      console.log("Deleting parent goal:", goalToEdit.id);
+      // Then delete the parent goal
       const { error } = await supabase
         .from('parent_goals')
         .delete()
         .eq('id', goalToEdit.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting parent goal:", error);
+        throw error;
+      }
       
       toast({
         title: "Goal deleted",
         description: "The goal and all its sub-goals have been successfully deleted."
       });
       
+      onGoalSaved(); // Refresh the goals list
       setShowDeleteAlert(false);
       onClose();
-      onGoalSaved();
     } catch (error) {
       console.error("Error deleting goal:", error);
       toast({
@@ -122,6 +134,7 @@ const ParentGoalDialog = ({
         open={showDeleteAlert} 
         onOpenChange={setShowDeleteAlert}
         onConfirmDelete={handleDelete}
+        isDeleting={isDeleting}
       />
     </>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -35,7 +36,7 @@ const SubGoalDialog = ({
   parentGoalId
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const { handleStopFocus, activeGoalIndices } = useIndexPage();
+  const { handleStopFocus } = useIndexPage();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -105,23 +106,28 @@ const SubGoalDialog = ({
     try {
       setIsDeleting(true);
       
+      // Stop focus first to prevent any state issues
       handleStopFocus();
       
+      console.log("Deleting sub-goal:", subGoalToEdit.id);
       const { error } = await supabase
         .from('sub_goals')
         .delete()
         .eq('id', subGoalToEdit.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting sub-goal:", error);
+        throw error;
+      }
       
       toast({
         title: "Sub-goal deleted",
         description: "The sub-goal has been successfully deleted.",
       });
       
+      onSave({ title: "", description: "" }); // Trigger parent component update
       setShowDeleteAlert(false);
       onClose();
-      onSave({ title: "", description: "" });
     } catch (error) {
       console.error("Error deleting sub-goal:", error);
       toast({
@@ -160,7 +166,8 @@ const SubGoalDialog = ({
       <DeleteConfirmationDialog 
         open={showDeleteAlert} 
         onOpenChange={setShowDeleteAlert} 
-        onConfirmDelete={handleDelete} 
+        onConfirmDelete={handleDelete}
+        isDeleting={isDeleting}
       />
     </>
   );
