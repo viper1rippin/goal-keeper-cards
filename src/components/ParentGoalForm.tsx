@@ -120,10 +120,10 @@ const ParentGoalForm = ({
             )}
             <div className="flex gap-2 ml-auto">
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 onClick={onCancel}
                 type="button"
-                className="border-slate-800/30 hover:bg-slate-800/20"
+                className="text-slate-400 hover:bg-slate-800/20 hover:text-slate-300"
               >
                 Cancel
               </Button>

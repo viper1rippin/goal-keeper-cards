@@ -201,9 +201,9 @@ const SubGoalDialog = ({
                 <div className="flex gap-2 ml-auto">
                   <Button 
                     type="button" 
-                    variant="outline" 
+                    variant="ghost" 
                     onClick={onClose}
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                    className="text-slate-400 hover:bg-slate-800/20 hover:text-slate-300"
                   >
                     Cancel
                   </Button>
