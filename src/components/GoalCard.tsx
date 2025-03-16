@@ -152,8 +152,7 @@ const GoalCard = ({
                 ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
                 : "bg-slate-900/80 border-slate-800/60 opacity-75",
           progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
-          // Simplified drag styling - more subtle and less complex
-          isDragging ? "border-emerald/30 bg-slate-900/90" : ""
+          isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
         )}
         onClick={handleClick}
       >
