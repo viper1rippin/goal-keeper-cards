@@ -9,7 +9,7 @@ export function useGoalFocus() {
   const [showFocusTimer, setShowFocusTimer] = useState(false);
   const { toast } = useToast();
   
-  // Store scroll position for preventing unwanted scrolling
+  // More reliable approach to prevent scrolling
   const scrollPosition = useRef({ x: 0, y: 0 });
   
   // Handle goal focus - this is the key function to ensure only one goal is active
@@ -28,9 +28,7 @@ export function useGoalFocus() {
     // First set the new active goal
     setActiveGoal(goal);
     setActiveGoalIndices({ rowIndex, goalIndex });
-    
-    // Important: NOT automatically showing the focus timer anymore
-    // setShowFocusTimer(true); - removing this line prevents auto-focusing
+    setShowFocusTimer(true);
     
     // Use requestAnimationFrame to restore scroll position AFTER rendering
     requestAnimationFrame(() => {
