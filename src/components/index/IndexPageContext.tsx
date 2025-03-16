@@ -1,10 +1,9 @@
-
 import React, { createContext, useContext, useEffect } from "react";
-import { Goal, IndexPageContextType } from "./IndexPageTypes";
+import { Goal, IndexPageContextType, ParentGoalWithSubGoals } from "./IndexPageTypes";
 import { useToast } from "@/hooks/use-toast";
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
-import { useParentGoals, ParentGoalWithSubGoals, SubGoal } from "./useParentGoals";
+import { useParentGoals, SubGoal } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
 
@@ -181,5 +180,3 @@ export const useIndexPage = () => {
   }
   return context;
 };
-
-export { type ParentGoalWithSubGoals };

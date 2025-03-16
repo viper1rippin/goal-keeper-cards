@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Goal } from "./IndexPageTypes";
+import { Goal, ParentGoalWithSubGoals } from "./IndexPageTypes";
 
 // Define a type for SubGoal that includes all necessary properties
 export type SubGoal = {
@@ -24,18 +23,6 @@ type ParentGoalRow = {
   created_at: string;
   updated_at: string;
   user_id?: string; // Make this optional since it might not exist in the DB yet
-};
-
-// Define a type for ParentGoal that uses the SubGoal type
-export type ParentGoalWithSubGoals = {
-  id: string;
-  title: string;
-  description: string;
-  position: number;
-  created_at: string;
-  updated_at: string;
-  goals: SubGoal[];
-  user_id?: string; // Make user_id optional since we're adding it
 };
 
 export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {

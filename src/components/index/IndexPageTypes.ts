@@ -1,6 +1,6 @@
 
 import { DragEndEvent } from "@dnd-kit/core";
-import { ParentGoalWithSubGoals } from "./useParentGoals";
+import { SubGoal } from "./useParentGoals";
 
 // Define the Goal type here to avoid circular imports
 export interface Goal {
@@ -8,6 +8,18 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
+}
+
+// Define ParentGoalWithSubGoals type to avoid circular dependencies
+export interface ParentGoalWithSubGoals {
+  id: string;
+  title: string;
+  description: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  goals: SubGoal[];
+  user_id?: string;
 }
 
 export interface IndexPageContextType {

@@ -4,7 +4,7 @@ import GoalRow, { Goal } from "@/components/GoalRow";
 import AnimatedContainer from "./AnimatedContainer";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ParentGoalWithSubGoals } from "./index/useParentGoals";
+import { ParentGoalWithSubGoals } from "./index/IndexPageTypes";
 import GoalRowActions from "./parentgoal/GoalRowActions";
 
 interface GoalsListProps {
