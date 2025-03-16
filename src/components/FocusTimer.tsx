@@ -8,8 +8,9 @@ import UserBadge from "./UserBadge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-// Points earned per minute of focus
-const POINTS_PER_MINUTE = 1;
+// Points earned per minute of focus (adjusted for 24-hour level-up)
+// 24 hours = 1440 minutes, so 1/1440 points per minute = 1 point per 24 hours
+const POINTS_PER_MINUTE = 1 / 1440;
 
 interface FocusTimerProps {
   userLevel: number;
@@ -40,11 +41,12 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
 
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
   
-  // Format time as MM:SS
+  // Format time as HH:MM:SS to better display long focus sessions
   const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Toggle timer
@@ -65,7 +67,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     
     // Only add points if there was some time spent
     if (time > 0) {
-      const newPoints = Math.floor(time / 60) * POINTS_PER_MINUTE;
+      const newPoints = (time / 60) * POINTS_PER_MINUTE;
       setEarnedPoints(prev => prev + newPoints);
       
       // Check if user leveled up
@@ -107,6 +109,10 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     (earnedPoints / pointsForNextLevel) * 100
   );
 
+  // Calculate time needed for next level
+  const minutesForNextLevel = Math.ceil((pointsForNextLevel - earnedPoints) / POINTS_PER_MINUTE);
+  const hoursForNextLevel = (minutesForNextLevel / 60).toFixed(1);
+
   return (
     <Card className="w-full max-w-md glass-card border-emerald/20">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -131,7 +137,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
           <div className="flex items-center justify-between">
             <UserBadge level={userLevel} />
             <div className="text-xs text-slate-400">
-              {earnedPoints}/{pointsForNextLevel} points
+              {earnedPoints.toFixed(4)}/{pointsForNextLevel} points
             </div>
           </div>
           
@@ -143,6 +149,9 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
               isActive ? "text-emerald" : "text-slate-300"
             )}>
               {formatTime(time)}
+            </div>
+            <div className="text-xs text-slate-400">
+              ~{hoursForNextLevel} hours of focus needed for next level
             </div>
           </div>
         </div>
