@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,20 +114,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
     (earnedPoints / pointsForNextLevel) * 100
   );
 
-  const minutesForNextLevel = Math.ceil((pointsForNextLevel - earnedPoints) / POINTS_PER_MINUTE);
-  
-  const hoursForNextLevel = (minutesForNextLevel / 60).toFixed(1);
-  
-  const formatTimeNeeded = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes} minutes`;
-    } else if (minutes < 1440) {
-      return `${(minutes / 60).toFixed(1)} hours`;
-    } else {
-      return `${(minutes / 1440).toFixed(1)} days`;
-    }
-  };
-
   return (
     <Card className="w-full max-w-md glass-card border-emerald/20">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -172,7 +159,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
               {formatTime(time)}
             </div>
             <div className="text-xs text-slate-400">
-              {formatTimeNeeded(minutesForNextLevel)} of focus needed for next level
+              24 hours of focus needed for next level
             </div>
           </div>
         </div>
