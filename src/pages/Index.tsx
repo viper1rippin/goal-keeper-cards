@@ -48,13 +48,9 @@ const Index = () => {
       // Transform data to include empty goals array if no data
       const transformedData = data?.map(goal => ({
         ...goal,
-        goals: [
-          {
-            title: "Sample Subgoal",
-            description: "This is a placeholder. You'll be able to add real subgoals soon.",
-            progress: 0
-          }
-        ]
+        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+          ? goalToEdit.goals
+          : []
       })) || [];
       
       setParentGoals(transformedData);
@@ -87,6 +83,22 @@ const Index = () => {
   const handleStopFocus = () => {
     setActiveGoal(null);
     setActiveGoalIndices(null);
+  };
+  
+  // Handle updating sub-goals for a parent goal
+  const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
+    const updatedParentGoals = [...parentGoals];
+    updatedParentGoals[parentIndex] = {
+      ...updatedParentGoals[parentIndex],
+      goals: updatedGoals
+    };
+    setParentGoals(updatedParentGoals);
+    
+    // Show success toast
+    toast({
+      title: "Success",
+      description: "Sub-goal updated successfully",
+    });
   };
   
   // Fetch goals on component mount
@@ -147,6 +159,7 @@ const Index = () => {
                   index={rowIndex}
                   activeGoal={activeGoalIndices}
                   onGoalFocus={handleGoalFocus}
+                  onUpdateSubGoals={handleUpdateSubGoals}
                 />
                 <Button
                   variant="ghost"

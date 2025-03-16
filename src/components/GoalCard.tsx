@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Edit2 } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -14,6 +15,8 @@ export interface GoalCardProps {
   // Add new props for focus timer
   isActiveFocus?: boolean;
   onStartFocus?: () => void;
+  // Add edit functionality
+  onEdit?: () => void;
 }
 
 // Collection of emerald-toned gradients for cards
@@ -44,7 +47,8 @@ const GoalCard = ({
   isFocused, 
   onFocus, 
   isActiveFocus = false,
-  onStartFocus 
+  onStartFocus,
+  onEdit
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
@@ -156,6 +160,20 @@ const GoalCard = ({
               mixBlendMode: 'screen',
             }}
           />
+        )}
+        
+        {/* Edit button - only visible on hover */}
+        {onEdit && isHovered && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-800/70 text-emerald hover:bg-slate-700/80 transition-colors z-10"
+            aria-label="Edit sub-goal"
+          >
+            <Edit2 size={14} />
+          </button>
         )}
         
         <div className="flex flex-col h-full relative z-2">
