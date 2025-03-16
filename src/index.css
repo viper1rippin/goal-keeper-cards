@@ -60,7 +60,7 @@
   }
   
   .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-dark/20 to-apple-dark border border-emerald/20 shadow-lg shadow-emerald/5;
+    @apply bg-gradient-to-br from-emerald-dark/20 to-apple-dark border border-emerald/20 shadow-lg shadow-emerald/10;
   }
 
   .text-gradient {
@@ -90,8 +90,15 @@
 
 @keyframes badge-glow {
   0% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.6); }
   100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
+}
+
+/* Enhanced glow effects */
+@keyframes emerald-pulse {
+  0% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.7); }
+  100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.2); }
 }
 
 .animate-fade-in {
@@ -110,3 +117,6 @@
   animation: badge-glow 2s infinite;
 }
 
+.animate-emerald-pulse {
+  animation: emerald-pulse 2s infinite;
+}
