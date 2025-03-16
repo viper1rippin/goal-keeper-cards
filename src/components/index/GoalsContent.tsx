@@ -14,7 +14,9 @@ const GoalsContent: React.FC = () => {
     handleGoalFocus, 
     handleCreateOrEditGoal, 
     handleUpdateSubGoals,
-    handleDragEnd
+    handleDragEnd,
+    handleDeleteParentGoal,
+    handleDeleteSubGoal
   } = useIndexPage();
 
   return (
@@ -33,6 +35,8 @@ const GoalsContent: React.FC = () => {
           onUpdateSubGoals={handleUpdateSubGoals}
           onEditGoal={handleCreateOrEditGoal}
           onDragEnd={handleDragEnd}
+          onDeleteParentGoal={handleDeleteParentGoal}
+          onDeleteSubGoal={handleDeleteSubGoal}
         />
       )}
     </main>

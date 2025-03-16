@@ -16,7 +16,15 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   
   // Use our custom hooks
   const { isDialogOpen, goalToEdit, handleCreateOrEditGoal, closeDialog } = useGoalDialog();
-  const { parentGoals, setParentGoals, isLoading, fetchParentGoals, saveParentGoalOrder } = useParentGoals(goalToEdit);
+  const { 
+    parentGoals, 
+    setParentGoals, 
+    isLoading, 
+    fetchParentGoals, 
+    saveParentGoalOrder,
+    deleteParentGoal,
+    deleteSubGoal
+  } = useParentGoals(goalToEdit);
   const { 
     activeGoal, 
     activeGoalIndices, 
@@ -83,6 +91,32 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
     }
   };
+
+  // Handle deleting a parent goal
+  const handleDeleteParentGoal = async (goalId: string) => {
+    // If there's an active goal from this parent, clear it first
+    if (activeGoalIndices) {
+      const goalIndex = parentGoals.findIndex(goal => goal.id === goalId);
+      if (activeGoalIndices.rowIndex === goalIndex) {
+        handleStopFocus();
+      }
+    }
+    
+    await deleteParentGoal(goalId);
+  };
+
+  // Handle deleting a sub-goal
+  const handleDeleteSubGoal = async (subGoalId: string) => {
+    // If this is the active goal, clear it first
+    if (activeGoal?.id === subGoalId) {
+      handleStopFocus();
+    }
+    
+    await deleteSubGoal(subGoalId);
+    
+    // Need to fetch parent goals to update the UI properly
+    fetchParentGoals();
+  };
   
   // Fetch goals on component mount
   useEffect(() => {
@@ -107,7 +141,9 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     handleUpdateSubGoals,
     handleDragEnd,
     closeDialog,
-    fetchParentGoals
+    fetchParentGoals,
+    handleDeleteParentGoal,
+    handleDeleteSubGoal
   };
 
   return (

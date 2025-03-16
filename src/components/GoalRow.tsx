@@ -25,6 +25,7 @@ interface GoalRowProps {
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   id: string; // Added id prop for drag and drop
+  onDeleteSubGoal: (id: string) => void;
 }
 
 const GoalRow = ({ 
@@ -35,7 +36,8 @@ const GoalRow = ({
   activeGoal,
   onGoalFocus,
   onUpdateSubGoals,
-  id
+  id,
+  onDeleteSubGoal
 }: GoalRowProps) => {
   // Setup sortable hook from dnd-kit for the row itself
   const {
@@ -111,6 +113,12 @@ const GoalRow = ({
     // If this was called from a child component we refetch to ensure fresh data
     fetchSubGoals();
   };
+
+  const handleDeleteSubGoal = async (subGoalId: string) => {
+    onDeleteSubGoal(subGoalId);
+    // Refetch subgoals to update the UI
+    await fetchSubGoals();
+  };
   
   return (
     <div 
@@ -139,6 +147,7 @@ const GoalRow = ({
             onGoalFocus={onGoalFocus}
             onUpdateSubGoals={handleUpdateSubGoals}
             isLoading={isLoading}
+            onDeleteSubGoal={handleDeleteSubGoal}
           />
         </div>
       </AnimatedContainer>

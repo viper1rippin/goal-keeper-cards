@@ -65,12 +65,76 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       });
     }
   };
+
+  // Delete a parent goal from the database
+  const deleteParentGoal = async (id: string) => {
+    try {
+      // First delete all sub-goals
+      const { error: subGoalsError } = await supabase
+        .from('sub_goals')
+        .delete()
+        .eq('parent_goal_id', id);
+      
+      if (subGoalsError) throw subGoalsError;
+      
+      // Then delete the parent goal
+      const { error } = await supabase
+        .from('parent_goals')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setParentGoals(prev => prev.filter(goal => goal.id !== id));
+      
+      toast({
+        title: "Success",
+        description: "Goal deleted successfully",
+      });
+      
+    } catch (error) {
+      console.error("Error deleting parent goal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete goal. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete a sub-goal from the database
+  const deleteSubGoal = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('sub_goals')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Sub-goal deleted successfully",
+      });
+      
+    } catch (error) {
+      console.error("Error deleting sub-goal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete sub-goal. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   
   return {
     parentGoals,
     setParentGoals,
     isLoading,
     fetchParentGoals,
-    saveParentGoalOrder
+    saveParentGoalOrder,
+    deleteParentGoal,
+    deleteSubGoal
   };
 }
