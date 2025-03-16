@@ -1,11 +1,9 @@
+
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import ParentGoalForm from "./ParentGoalForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
+import { DeleteConfirmationDialog } from "./parentgoal/DeleteConfirmationDialog";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -110,39 +108,19 @@ const ParentGoalDialog = ({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="bg-apple-dark border-slate-800/80 text-white max-w-md">
-          <ParentGoalForm
-            initialData={goalToEdit}
-            onSubmit={handleSubmit}
-            onCancel={onClose}
-            showDelete={!!goalToEdit?.id}
-            onDelete={() => setShowDeleteAlert(true)}
-          />
-        </DialogContent>
-      </Dialog>
+      <ParentGoalDialogContent 
+        isOpen={isOpen}
+        onClose={onClose}
+        goalToEdit={goalToEdit}
+        onSubmit={handleSubmit}
+        onDelete={() => setShowDeleteAlert(true)}
+      />
 
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent className="bg-apple-dark border-slate-800/80 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Goal</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              This will delete the goal and all its sub-goals. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-800/30 hover:bg-slate-800/20 text-white">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog 
+        open={showDeleteAlert} 
+        onOpenChange={setShowDeleteAlert}
+        onConfirmDelete={handleDelete}
+      />
     </>
   );
 };
