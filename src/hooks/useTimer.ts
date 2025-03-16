@@ -40,6 +40,12 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
           : "Focus mode activated",
         description: "Stay focused and earn points to level up",
       });
+    } else {
+      // When pausing
+      toast({
+        title: "Timer paused",
+        description: "Your focus session is paused. Resume when you're ready.",
+      });
     }
   };
 
