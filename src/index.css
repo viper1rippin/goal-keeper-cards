@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,6 +69,16 @@
 
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  /* Sidebar active state highlight */
+  .sidebar-item-active {
+    @apply relative bg-emerald/10 text-emerald;
+  }
+  
+  .sidebar-item-active::before {
+    content: '';
+    @apply absolute left-0 top-0 h-full w-1 bg-emerald rounded-r;
   }
 }
 
