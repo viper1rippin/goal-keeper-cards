@@ -47,7 +47,6 @@ export const SubGoalForm = ({
                 <Input 
                   {...field} 
                   placeholder="Enter sub-goal title"
-                  softFocus
                   className="bg-slate-800 border-slate-700 text-white"
                 />
               </FormControl>
@@ -66,7 +65,6 @@ export const SubGoalForm = ({
                 <Textarea 
                   {...field} 
                   placeholder="Enter sub-goal description"
-                  softFocus
                   className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
                   onKeyDown={handleKeyDown}
                 />
