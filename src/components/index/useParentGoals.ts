@@ -3,11 +3,14 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
+import { useAuth } from "@/context/AuthContext";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const userEmail = user?.email || 'thawlinoo2021@gmail.com'; // Default to thawlinoo2021@gmail.com
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
@@ -16,6 +19,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
+        .eq('user_id', userEmail)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       

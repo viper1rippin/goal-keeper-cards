@@ -1,4 +1,3 @@
-
 import { Goal } from "@/components/GoalRow";
 import { DragEndEvent } from '@dnd-kit/core';
 
@@ -8,6 +7,7 @@ export interface ParentGoal {
   description: string;
   goals: Goal[];
   position?: number;
+  user_id?: string;
 }
 
 export interface IndexPageContextType {
@@ -32,3 +32,4 @@ export interface IndexPageContextType {
   closeDialog: () => void;
   fetchParentGoals: () => Promise<void>;
 }
+

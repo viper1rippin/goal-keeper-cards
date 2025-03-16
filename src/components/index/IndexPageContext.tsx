@@ -8,11 +8,14 @@ import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
 import { useParentGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
+import { migrateGoalsToUser } from "@/utils/migrateGoals";
+import { useAuth } from "@/context/AuthContext";
 
 const IndexPageContext = createContext<IndexPageContextType | undefined>(undefined);
 
 export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Use our custom hooks
   const { isDialogOpen, goalToEdit, handleCreateOrEditGoal, closeDialog } = useGoalDialog();
@@ -125,10 +128,17 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
   
-  // Fetch goals on component mount
+  // Run migration on component mount
   useEffect(() => {
-    fetchParentGoals();
-  }, []);
+    // Migrate existing goals to the default user
+    migrateGoalsToUser(user?.email || 'thawlinoo2021@gmail.com').then(result => {
+      if (!result.success) {
+        console.error("Goal migration failed:", result.error);
+      }
+      // Fetch goals after migration
+      fetchParentGoals();
+    });
+  }, [user?.email]);
 
   const contextValue: IndexPageContextType = {
     // State
