@@ -6,21 +6,9 @@ import UserBadge from "./UserBadge";
 import { Button } from "./ui/button";
 import { Timer } from "lucide-react";
 import FocusTimer from "./FocusTimer";
-import { Goal } from "./GoalRow";
 
-interface HeaderProps {
-  activeGoal?: Goal | null;
-  showFocusTimer: boolean;
-  setShowFocusTimer: (show: boolean) => void;
-  onStopFocus?: () => void;
-}
-
-const Header = ({ 
-  activeGoal,
-  showFocusTimer,
-  setShowFocusTimer,
-  onStopFocus
-}: HeaderProps) => {
+const Header = () => {
+  const [showFocusTimer, setShowFocusTimer] = useState(false);
   const [userLevel, setUserLevel] = useState(10); // Default starting level
   
   const handleLevelUp = (newLevel: number) => {
@@ -48,17 +36,13 @@ const Header = ({
             </div>
             
             <Button 
-              variant={activeGoal ? "default" : "outline"}
+              variant="outline" 
               size="sm"
               onClick={() => setShowFocusTimer(!showFocusTimer)}
-              className={cn(
-                activeGoal 
-                  ? "bg-emerald hover:bg-emerald-dark" 
-                  : "border-emerald/20 hover:border-emerald/40"
-              )}
+              className="border-emerald/20 hover:border-emerald/40"
             >
               <Timer className="mr-2" size={16} />
-              {activeGoal ? "Focusing" : "Focus"}
+              Focus
             </Button>
           </div>
         </div>
@@ -68,11 +52,7 @@ const Header = ({
             <FocusTimer 
               userLevel={userLevel} 
               onLevelUp={handleLevelUp}
-              onClose={() => {
-                setShowFocusTimer(false);
-                if (onStopFocus) onStopFocus();
-              }}
-              activeGoal={activeGoal}
+              onClose={() => setShowFocusTimer(false)}
             />
           </div>
         )}
