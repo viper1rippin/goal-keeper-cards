@@ -1,20 +1,8 @@
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
-import UserBadge from "./UserBadge";
-import { Button } from "./ui/button";
-import { Timer } from "lucide-react";
-import FocusTimer from "./FocusTimer";
 
 const Header = () => {
-  const [showFocusTimer, setShowFocusTimer] = useState(false);
-  const [userLevel, setUserLevel] = useState(10); // Default starting level
-  
-  const handleLevelUp = (newLevel: number) => {
-    setUserLevel(newLevel);
-  };
-  
   return (
     <header className="w-full py-8 px-6 sm:px-8 md:px-12 lg:px-16 border-b border-slate-800/80">
       <AnimatedContainer animation="slide-up" className="max-w-7xl mx-auto">
@@ -25,37 +13,12 @@ const Header = () => {
             </h1>
             <p className="text-slate-400 mt-1">Set, track, and accomplish your goals</p>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="hidden sm:flex items-center space-x-4">
-              <UserBadge level={userLevel} />
-              
-              <div className="glass-card px-4 py-2 rounded-lg text-sm text-slate-300">
-                Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </div>
+          <div className="hidden sm:block">
+            <div className="glass-card px-4 py-2 rounded-lg text-sm text-slate-300">
+              Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowFocusTimer(!showFocusTimer)}
-              className="border-emerald/20 hover:border-emerald/40"
-            >
-              <Timer className="mr-2" size={16} />
-              Focus
-            </Button>
           </div>
         </div>
-        
-        {showFocusTimer && (
-          <div className="mt-6">
-            <FocusTimer 
-              userLevel={userLevel} 
-              onLevelUp={handleLevelUp}
-              onClose={() => setShowFocusTimer(false)}
-            />
-          </div>
-        )}
       </AnimatedContainer>
     </header>
   );
