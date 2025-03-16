@@ -109,10 +109,10 @@ const ParentGoalForm = ({
           <div className="flex justify-between pt-4">
             {showDelete && (
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 type="button"
                 onClick={onDelete}
-                className="border-slate-800/30 hover:bg-red-900/20 text-slate-400 hover:text-red-400 flex gap-2 transition-colors"
+                className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
               >
                 <Trash2 size={16} />
                 Delete

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -189,10 +190,10 @@ const SubGoalDialog = ({
               <div className="flex justify-between pt-4">
                 {subGoalToEdit && subGoalToEdit.id && (
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     type="button"
                     onClick={() => setShowDeleteAlert(true)}
-                    className="border-slate-700 hover:bg-red-900/20 text-slate-400 hover:text-red-400 flex gap-2 transition-colors"
+                    className="text-red-500 hover:text-red-400 hover:bg-red-900/10 flex gap-2 transition-colors"
                   >
                     <Trash2 size={16} />
                     Delete
