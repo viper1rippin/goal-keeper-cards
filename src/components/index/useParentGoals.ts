@@ -2,18 +2,41 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/contexts/AuthContext";
 
-export function useParentGoals(goalToEdit: ParentGoal | null) {
-  const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
+// Define a simplified type for SubGoal that doesn't create circular references
+type SubGoal = {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  position: number;
+};
+
+// Define a type for ParentGoal that uses the simplified SubGoal type
+export type ParentGoalWithSubGoals = {
+  id: string;
+  title: string;
+  description: string;
+  position: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  goals: SubGoal[];
+};
+
+export function useParentGoals(goalToEdit: ParentGoalWithSubGoals | null) {
+  const [parentGoals, setParentGoals] = useState<ParentGoalWithSubGoals[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
-    if (!user) return; // Don't fetch if not authenticated
+    if (!user) {
+      setIsLoading(false);
+      return; // Don't fetch if not authenticated
+    }
     
     setIsLoading(true);
     try {
@@ -52,7 +75,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
   
   // Save the updated order of parent goals to the database
-  const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
+  const saveParentGoalOrder = async (updatedGoals: ParentGoalWithSubGoals[]) => {
     if (!user) return;
     
     try {

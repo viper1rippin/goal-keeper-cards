@@ -4,8 +4,8 @@ import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
-import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
-import { useParentGoals } from "./useParentGoals";
+import { IndexPageContextType } from "./IndexPageTypes";
+import { useParentGoals, ParentGoalWithSubGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
 
@@ -168,4 +168,4 @@ export const useIndexPage = () => {
   return context;
 };
 
-export { type ParentGoal };
+export { type ParentGoalWithSubGoals };

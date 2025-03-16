@@ -19,6 +19,7 @@ const ParentGoalDialog = ({
   onGoalSaved
 }: ParentGoalDialogProps) => {
   const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
   
   const handleSubmit = async (values: { title: string; description: string }) => {
     if (!user) {
@@ -29,6 +30,8 @@ const ParentGoalDialog = ({
       });
       return;
     }
+    
+    setIsSaving(true);
     
     try {
       const now = new Date().toISOString();
@@ -79,6 +82,8 @@ const ParentGoalDialog = ({
         description: "Failed to save the goal. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 

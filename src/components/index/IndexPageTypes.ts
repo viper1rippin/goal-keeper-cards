@@ -1,30 +1,23 @@
 
 import { Goal } from "@/components/GoalRow";
-import { DragEndEvent } from '@dnd-kit/core';
-
-export interface ParentGoal {
-  id: string;
-  title: string;
-  description: string;
-  goals: Goal[];
-  position?: number;
-}
+import { DragEndEvent } from "@dnd-kit/core";
+import { ParentGoalWithSubGoals } from "./useParentGoals";
 
 export interface IndexPageContextType {
   // State
-  parentGoals: ParentGoal[];
+  parentGoals: ParentGoalWithSubGoals[];
   isLoading: boolean;
   activeGoal: Goal | null;
-  activeGoalIndices: {rowIndex: number, goalIndex: number} | null;
+  activeGoalIndices: { rowIndex: number; goalIndex: number } | null;
   showFocusTimer: boolean;
   isDialogOpen: boolean;
-  goalToEdit: ParentGoal | null;
+  goalToEdit: ParentGoalWithSubGoals | null;
   
   // Actions
   setShowFocusTimer: (show: boolean) => void;
   handleGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   handleStopFocus: () => void;
-  handleCreateOrEditGoal: (goal: ParentGoal | null) => void;
+  handleCreateOrEditGoal: (goal?: ParentGoalWithSubGoals | null) => void;
   handleUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   handleDragEnd: (event: DragEndEvent) => void;
   deleteParentGoal: (id: string) => Promise<void>;
