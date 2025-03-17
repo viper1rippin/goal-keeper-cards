@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { User, Camera, Save, Eye, EyeOff, Key, BarChart3 } from "lucide-react";
+import { User, Camera, Save, Eye, EyeOff, Key } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
-import { ProgressBar } from "@/components/ui/progress-bar";
-import { formatTime, calculateTimeForNextLevel } from "@/utils/timerUtils";
-import { getCurrentBadge, getNextBadge, badges, POINTS_FOR_LEVEL_UP } from "@/utils/badgeUtils";
-import { Progress } from "@/components/ui/progress";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -34,9 +28,6 @@ const Profile = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  
-  const [userLevel, setUserLevel] = useState(10);
-  const [earnedPoints, setEarnedPoints] = useState(500);
 
   useEffect(() => {
     if (!user) return;
@@ -56,8 +47,6 @@ const Profile = () => {
         if (data) {
           setDisplayName(data.display_name || "");
           setAvatarUrl(data.avatar_url);
-          setUserLevel(data.level || 10);
-          setEarnedPoints(data.points || 500);
         }
         
         setEmail(user.email || "");
@@ -215,43 +204,6 @@ const Profile = () => {
     }
   };
 
-  const generateLevelData = () => {
-    const data = [];
-    let currentLevel = Math.max(1, userLevel - 3);
-    const maxLevel = Math.min(badges.length > 0 ? badges[badges.length - 1].level : 200, userLevel + 5);
-
-    for (let level = currentLevel; level <= maxLevel; level++) {
-      const badge = getCurrentBadge(level);
-      data.push({
-        level: level,
-        badge: badge.name,
-        points: level * POINTS_FOR_LEVEL_UP,
-        color: badge.color.split(' ')[1]
-      });
-    }
-    return data;
-  };
-
-  const calculateLevelProgress = () => {
-    const pointsForCurrentLevel = userLevel * POINTS_FOR_LEVEL_UP;
-    const pointsForNextLevel = (userLevel + 1) * POINTS_FOR_LEVEL_UP;
-    const pointsNeeded = pointsForNextLevel - pointsForCurrentLevel;
-    const pointsGained = earnedPoints - pointsForCurrentLevel;
-    return Math.min(100, Math.max(0, (pointsGained / pointsNeeded) * 100));
-  };
-
-  const hoursForNextLevel = calculateTimeForNextLevel(earnedPoints, (userLevel + 1) * POINTS_FOR_LEVEL_UP);
-
-  const badgesData = badges.map(badge => ({
-    ...badge,
-    achieved: userLevel >= badge.level,
-  }));
-
-  const currentBadge = getCurrentBadge(userLevel);
-  const nextBadge = getNextBadge(userLevel);
-  const levelProgress = calculateLevelProgress();
-  const levelData = generateLevelData();
-
   return (
     <div className="flex min-h-screen">
       <Sidebar onCollapseChange={setCollapsed} />
@@ -264,9 +216,6 @@ const Profile = () => {
           <Tabs defaultValue="profile">
             <TabsList className="mb-6">
               <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="progress" className="flex items-center gap-1">
-                <BarChart3 size={16} /> Progress
-              </TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
             
@@ -348,127 +297,6 @@ const Profile = () => {
                       <Save size={16} className="mr-2" />
                       Save Changes
                     </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="progress">
-              <div className="grid gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Level Progress</CardTitle>
-                    <CardDescription>Your current level and progress toward the next level</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${currentBadge.color} flex items-center justify-center text-white font-bold text-xl`}>
-                          {userLevel}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">Level {userLevel}</h3>
-                          <p className="text-sm text-muted-foreground">{currentBadge.name} Badge</p>
-                        </div>
-                      </div>
-                      
-                      {nextBadge && (
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <h3 className="font-semibold text-right">Next: Level {nextBadge.level}</h3>
-                            <p className="text-sm text-muted-foreground text-right">{nextBadge.name} Badge</p>
-                          </div>
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-slate-400 to-slate-500 flex items-center justify-center text-white font-bold text-xl opacity-50">
-                            {nextBadge.level}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Current: {earnedPoints} points</span>
-                        <span>Next Level: {(userLevel + 1) * POINTS_FOR_LEVEL_UP} points</span>
-                      </div>
-                      <Progress value={levelProgress} className="h-2" />
-                      <p className="text-sm text-muted-foreground text-center mt-1">
-                        {Math.round(levelProgress)}% complete ({hoursForNextLevel} hours of focus time needed)
-                      </p>
-                    </div>
-                    
-                    <div className="pt-4">
-                      <h4 className="text-sm font-medium mb-3">Level Progression</h4>
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={levelData}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="level" label={{ value: 'Level', position: 'insideBottom', offset: -5 }} />
-                            <YAxis label={{ value: 'Points', angle: -90, position: 'insideLeft' }} />
-                            <Tooltip 
-                              content={({ active, payload }) => {
-                                if (active && payload && payload.length) {
-                                  const data = payload[0].payload;
-                                  return (
-                                    <div className="bg-background border rounded p-2 shadow-lg">
-                                      <p className="font-medium">Level {data.level}</p>
-                                      <p className="text-sm">{data.badge} Badge</p>
-                                      <p className="text-sm">{data.points} Points Required</p>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              }}
-                            />
-                            <Bar 
-                              dataKey="points" 
-                              fill="#8884d8"
-                              radius={[4, 4, 0, 0]}
-                              barSize={30}
-                              name="Points Required"
-                            >
-                              {levelData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.level <= userLevel ? '#10b981' : '#94a3b8'} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Badges Collection</CardTitle>
-                    <CardDescription>Badges you've earned and badges to unlock</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {badgesData.map((badge) => {
-                        const BadgeIcon = badge.icon;
-                        return (
-                          <div 
-                            key={badge.name} 
-                            className={`border rounded-lg p-4 text-center ${
-                              badge.achieved ? 'bg-gradient-to-b from-background to-muted' : 'opacity-60 grayscale'
-                            }`}
-                          >
-                            <div className={`mx-auto w-12 h-12 rounded-full bg-gradient-to-r ${
-                              badge.achieved ? badge.color : 'from-gray-400 to-gray-500'
-                            } flex items-center justify-center mb-2`}>
-                              <BadgeIcon className="h-6 w-6 text-white" />
-                            </div>
-                            <h3 className="font-medium">{badge.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {badge.achieved ? 'Unlocked' : `Unlock at level ${badge.level}`}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </CardContent>
                 </Card>
               </div>
