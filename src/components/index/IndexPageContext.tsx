@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
 import { arrayMove } from '@dnd-kit/sortable';
@@ -8,11 +8,18 @@ import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
 import { useParentGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
+import { SUBSCRIPTION_TIERS } from "@/utils/subscriptionUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 const IndexPageContext = createContext<IndexPageContextType | undefined>(undefined);
 
 export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  const [isPatriot, setIsPatriot] = useState(false);
+  const [userSubscriptionTier, setUserSubscriptionTier] = useState(SUBSCRIPTION_TIERS.FREE);
   
   // Use our custom hooks
   const { isDialogOpen, goalToEdit, handleCreateOrEditGoal, closeDialog } = useGoalDialog();
@@ -23,7 +30,9 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     fetchParentGoals, 
     saveParentGoalOrder,
     deleteParentGoal: deleteParentGoalFromSupabase,
-    deleteSubGoal: deleteSubGoalFromSupabase
+    deleteSubGoal: deleteSubGoalFromSupabase,
+    subscriptionTier,
+    canAddParentGoal
   } = useParentGoals(goalToEdit);
   
   const { 
@@ -35,6 +44,66 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     handleStopFocus,
     setActiveGoalIndices
   } = useGoalFocus();
+  
+  // Fetch user's subscription info
+  useEffect(() => {
+    if (user) {
+      const fetchUserSubscription = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_patriot, subscription_tier')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (data) {
+          setIsPatriot(data.is_patriot || false);
+          setUserSubscriptionTier(data.subscription_tier || SUBSCRIPTION_TIERS.FREE);
+        }
+      };
+      
+      fetchUserSubscription();
+      
+      // Subscribe to changes
+      const channel = supabase
+        .channel('subscription-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new) {
+              setIsPatriot(payload.new.is_patriot || false);
+              setUserSubscriptionTier(payload.new.subscription_tier || SUBSCRIPTION_TIERS.FREE);
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
+  
+  // Handle creating or editing a goal, with subscription limits
+  const handleCreateOrEditGoalWithLimits = (goal: ParentGoal | null) => {
+    // If user is trying to create a new goal, check limits
+    if (!goal && !canAddParentGoal()) {
+      toast({
+        title: 'Subscription Limit Reached',
+        description: 'Upgrade to Premium to create unlimited goals!',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Allow editing existing goals regardless of limits
+    handleCreateOrEditGoal(goal);
+  };
   
   // Handle deleting a parent goal
   const deleteParentGoal = async (id: string) => {
@@ -130,7 +199,7 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Fetch goals on component mount
   useEffect(() => {
     fetchParentGoals();
-  }, []);
+  }, [fetchParentGoals]);
 
   const contextValue: IndexPageContextType = {
     // State
@@ -141,12 +210,15 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     showFocusTimer,
     isDialogOpen,
     goalToEdit,
+    isPatriot,
+    subscriptionTier: userSubscriptionTier,
+    canAddParentGoal,
     
     // Actions
     setShowFocusTimer,
     handleGoalFocus,
     handleStopFocus,
-    handleCreateOrEditGoal,
+    handleCreateOrEditGoal: handleCreateOrEditGoalWithLimits,
     handleUpdateSubGoals,
     handleDragEnd,
     deleteParentGoal,

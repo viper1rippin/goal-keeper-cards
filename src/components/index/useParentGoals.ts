@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ParentGoal } from "./IndexPageTypes";
+import { DEFAULT_USAGE_LIMITS, SUBSCRIPTION_TIERS, isAtParentGoalLimit } from "@/utils/subscriptionUtils";
 
 // Type for parent goal from Supabase, avoiding deep nesting
 interface ParentGoalData {
@@ -32,6 +33,7 @@ interface SubGoalData {
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>(SUBSCRIPTION_TIERS.FREE);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -41,6 +43,18 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
     
     try {
       setIsLoading(true);
+      
+      // First fetch user profile to get subscription tier
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (profileError) throw profileError;
+      
+      const userTier = profileData?.subscription_tier || SUBSCRIPTION_TIERS.FREE;
+      setSubscriptionTier(userTier);
       
       // Fetch parent goals
       const { data: parentGoalsData, error: parentGoalsError } = await supabase
@@ -103,6 +117,12 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
       setIsLoading(false);
     }
   }, [user, toast]);
+
+  // Check if user can add more parent goals
+  const canAddParentGoal = useCallback(() => {
+    const limits = DEFAULT_USAGE_LIMITS[subscriptionTier] || DEFAULT_USAGE_LIMITS[SUBSCRIPTION_TIERS.FREE];
+    return parentGoals.length < limits.maxParentGoals;
+  }, [parentGoals.length, subscriptionTier]);
 
   // Function to save parent goal order
   const saveParentGoalOrder = useCallback(async (reorderedGoals: ParentGoal[]) => {
@@ -201,6 +221,8 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
     fetchParentGoals,
     saveParentGoalOrder,
     deleteParentGoal,
-    deleteSubGoal
+    deleteSubGoal,
+    subscriptionTier,
+    canAddParentGoal
   };
 };

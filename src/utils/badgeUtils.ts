@@ -1,15 +1,17 @@
 
-import { Award, Shield, Sword, Trophy, Crown, Target, Flag, UserRound } from "lucide-react";
+import { Award, Shield, Sword, Trophy, Crown, Target, Flag, UserRound, Star } from "lucide-react";
 
 export interface Badge {
   name: string;
   level: number;
   icon: typeof Award;
   color: string;
+  isPremium?: boolean;
 }
 
 // Badge definitions based on user levels
 export const badges: Badge[] = [
+  { name: "Patriot", level: 0, icon: Star, color: "from-red-400 to-blue-600", isPremium: true },
   { name: "Peasant", level: 1, icon: UserRound, color: "from-gray-400 to-gray-600" },
   { name: "Soldier", level: 10, icon: Target, color: "from-blue-400 to-blue-600" },
   { name: "Knight", level: 20, icon: Sword, color: "from-emerald to-green-600" },
@@ -20,26 +22,48 @@ export const badges: Badge[] = [
   { name: "Emperor", level: 200, icon: Flag, color: "from-red-400 to-red-600" }
 ];
 
-// Get current badge based on user level
-export const getCurrentBadge = (level: number): Badge => {
+// Get current badge based on user level and subscription
+export const getCurrentBadge = (level: number, isPatriot: boolean = false): Badge => {
+  // Return Patriot badge for premium users regardless of level
+  if (isPatriot) {
+    return badges[0]; // Patriot badge
+  }
+  
   // Find the highest badge the user qualifies for
   for (let i = badges.length - 1; i >= 0; i--) {
+    // Skip the Patriot badge for non-premium users
+    if (badges[i].isPremium) continue;
+    
     if (level >= badges[i].level) {
       return badges[i];
     }
   }
+  
   // Default badge if below all levels (should never happen now with Peasant)
-  return badges[0];
+  return badges[1]; // Peasant badge
 };
 
 // Get next badge based on user level
-export const getNextBadge = (level: number): Badge | null => {
-  // Find the next badge the user is working towards
-  for (let i = 0; i < badges.length; i++) {
+export const getNextBadge = (level: number, isPatriot: boolean = false): Badge | null => {
+  // Special case for Patriot users
+  if (isPatriot) {
+    // Find the next regular badge based on level
+    for (let i = 1; i < badges.length; i++) {
+      if (level < badges[i].level) {
+        return badges[i];
+      }
+    }
+    return null;
+  }
+  
+  // Find the next badge the user is working towards (skipping premium badges)
+  for (let i = 1; i < badges.length; i++) {
+    if (badges[i].isPremium) continue;
     if (level < badges[i].level) {
       return badges[i];
     }
   }
+  
   // No next badge if user has reached the highest level
   return null;
 };

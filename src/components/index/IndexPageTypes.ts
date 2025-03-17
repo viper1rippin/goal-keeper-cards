@@ -20,6 +20,9 @@ export interface IndexPageContextType {
   showFocusTimer: boolean;
   isDialogOpen: boolean;
   goalToEdit: ParentGoal | null;
+  isPatriot: boolean;
+  subscriptionTier: string;
+  canAddParentGoal: () => boolean;
   
   // Actions
   setShowFocusTimer: (show: boolean) => void;
