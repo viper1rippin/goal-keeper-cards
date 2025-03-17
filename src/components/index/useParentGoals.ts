@@ -24,7 +24,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
       console.log("Fetching parent goals for user:", user.id);
       
-      // Corrected order syntax - use an object with ascending property
+      // Using proper order syntax
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -35,7 +35,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       console.log("Parent goals fetched:", data?.length || 0);
       
-      // Transform data to include empty goals array if no data
+      // Transform data to include user_id in the transformed objects
       const transformedData = data ? data.map(goal => ({
         id: goal.id,
         title: goal.title,
