@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowLeft, User, Camera, Save, Eye, EyeOff, Key } from "lucide-react";
+import { ArrowLeft, User, Camera, Save, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -400,7 +400,7 @@ const Profile = () => {
                     disabled={!newPassword || !confirmPassword || saving}
                     className="mt-4"
                   >
-                    <Key size={16} className="mr-2" />
+                    <LockKeyhole size={16} className="mr-2" />
                     Update Password
                   </Button>
                 </CardContent>

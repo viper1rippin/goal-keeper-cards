@@ -30,6 +30,23 @@ const UserBadge = ({ level }: { level: number }) => {
       };
       
       fetchProfile();
+      
+      // Subscribe to profile changes
+      const profileChanges = supabase
+        .channel('badge-profile-changes')
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        }, () => {
+          fetchProfile();
+        })
+        .subscribe();
+        
+      return () => {
+        profileChanges.unsubscribe();
+      };
     }
   }, [user]);
   

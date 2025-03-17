@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   UserRound, 
@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -28,6 +29,44 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (data) {
+          setDisplayName(data.display_name || user.email?.split('@')[0] || 'Guest');
+          setAvatarUrl(data.avatar_url);
+        }
+      };
+      
+      fetchProfile();
+      
+      // Subscribe to profile changes
+      const profileChanges = supabase
+        .channel('profile-changes')
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        }, () => {
+          fetchProfile();
+        })
+        .subscribe();
+        
+      return () => {
+        profileChanges.unsubscribe();
+      };
+    }
+  }, [user]);
   
   const handleSignOut = async () => {
     await signOut();
@@ -42,7 +81,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
     }
   };
 
-  const username = user?.email?.split('@')[0] || 'Guest';
+  const username = displayName || user?.email?.split('@')[0] || 'Guest';
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -71,7 +110,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
         {/* User profile section at top */}
         <div className="flex items-center mb-6 mt-2 cursor-pointer" onClick={() => navigate('/profile')}>
           <Avatar className="w-10 h-10">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarImage src={avatarUrl} />
             <AvatarFallback className="bg-gradient-to-r from-emerald to-emerald-light text-white text-xl font-bold">
               {username.charAt(0).toUpperCase()}
             </AvatarFallback>
