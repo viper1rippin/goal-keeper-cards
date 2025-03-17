@@ -17,6 +17,17 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
+      // Use explicit type declaration for the query result
+      type ParentGoalRecord = {
+        id: string;
+        title: string;
+        description: string;
+        position?: number;
+        user_id: string;
+        created_at?: string;
+        updated_at?: string;
+      };
+      
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -27,12 +38,12 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       if (error) throw error;
       
       // Transform data to include empty goals array if no data
-      const transformedData = data?.map(goal => ({
+      const transformedData = (data as ParentGoalRecord[] || []).map(goal => ({
         ...goal,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
-      })) || [];
+      }));
       
       setParentGoals(transformedData);
     } catch (error) {
