@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import GoalRowHeader from "./GoalRowHeader";
 import SubGoalsSection from "./SubGoalsSection";
 import { useAuth } from "@/context/AuthContext";
-import { DEFAULT_USAGE_LIMITS, SUBSCRIPTION_TIERS, isAtSubGoalLimit } from "@/utils/subscriptionUtils";
 
 export interface Goal {
   id?: string;
@@ -29,7 +28,6 @@ interface GoalRowProps {
   onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   onDeleteSubGoal: (subGoalId: string) => Promise<void>;
   id: string; // Added id prop for drag and drop
-  subscriptionTier?: string;
 }
 
 const GoalRow = ({ 
@@ -41,8 +39,7 @@ const GoalRow = ({
   onGoalFocus,
   onUpdateSubGoals,
   onDeleteSubGoal,
-  id,
-  subscriptionTier = SUBSCRIPTION_TIERS.FREE
+  id
 }: GoalRowProps) => {
   // Setup sortable hook from dnd-kit for the row itself
   const {
@@ -140,11 +137,6 @@ const GoalRow = ({
     fetchSubGoals();
   };
   
-  // Check if user can add more sub-goals
-  const canAddSubGoal = () => {
-    return !isAtSubGoalLimit(subGoals.length, subscriptionTier);
-  };
-  
   return (
     <div 
       ref={setNodeRef} 
@@ -173,8 +165,6 @@ const GoalRow = ({
             onUpdateSubGoals={handleUpdateSubGoals}
             onDeleteSubGoal={handleDeleteSubGoal}
             isLoading={isLoading}
-            canAddSubGoal={canAddSubGoal()}
-            subscriptionTier={subscriptionTier}
           />
         </div>
       </AnimatedContainer>

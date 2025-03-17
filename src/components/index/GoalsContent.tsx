@@ -8,7 +8,6 @@ import { useIndexPage } from "./IndexPageContext";
 import FocusTimer from "@/components/FocusTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { UpgradeBanner } from "@/components/UpgradeBanner";
 
 const GoalsContent: React.FC = () => {
   const { 
@@ -24,10 +23,7 @@ const GoalsContent: React.FC = () => {
     activeGoal,
     showFocusTimer,
     setShowFocusTimer,
-    handleStopFocus,
-    isPatriot,
-    subscriptionTier,
-    canAddParentGoal
+    handleStopFocus
   } = useIndexPage();
 
   const [userLevel, setUserLevel] = React.useState(1);
@@ -78,17 +74,12 @@ const GoalsContent: React.FC = () => {
     setUserLevel(newLevel);
   };
 
-  // Show upgrade banner for free users
-  const showUpgradeBanner = user && subscriptionTier === 'free' && !canAddParentGoal();
-
   return (
     <main className="w-full max-w-5xl pt-8 px-4 sm:px-6 md:px-8">
       <WelcomeCard 
         onAddGoal={() => handleCreateOrEditGoal(null)} 
         onToggleFocusTimer={() => setShowFocusTimer(!showFocusTimer)}
         showFocusTimer={showFocusTimer}
-        canAddGoal={canAddParentGoal()}
-        subscriptionTier={subscriptionTier}
       />
       
       {showFocusTimer && (
@@ -101,25 +92,14 @@ const GoalsContent: React.FC = () => {
               if (handleStopFocus) handleStopFocus();
             }}
             activeGoal={activeGoal}
-            isPatriot={isPatriot}
-            subscriptionTier={subscriptionTier}
           />
-        </div>
-      )}
-      
-      {showUpgradeBanner && (
-        <div className="mb-8">
-          <UpgradeBanner />
         </div>
       )}
       
       {isLoading ? (
         <LoadingGoals />
       ) : parentGoals.length === 0 ? (
-        <EmptyGoalsList 
-          onCreateGoal={() => handleCreateOrEditGoal(null)} 
-          canAddGoal={canAddParentGoal()}
-        />
+        <EmptyGoalsList onCreateGoal={() => handleCreateOrEditGoal(null)} />
       ) : (
         <GoalsList 
           parentGoals={parentGoals}
@@ -130,7 +110,6 @@ const GoalsContent: React.FC = () => {
           onDragEnd={handleDragEnd}
           onDeleteParentGoal={deleteParentGoal}
           onDeleteSubGoal={deleteSubGoal}
-          subscriptionTier={subscriptionTier}
         />
       )}
     </main>

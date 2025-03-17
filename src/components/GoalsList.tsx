@@ -6,7 +6,6 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ParentGoal } from "./index/IndexPageTypes";
 import GoalRowActions from "./parentgoal/GoalRowActions";
-import { SUBSCRIPTION_TIERS } from "@/utils/subscriptionUtils";
 
 interface GoalsListProps {
   parentGoals: ParentGoal[];
@@ -17,7 +16,6 @@ interface GoalsListProps {
   onDragEnd: (event: DragEndEvent) => void;
   onDeleteParentGoal: (id: string) => Promise<void>;
   onDeleteSubGoal: (id: string, parentIndex: number) => Promise<void>;
-  subscriptionTier?: string;
 }
 
 const GoalsList: React.FC<GoalsListProps> = ({ 
@@ -28,8 +26,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
   onEditGoal,
   onDragEnd,
   onDeleteParentGoal,
-  onDeleteSubGoal,
-  subscriptionTier = SUBSCRIPTION_TIERS.FREE
+  onDeleteSubGoal
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -65,7 +62,6 @@ const GoalsList: React.FC<GoalsListProps> = ({
                 onGoalFocus={onGoalFocus}
                 onUpdateSubGoals={onUpdateSubGoals}
                 onDeleteSubGoal={(subGoalId) => onDeleteSubGoal(subGoalId, rowIndex)}
-                subscriptionTier={subscriptionTier}
               />
               <GoalRowActions
                 title={parentGoal.title}
