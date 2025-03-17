@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -59,7 +60,7 @@
   }
   
   .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
+    @apply bg-gradient-to-br from-emerald-dark/20 to-apple-dark border border-emerald/15 shadow-md shadow-emerald/10;
   }
 
   .text-gradient {
@@ -93,17 +94,17 @@
   100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
 }
 
-/* Enhanced glow effects - toned down for better eye comfort */
+/* Enhanced glow effects with improved brilliance */
 @keyframes emerald-pulse {
-  0% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
-  50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
-  100% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
+  0% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.40); }
+  100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.15); }
 }
 
 @keyframes green-lantern-pulse {
-  0% { opacity: 0.5; filter: blur(10px); }
-  50% { opacity: 0.6; filter: blur(8px); }
-  100% { opacity: 0.5; filter: blur(10px); }
+  0% { opacity: 0.6; filter: blur(10px); }
+  50% { opacity: 0.75; filter: blur(8px); }
+  100% { opacity: 0.6; filter: blur(10px); }
 }
 
 .animate-fade-in {
