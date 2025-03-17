@@ -25,7 +25,9 @@ const Index = () => {
       <div className="min-h-screen flex bg-apple-dark">
         <Sidebar onCollapseChange={setSidebarCollapsed} />
         <div className={`transition-all duration-300 flex-1 flex flex-col ${sidebarCollapsed ? "ml-16" : "ml-64"}`}>
-          <GoalsContent />
+          <div className="flex-1 flex flex-col items-center">
+            <GoalsContent />
+          </div>
           <Footer />
           <DialogManager />
         </div>

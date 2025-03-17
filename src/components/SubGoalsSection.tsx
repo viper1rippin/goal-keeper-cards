@@ -143,7 +143,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 
   if (isLoading) {
     return (
-      <div className="col-span-4 py-8 text-center text-slate-400">
+      <div className="py-4 text-center text-slate-400">
         Loading sub-goals...
       </div>
     );

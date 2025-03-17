@@ -31,7 +31,7 @@ const GoalsContent: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 pt-8 px-6 sm:px-8 md:px-12 lg:px-16">
+    <main className="w-full max-w-5xl pt-8 px-4 sm:px-6 md:px-8">
       <WelcomeCard 
         onAddGoal={() => handleCreateOrEditGoal(null)} 
         onToggleFocusTimer={() => setShowFocusTimer(!showFocusTimer)}
