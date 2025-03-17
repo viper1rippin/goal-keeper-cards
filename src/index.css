@@ -5,6 +5,7 @@
 
 @layer base {
   :root {
+    /* Dark theme (default) */
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
 
@@ -35,6 +36,36 @@
 
     --radius: 8px;
   }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 151 93% 37%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 151 93% 37%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 86%;
+    --input: 0 0% 86%;
+    --ring: 151 93% 37%;
+  }
 }
 
 @layer base {
@@ -43,7 +74,15 @@
   }
 
   body {
-    @apply bg-apple-dark text-slate-100 antialiased;
+    @apply text-foreground antialiased;
+  }
+
+  body.dark {
+    @apply bg-apple-dark;
+  }
+
+  body.light {
+    @apply bg-white;
   }
 
   #root {
@@ -56,11 +95,11 @@
 
 @layer components {
   .glass-card {
-    @apply bg-gradient-to-br from-apple-light to-apple-dark backdrop-blur-sm border border-slate-800/80 shadow-lg;
+    @apply bg-gradient-to-br from-card to-card/90 backdrop-blur-sm border border-border shadow-lg;
   }
   
   .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
+    @apply bg-gradient-to-br from-emerald-dark/15 to-card border border-emerald/10 shadow-md shadow-emerald/5;
   }
 
   .text-gradient {

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,11 +27,13 @@ interface SidebarProps {
 
 const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  
+  const isDarkMode = theme === "dark";
   
   useEffect(() => {
     if (user) {
@@ -90,21 +93,16 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
 
   const username = displayName || user?.email?.split('@')[0] || 'Guest';
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // Here you would implement actual dark mode toggle logic
-  };
-
   return (
     <div 
       className={cn(
-        "fixed left-0 top-0 h-screen bg-apple-dark z-40 border-r border-slate-800/80 transition-all duration-300",
+        "fixed left-0 top-0 h-screen z-40 border-r border-slate-800/80 transition-all duration-300 bg-card",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Collapse button */}
       <button 
-        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-slate-800"
+        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-border"
         onClick={toggleCollapse}
       >
         {collapsed ? 
@@ -124,8 +122,8 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           </Avatar>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
-              <p className="text-white font-medium truncate">{username}</p>
-              <p className="text-slate-400 text-sm truncate">Level 10</p>
+              <p className="text-foreground font-medium truncate">{username}</p>
+              <p className="text-muted-foreground text-sm truncate">Level 10</p>
             </div>
           )}
         </div>
@@ -158,14 +156,14 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
               onClick={() => {}} 
             />
             <MenuItem 
-              icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
-              label="Night Mode" 
+              icon={isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
+              label={isDarkMode ? "Light Mode" : "Dark Mode"} 
               collapsed={collapsed} 
-              onClick={toggleDarkMode} 
+              onClick={toggleTheme} 
               rightElement={
                 <Switch 
-                  checked={darkMode} 
-                  onCheckedChange={toggleDarkMode} 
+                  checked={!isDarkMode} 
+                  onCheckedChange={toggleTheme} 
                   className="ml-auto"
                 />
               }
@@ -185,12 +183,12 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start text-slate-300 hover:text-white hover:bg-muted p-2 rounded-lg",
+              "w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted p-2 rounded-lg",
               collapsed && "justify-center"
             )}
             onClick={handleSignOut}
           >
-            <LogOut size={20} className="text-slate-300" />
+            <LogOut size={20} className="text-muted-foreground" />
             {!collapsed && <span className="ml-3">Logout</span>}
           </Button>
         </div>
@@ -214,7 +212,7 @@ const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: 
       <button
         className={cn(
           "flex items-center w-full p-2 rounded-lg hover:bg-muted transition-colors",
-          highlight ? "text-emerald" : "text-slate-300 hover:text-white"
+          highlight ? "text-emerald" : "text-muted-foreground hover:text-foreground"
         )}
         onClick={onClick}
       >
