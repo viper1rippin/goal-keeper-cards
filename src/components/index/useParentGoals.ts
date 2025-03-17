@@ -1,9 +1,18 @@
-
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
+
+interface DbParentGoal {
+  id: string;
+  title: string;
+  description: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
@@ -11,11 +20,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Fetch parent goals from Supabase
-  const fetchParentGoals = async () => {
+  const fetchParentGoals = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Only fetch goals if user is authenticated
       if (!user) {
         setParentGoals([]);
         setIsLoading(false);
@@ -24,7 +31,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
       console.log("Fetching parent goals for user:", user.id);
       
-      // Using proper order syntax
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -35,8 +41,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       console.log("Parent goals fetched:", data?.length || 0);
       
-      // Transform data to include user_id in the transformed objects
-      const transformedData = data ? data.map(goal => ({
+      const transformedData = data ? data.map((goal: DbParentGoal) => ({
         id: goal.id,
         title: goal.title,
         description: goal.description,
@@ -56,12 +61,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, goalToEdit, toast]);
   
-  // Save the updated order of parent goals to the database
   const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
     try {
-      // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
@@ -81,10 +84,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     }
   };
 
-  // Delete a parent goal
   const deleteParentGoal = async (id: string) => {
     try {
-      // Only proceed if user is authenticated
       if (!user) {
         toast({
           title: "Authentication Error",
@@ -94,7 +95,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
-      // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
@@ -103,7 +103,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (subGoalError) throw subGoalError;
       
-      // Then delete the parent goal
       const { error } = await supabase
         .from('parent_goals')
         .delete()
@@ -112,7 +111,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Update local state
       setParentGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
       
       toast({
@@ -129,10 +127,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     }
   };
   
-  // Delete a sub-goal
   const deleteSubGoal = async (id: string) => {
     try {
-      // Only proceed if user is authenticated
       if (!user) {
         toast({
           title: "Authentication Error",

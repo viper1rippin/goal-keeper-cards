@@ -1,7 +1,6 @@
-
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,8 +67,8 @@ const GoalRow = ({
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
-  // Fetch sub-goals for this parent goal
-  const fetchSubGoals = async () => {
+  // Fetch sub-goals for this parent goal - use useCallback to prevent unnecessary rerenders
+  const fetchSubGoals = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -117,14 +116,14 @@ const GoalRow = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, user, rowIndex, onUpdateSubGoals, toast]);
   
   // Fetch sub-goals when the component mounts or user/id changes
   useEffect(() => {
     if (user && id) {
       fetchSubGoals();
     }
-  }, [id, user]);
+  }, [id, user, fetchSubGoals]);
   
   // Handler to update sub-goals from child component
   const handleUpdateSubGoals = (updatedGoals: Goal[]) => {
