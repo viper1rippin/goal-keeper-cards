@@ -18,6 +18,18 @@ export interface Goal {
   user_id?: string;
 }
 
+// Define a type for sub-goal data from the database
+interface SubGoalRow {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  parent_goal_id: string;
+}
+
 interface GoalRowProps {
   title: string;
   description: string;
@@ -80,18 +92,6 @@ const GoalRow = ({
         return;
       }
 
-      // Explicitly type the response data
-      interface SubGoalRow {
-        id: string;
-        title: string;
-        description: string;
-        progress: number;
-        user_id: string;
-        created_at: string;
-        updated_at: string;
-        parent_goal_id: string;
-      }
-
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
@@ -105,7 +105,7 @@ const GoalRow = ({
       
       if (data) {
         // Cast data to our explicitly defined type
-        const typedData = data as SubGoalRow[];
+        const typedData = data as unknown as SubGoalRow[];
         
         const formattedData: Goal[] = typedData.map(goal => ({
           id: goal.id,

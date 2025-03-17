@@ -35,7 +35,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
-      // Use explicit typing for the data to avoid deep type instantiation
+      // Use explicit type casting to avoid deep type instantiation
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
@@ -45,24 +45,26 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Type the data explicitly
-      const typedData = data as ParentGoalData[];
-      
-      // Transform data with proper type handling
-      const transformedData: ParentGoal[] = typedData.map(goal => ({
-        id: goal.id,
-        title: goal.title,
-        description: goal.description,
-        position: goal.position,
-        created_at: goal.created_at,
-        updated_at: goal.updated_at,
-        user_id: goal.user_id,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
-      }));
-      
-      setParentGoals(transformedData);
+      if (data) {
+        // Cast data to our explicitly defined type
+        const typedData = data as unknown as ParentGoalData[];
+        
+        // Transform data with proper type handling
+        const transformedData: ParentGoal[] = typedData.map(goal => ({
+          id: goal.id,
+          title: goal.title,
+          description: goal.description,
+          position: goal.position,
+          created_at: goal.created_at,
+          updated_at: goal.updated_at,
+          user_id: goal.user_id,
+          goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+            ? goalToEdit.goals
+            : []
+        }));
+        
+        setParentGoals(transformedData);
+      }
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({
@@ -82,9 +84,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          } as any)
+          .update({ position: i })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;

@@ -98,7 +98,7 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data with explicit typing
+    // Prepare sub-goal data
     const subGoalData: SubGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
