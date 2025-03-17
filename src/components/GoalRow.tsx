@@ -15,19 +15,7 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
-  user_id?: string;
-}
-
-// Define a type for sub-goal data from the database
-interface SubGoalRow {
-  id: string;
-  title: string;
-  description: string;
-  progress: number;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-  parent_goal_id: string;
+  user_id?: string; // Add user_id field
 }
 
 interface GoalRowProps {
@@ -39,7 +27,7 @@ interface GoalRowProps {
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   onDeleteSubGoal: (subGoalId: string) => Promise<void>;
-  id: string;
+  id: string; // Added id prop for drag and drop
 }
 
 const GoalRow = ({ 
@@ -64,7 +52,7 @@ const GoalRow = ({
   } = useSortable({ id });
 
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Get the current authenticated user
   
   // State for sub-goals loaded from the database
   const [subGoals, setSubGoals] = useState<Goal[]>(goals);
@@ -96,7 +84,7 @@ const GoalRow = ({
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id)
+        .eq('user_id', user.id) // Only fetch user's own sub-goals
         .order('created_at', { ascending: true });
       
       if (error) {
@@ -104,10 +92,7 @@ const GoalRow = ({
       }
       
       if (data) {
-        // Cast data to our explicitly defined type
-        const typedData = data as unknown as SubGoalRow[];
-        
-        const formattedData: Goal[] = typedData.map(goal => ({
+        const formattedData = data.map(goal => ({
           id: goal.id,
           title: goal.title,
           description: goal.description,
@@ -131,11 +116,9 @@ const GoalRow = ({
     }
   };
   
-  // Fetch sub-goals when the component mounts or user changes
+  // Fetch sub-goals when the component mounts
   useEffect(() => {
-    if (user) {
-      fetchSubGoals();
-    }
+    fetchSubGoals();
   }, [id, user]);
   
   // Handler to update sub-goals from child component

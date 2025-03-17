@@ -18,15 +18,6 @@ const subGoalSchema = z.object({
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
 
-// Define a simplified type for sub-goal data
-interface SubGoalData {
-  parent_goal_id: string;
-  title: string;
-  description: string;
-  progress: number;
-  user_id: string;
-}
-
 interface SubGoalDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -99,7 +90,7 @@ const SubGoalDialog = ({
     if (!user) return;
 
     // Prepare sub-goal data
-    const subGoalData: SubGoalData = {
+    const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
@@ -113,7 +104,7 @@ const SubGoalDialog = ({
         .from('sub_goals')
         .update(subGoalData)
         .eq('id', subGoalToEdit.id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id); // Only update if user owns the sub-goal
       
       if (error) throw error;
     } else {

@@ -2,31 +2,18 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Goal } from "@/components/GoalRow";
 import { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
-
-// Define simplified types to avoid deep type instantiation
-interface ParentGoalData {
-  id: string;
-  title: string;
-  description: string;
-  position: number | null;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-}
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Get the current authenticated user
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
     setIsLoading(true);
-    
     try {
       // Only fetch goals if user is authenticated
       if (!user) {
@@ -35,36 +22,25 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
-      // Use explicit type casting to avoid deep type instantiation
+      // Filter goals by the current user's ID
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id) // Filter by user_id
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      if (data) {
-        // Cast data to our explicitly defined type
-        const typedData = data as unknown as ParentGoalData[];
-        
-        // Transform data with proper type handling
-        const transformedData: ParentGoal[] = typedData.map(goal => ({
-          id: goal.id,
-          title: goal.title,
-          description: goal.description,
-          position: goal.position,
-          created_at: goal.created_at,
-          updated_at: goal.updated_at,
-          user_id: goal.user_id,
-          goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-            ? goalToEdit.goals
-            : []
-        }));
-        
-        setParentGoals(transformedData);
-      }
+      // Transform data to include empty goals array if no data
+      const transformedData = data?.map(goal => ({
+        ...goal,
+        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+          ? goalToEdit.goals
+          : []
+      })) || [];
+      
+      setParentGoals(transformedData);
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({
@@ -84,7 +60,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ position: i })
+          .update({ 
+            position: i 
+          } as any)
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
