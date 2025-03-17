@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,9 +49,9 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
           .select('content')
           .eq('project_id', projectId)
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
         
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           throw error;
         }
         
@@ -83,15 +83,13 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
     try {
       setIsSaving(true);
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('project_notes')
         .upsert({
           project_id: projectId,
           user_id: userId,
           content: editor.getHTML(),
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'project_id,user_id'
         });
       
       if (error) throw error;
