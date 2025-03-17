@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root, .dark-mode {
+  :root {
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
 
@@ -35,36 +35,6 @@
 
     --radius: 8px;
   }
-
-  .light-mode {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-
-    --primary: 151 93% 37%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
-
-    --muted: 0 0% 92%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 151 93% 37%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 82%;
-    --input: 0 0% 89%;
-    --ring: 151 93% 37%;
-  }
 }
 
 @layer base {
@@ -73,16 +43,7 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  .dark-mode body {
-    @apply bg-apple-dark text-slate-100;
-  }
-
-  .light-mode body {
-    @apply bg-slate-50 text-slate-900;
+    @apply bg-apple-dark text-slate-100 antialiased;
   }
 
   #root {
@@ -98,16 +59,8 @@
     @apply bg-gradient-to-br from-apple-light to-apple-dark backdrop-blur-sm border border-slate-800/80 shadow-lg;
   }
   
-  .light-mode .glass-card {
-    @apply bg-gradient-to-br from-white to-slate-100 backdrop-blur-sm border border-slate-200 shadow-lg;
-  }
-  
   .glass-card-emerald {
     @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
-  }
-
-  .light-mode .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-light/15 to-white border border-emerald/10 shadow-md shadow-emerald/5;
   }
 
   .text-gradient {
@@ -123,17 +76,66 @@
     @apply flex items-center w-full p-2 rounded-lg text-slate-300 hover:text-white hover:bg-muted transition-colors;
   }
   
-  .light-mode .sidebar-menu-item {
-    @apply text-slate-700 hover:text-slate-900 hover:bg-muted;
-  }
-  
   .sidebar-menu-item.active {
     @apply bg-muted text-white;
   }
-  
-  .light-mode .sidebar-menu-item.active {
-    @apply bg-muted text-slate-900;
-  }
 }
 
-/* ... keep existing code (animations) */
+/* Animations for our components */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes badge-glow {
+  0% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.6); }
+  100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
+}
+
+/* Enhanced glow effects - toned down for better eye comfort */
+@keyframes emerald-pulse {
+  0% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
+  50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+  100% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
+}
+
+@keyframes green-lantern-pulse {
+  0% { opacity: 0.5; filter: blur(10px); }
+  50% { opacity: 0.6; filter: blur(8px); }
+  100% { opacity: 0.5; filter: blur(10px); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-badge-glow {
+  animation: badge-glow 2s infinite;
+}
+
+.animate-emerald-pulse {
+  animation: emerald-pulse 2.5s infinite;
+}
+
+.animate-green-lantern {
+  animation: green-lantern-pulse 4s infinite;
+}
