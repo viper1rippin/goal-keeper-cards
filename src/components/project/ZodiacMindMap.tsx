@@ -6,14 +6,7 @@ import ActionStar from './ActionStar';
 import AddActionButton from './AddActionButton';
 import ActionEditDialog from './ActionEditDialog';
 import { Card } from '@/components/ui/card';
-import { 
-  DndContext, 
-  DragEndEvent, 
-  closestCenter, 
-  PointerSensor, 
-  useSensor, 
-  useSensors 
-} from '@dnd-kit/core';
+import { DndContext, DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Action, actionsService } from '@/utils/actionsUtils';
 
 interface ZodiacMindMapProps {
@@ -254,48 +247,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!active) return;
-    
-    // Get the actual coordinates from the event
-    const { x, y } = event.delta;
-    
-    // Find the action being dragged
-    const actionId = active.id as string;
-    const actionIndex = actions.findIndex(a => a.id === actionId);
-    
-    if (actionIndex === -1) return;
-    
-    // Get the current position
-    const currentAction = actions[actionIndex];
-    
-    // Calculate new position
-    const mapContainer = document.querySelector('.mind-map-container');
-    if (!mapContainer) return;
-    
-    const containerRect = mapContainer.getBoundingClientRect();
-    const activeNodeRect = active.rect.current.translated;
-    
-    if (!activeNodeRect) return;
-    
-    // Calculate the center point of the dragged element
-    const centerX = activeNodeRect.left + activeNodeRect.width / 2;
-    const centerY = activeNodeRect.top + activeNodeRect.height / 2;
-    
-    // Convert to percentage of the container
-    const percentX = ((centerX - containerRect.left) / containerRect.width) * 100;
-    const percentY = ((centerY - containerRect.top) / containerRect.height) * 100;
-    
-    // Ensure positions are within bounds (0-100%)
-    const boundedX = Math.max(0, Math.min(100, percentX));
-    const boundedY = Math.max(0, Math.min(100, percentY));
-    
-    // Update the position if it's changed significantly
-    if (Math.abs(boundedX - currentAction.position_x) > 0.5 || 
-        Math.abs(boundedY - currentAction.position_y) > 0.5) {
-      handleUpdatePosition(actionId, boundedX, boundedY);
-    }
+    // Handle drag end if needed
   };
 
   return (
@@ -323,13 +275,9 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
       )}
       
       <Card className="bg-slate-900/50 border-slate-800 overflow-hidden relative">
-        <DndContext 
-          sensors={sensors} 
-          collisionDetection={closestCenter} 
-          onDragEnd={handleDragEnd}
-        >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div 
-            className="relative min-h-[500px] w-full p-8 rounded-lg mind-map-container"
+            className="relative min-h-[500px] w-full p-8 rounded-lg"
             style={{
               background: 'radial-gradient(circle at center, #1a2036 0%, #131625 100%)',
               boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.4)'
