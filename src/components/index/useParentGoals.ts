@@ -2,17 +2,18 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ParentGoal } from "./IndexPageTypes";
+import { ParentGoal } from "@/types/goal-types";
 import { useAuth } from "@/context/AuthContext";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
+  // Explicitly define the type instead of relying on type inference
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   
   // Fetch parent goals from Supabase
-  const fetchParentGoals = async () => {
+  const fetchParentGoals = async (): Promise<void> => {
     if (!user) return;
     
     setIsLoading(true);
@@ -26,8 +27,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
-      const transformedData = data?.map(goal => ({
+      // Transform data - simplified type handling
+      const transformedData: ParentGoal[] = data?.map(goal => ({
         ...goal,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
@@ -48,7 +49,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
   
   // Save the updated order of parent goals to the database
-  const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
+  const saveParentGoalOrder = async (updatedGoals: ParentGoal[]): Promise<void> => {
     if (!user) return;
     
     try {
@@ -56,9 +57,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          } as any)
+          .update({ position: i })
           .eq('id', updatedGoals[i].id)
           .eq('user_id', user.id);
         
@@ -75,7 +74,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
 
   // Delete a parent goal
-  const deleteParentGoal = async (id: string) => {
+  const deleteParentGoal = async (id: string): Promise<void> => {
     if (!user) return;
     
     try {
@@ -114,7 +113,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
   
   // Delete a sub-goal
-  const deleteSubGoal = async (id: string) => {
+  const deleteSubGoal = async (id: string): Promise<void> => {
     if (!user) return;
     
     try {
