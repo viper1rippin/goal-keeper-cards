@@ -1,277 +1,334 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Mail, Lock, Upload } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import Sidebar from "@/components/Sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Footer from "@/components/Footer";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Camera, Save, UserRound, KeyRound, Mail } from "lucide-react";
+import { toast } from "sonner";
+import Sidebar from "@/components/Sidebar";
 
 const Profile = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { user } = useAuth();
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setEmail(user.email || "");
-      
-      // Fetch user profile data
-      const fetchProfile = async () => {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('display_name, avatar_url')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching profile:', error);
-        } else if (data) {
-          setDisplayName(data.display_name || "");
-          setPhotoUrl(data.avatar_url);
-        }
-      };
-      
-      fetchProfile();
+      fetchProfileData();
     }
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-apple-dark">
-        <div className="text-white text-lg">Loading profile...</div>
-      </div>
-    );
-  }
+  const fetchProfileData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", user?.id)
+        .single();
 
-  const handleGoBack = () => {
-    navigate("/");
+      if (error) throw error;
+      
+      if (data) {
+        setDisplayName(data.display_name || "");
+        setAvatarUrl(data.avatar_url);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile information");
+    }
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !user) return;
+  const updateProfile = async () => {
+    if (!user) return;
+    
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          display_name: displayName,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", user.id);
 
-    const file = e.target.files[0];
+      if (error) throw error;
+      
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const updatePassword = async () => {
+    if (!user) return;
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+      
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast.success("Password updated successfully");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user || !event.target.files || event.target.files.length === 0) {
+      return;
+    }
+
+    const file = event.target.files[0];
     const fileExt = file.name.split('.').pop();
-    const filePath = `${user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-    setUploading(true);
+    setIsUploading(true);
 
     try {
-      // Upload file to Supabase storage
+      // Upload the file to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data } = supabase.storage
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update profile with new avatar URL
+      const avatarUrl = publicUrlData.publicUrl;
+
+      // Update the user's profile with the new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: data.publicUrl })
+        .update({ avatar_url: avatarUrl })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      setPhotoUrl(data.publicUrl);
-      toast({
-        title: "Profile photo updated",
-        description: "Your profile photo has been updated successfully.",
-      });
+      setAvatarUrl(avatarUrl);
+      toast.success("Avatar updated successfully");
     } catch (error) {
-      console.error('Error uploading photo:', error);
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Failed to update profile photo.",
-      });
+      console.error("Error uploading avatar:", error);
+      toast.error("Failed to upload avatar");
     } finally {
-      setUploading(false);
+      setIsUploading(false);
     }
   };
 
-  const handleSaveProfile = async () => {
-    if (!user) return;
-    
-    try {
-      // Update display name in profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ display_name: displayName })
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
-
-      // Update password if provided
-      if (password) {
-        if (password !== confirmPassword) {
-          toast({
-            variant: "destructive",
-            title: "Passwords don't match",
-            description: "Please make sure your passwords match.",
-          });
-          return;
-        }
-
-        const { error: passwordError } = await supabase.auth.updateUser({
-          password: password
-        });
-
-        if (passwordError) throw passwordError;
-      }
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Failed to update profile.",
-      });
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name.charAt(0).toUpperCase();
-  };
+  const userInitial = user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
-    <div className="min-h-screen flex bg-apple-dark">
-      <Sidebar onCollapseChange={setSidebarCollapsed} />
-      <div className={`transition-all duration-300 flex-1 flex flex-col ${sidebarCollapsed ? "ml-16" : "ml-64"}`}>
-        <div className="flex-1 flex flex-col items-center p-6">
-          <div className="w-full max-w-3xl">
-            <div className="flex items-center mb-6">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleGoBack}
-                className="mr-2"
-              >
-                <ArrowLeft size={16} className="mr-2" />
-                Back to Home
-              </Button>
-              <h1 className="text-xl font-semibold text-white">Profile Settings</h1>
-            </div>
-
-            <div className="glass-card p-6 rounded-lg">
-              <div className="flex flex-col items-center mb-6">
-                <div className="mb-4 relative">
-                  <Avatar className="w-24 h-24 border-2 border-emerald">
-                    {photoUrl ? (
-                      <AvatarImage src={photoUrl} alt="Profile" />
-                    ) : (
-                      <AvatarFallback className="bg-emerald text-white text-2xl">
-                        {getInitials(displayName || email)}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <label htmlFor="photo-upload" className="absolute bottom-0 right-0 bg-emerald hover:bg-emerald-dark text-white p-1.5 rounded-full cursor-pointer">
-                    <Upload size={16} />
-                    <input 
-                      id="photo-upload" 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={handlePhotoUpload}
-                      disabled={uploading}
-                    />
-                  </label>
-                </div>
-                <p className="text-sm text-slate-400">
-                  {uploading ? "Uploading..." : "Click the icon to upload a new photo"}
-                </p>
+    <div className="flex">
+      <Sidebar />
+      
+      <div className="flex-1 p-8 ml-64">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6 text-foreground">Profile Settings</h1>
+          
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="profile">
+              <div className="grid gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profile Picture</CardTitle>
+                    <CardDescription>Update your profile picture</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center">
+                    <div className="relative mb-4">
+                      <Avatar className="w-24 h-24">
+                        {avatarUrl ? (
+                          <AvatarImage src={avatarUrl} alt="Profile" />
+                        ) : (
+                          <AvatarFallback className="bg-gradient-to-r from-emerald to-emerald-light text-white text-xl">
+                            {userInitial}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <label 
+                        htmlFor="avatar-upload" 
+                        className="absolute bottom-0 right-0 p-1 rounded-full bg-primary text-white cursor-pointer"
+                      >
+                        <Camera size={16} />
+                        <input 
+                          id="avatar-upload" 
+                          type="file" 
+                          accept="image/*"
+                          className="hidden"
+                          onChange={uploadAvatar}
+                          disabled={isUploading}
+                        />
+                      </label>
+                    </div>
+                    {isUploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Personal Information</CardTitle>
+                    <CardDescription>Update your personal details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="display-name">
+                        <div className="flex items-center gap-2">
+                          <UserRound size={16} />
+                          <span>Display Name</span>
+                        </div>
+                      </Label>
+                      <Input 
+                        id="display-name" 
+                        value={displayName} 
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Your display name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-2">
+                        <Mail size={16} />
+                        <span>Email</span>
+                      </Label>
+                      <Input 
+                        id="email" 
+                        value={user?.email || ""} 
+                        disabled 
+                        className="bg-muted"
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={updateProfile}
+                      disabled={isUpdating}
+                      className="flex items-center gap-2"
+                    >
+                      <Save size={16} />
+                      {isUpdating ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </CardFooter>
+                </Card>
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="display-name">Display Name</Label>
-                  <div className="mt-1">
-                    <Input
-                      id="display-name"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Your name"
-                      rightElement={<User className="text-slate-400" size={16} />}
+            </TabsContent>
+            
+            <TabsContent value="security">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>Update your password</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">Current Password</Label>
+                    <Input 
+                      id="current-password" 
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword} 
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                      rightElement={
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="text-muted-foreground hover:text-foreground focus:outline-none"
+                        >
+                          {showCurrentPassword ? "Hide" : "Show"}
+                        </button>
+                      }
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <div className="mt-1">
-                    <Input
-                      id="email"
-                      value={email}
-                      disabled
-                      placeholder="Your email"
-                      rightElement={<Mail className="text-slate-400" size={16} />}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input 
+                      id="new-password" 
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword} 
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      rightElement={
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="text-muted-foreground hover:text-foreground focus:outline-none"
+                        >
+                          {showNewPassword ? "Hide" : "Show"}
+                        </button>
+                      }
                     />
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">Email cannot be changed</p>
-                </div>
-
-                <div>
-                  <Label htmlFor="password">New Password</Label>
-                  <div className="mt-1">
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Leave blank to keep current password"
-                      rightElement={<Lock className="text-slate-400" size={16} />}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <div className="mt-1">
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      value={confirmPassword}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm New Password</Label>
+                    <Input 
+                      id="confirm-password" 
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword} 
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm your new password"
-                      rightElement={<Lock className="text-slate-400" size={16} />}
+                      placeholder="Confirm new password"
+                      rightElement={
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="text-muted-foreground hover:text-foreground focus:outline-none"
+                        >
+                          {showConfirmPassword ? "Hide" : "Show"}
+                        </button>
+                      }
                     />
                   </div>
-                </div>
-
-                <div className="pt-4">
+                </CardContent>
+                <CardFooter>
                   <Button 
-                    onClick={handleSaveProfile} 
-                    className="w-full bg-emerald hover:bg-emerald-dark"
+                    onClick={updatePassword}
+                    disabled={isUpdating || !newPassword || newPassword !== confirmPassword}
+                    className="flex items-center gap-2"
                   >
-                    Save Changes
+                    <KeyRound size={16} />
+                    {isUpdating ? "Updating..." : "Update Password"}
                   </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
-        <Footer />
       </div>
     </div>
   );
