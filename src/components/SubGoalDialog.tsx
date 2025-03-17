@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -16,7 +17,10 @@ const subGoalSchema = z.object({
 });
 
 // Explicitly define the type for form values
-type FormValues = z.infer<typeof subGoalSchema>;
+type FormValues = {
+  title: string;
+  description: string;
+};
 
 interface SubGoalDialogProps {
   isOpen: boolean;
