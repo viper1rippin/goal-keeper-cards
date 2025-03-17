@@ -7,6 +7,7 @@ import GoalCardContent from "./GoalCardContent";
 import GoalCardGlow from "./GoalCardGlow";
 import GoalCardEditButton from "./GoalCardEditButton";
 import GoalCardDragHandle from "./GoalCardDragHandle";
+import { useTheme } from "@/context/ThemeContext";
 
 export interface GoalCardProps {
   title: string;
@@ -52,6 +53,10 @@ const GoalCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMouseInCard, setIsMouseInCard] = useState(false);
+  
+  // Get current theme
+  const { theme } = useTheme();
+  const isLightMode = theme === 'light';
   
   // Generate a consistent gradient for each card based on the title
   const cardGradient = useMemo(() => getCardGradient(title), [title]);
@@ -125,16 +130,26 @@ const GoalCard = ({
         ref={cardRef}
         className={cn(
           "glass-card rounded-lg p-4 h-full hover-scale transition-all duration-300 relative overflow-hidden",
+          // Light mode styles
+          isLightMode && "bg-white/80 border-gold-light/30 shadow-md",
           // Only use the active gradients when this card is the active focused card
           isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
+            ? isLightMode 
+              ? "bg-gradient-to-br from-gold-light/40 to-ocean-light/30 border-gold/30 shadow-lg" 
+              : `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
+              ? isLightMode
+                ? "bg-gradient-to-br from-gold-light/30 to-ocean-light/20 border-gold/20 shadow-md"
+                : `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
-                : "bg-slate-900/80 border-slate-800/60 opacity-75",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
-          isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
+                ? isLightMode
+                  ? "bg-gradient-to-br from-gold-light/20 to-ocean-light/10 border-gold/15 shadow-sm opacity-95"
+                  : `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
+                : isLightMode
+                  ? "bg-white/60 border-gold-light/20 opacity-85"
+                  : "bg-slate-900/80 border-slate-800/60 opacity-75",
+          progress === 100 && !isFocused && !isActiveFocus && (isLightMode ? "border-gold/20" : "border-emerald/15"),
+          isDragging ? isLightMode ? "ring-2 ring-gold/50 shadow-xl scale-105" : "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
         )}
         onClick={handleClick}
       >
@@ -146,13 +161,19 @@ const GoalCard = ({
           isMouseInCard={isMouseInCard} 
           isActiveFocus={isActiveFocus} 
           mousePos={mousePos} 
+          isLightMode={isLightMode}
         />
         
         {/* Subtle depth-enhancing gradient overlay */}
         <div 
-          className="absolute inset-0 opacity-15 pointer-events-none"
+          className={cn(
+            "absolute inset-0 pointer-events-none",
+            isLightMode ? "opacity-10" : "opacity-15"
+          )}
           style={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)',
+            background: isLightMode 
+              ? 'linear-gradient(145deg, rgba(255,255,255,0.6) 0%, transparent 50%, rgba(14,165,233,0.05) 100%)'
+              : 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)',
             zIndex: 0,
           }}
         />
@@ -169,6 +190,7 @@ const GoalCard = ({
           isActiveFocus={isActiveFocus}
           isFocused={isFocused}
           isHovered={isHovered}
+          isLightMode={isLightMode}
         />
       </div>
     </AnimatedContainer>
