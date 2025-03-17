@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,9 +26,9 @@ interface SidebarProps {
 
 const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { user, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
@@ -91,22 +90,21 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
 
   const username = displayName || user?.email?.split('@')[0] || 'Guest';
 
-  const isDarkMode = theme === 'dark';
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    // Here you would implement actual dark mode toggle logic
+  };
 
   return (
     <div 
       className={cn(
-        "fixed left-0 top-0 h-screen z-40 border-r transition-all duration-300",
-        isDarkMode ? "bg-apple-dark border-slate-800/80" : "bg-white border-slate-200",
+        "fixed left-0 top-0 h-screen bg-apple-dark z-40 border-r border-slate-800/80 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Collapse button */}
       <button 
-        className={cn(
-          "absolute -right-3 top-6 z-50 p-1 rounded-full border",
-          isDarkMode ? "glass-card border-slate-800" : "bg-white border-slate-200 shadow-sm"
-        )}
+        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-slate-800"
         onClick={toggleCollapse}
       >
         {collapsed ? 
@@ -126,15 +124,8 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           </Avatar>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
-              <p className={cn(
-                "font-medium truncate", 
-                isDarkMode ? "text-white" : "text-slate-900"
-              )}>
-                {username}
-              </p>
-              <p className={isDarkMode ? "text-slate-400" : "text-slate-500" + " text-sm truncate"}>
-                Level 10
-              </p>
+              <p className="text-white font-medium truncate">{username}</p>
+              <p className="text-slate-400 text-sm truncate">Level 10</p>
             </div>
           )}
         </div>
@@ -167,14 +158,14 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
               onClick={() => {}} 
             />
             <MenuItem 
-              icon={isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
+              icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
               label="Night Mode" 
               collapsed={collapsed} 
-              onClick={toggleTheme} 
+              onClick={toggleDarkMode} 
               rightElement={
                 <Switch 
-                  checked={isDarkMode} 
-                  onCheckedChange={toggleTheme} 
+                  checked={darkMode} 
+                  onCheckedChange={toggleDarkMode} 
                   className="ml-auto"
                 />
               }
@@ -194,15 +185,12 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start p-2 rounded-lg",
-              isDarkMode 
-                ? "text-slate-300 hover:text-white hover:bg-muted" 
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
+              "w-full justify-start text-slate-300 hover:text-white hover:bg-muted p-2 rounded-lg",
               collapsed && "justify-center"
             )}
             onClick={handleSignOut}
           >
-            <LogOut size={20} className={isDarkMode ? "text-slate-300" : "text-slate-600"} />
+            <LogOut size={20} className="text-slate-300" />
             {!collapsed && <span className="ml-3">Logout</span>}
           </Button>
         </div>
@@ -221,19 +209,12 @@ interface MenuItemProps {
 }
 
 const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: MenuItemProps) => {
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
-  
   return (
     <li>
       <button
         className={cn(
-          "flex items-center w-full p-2 rounded-lg transition-colors",
-          highlight 
-            ? "text-emerald" 
-            : isDarkMode 
-              ? "text-slate-300 hover:text-white hover:bg-muted" 
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          "flex items-center w-full p-2 rounded-lg hover:bg-muted transition-colors",
+          highlight ? "text-emerald" : "text-slate-300 hover:text-white"
         )}
         onClick={onClick}
       >

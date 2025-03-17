@@ -1,9 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Action } from '@/utils/actionsUtils';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/context/ThemeContext';
 
 interface ActionStarProps {
   action: Action;
@@ -39,8 +39,6 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const colorGradient = getRandomColor(action.content);
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
   
   // Position the star based on its coordinates
   useEffect(() => {
@@ -171,7 +169,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       >
         <path
           d={calculateLine()}
-          stroke={isDarkMode ? "white" : "#475569"}
+          stroke="white"
           strokeWidth="0.002"
           fill="none"
           strokeDasharray="0.01 0.01"
@@ -196,8 +194,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
           
           {/* Action buttons */}
           <div className={cn(
-            "absolute -top-2 -right-2 flex gap-1 p-1 rounded-md opacity-0 transition-opacity",
-            isDarkMode ? "bg-slate-900/80" : "bg-slate-800/90",
+            "absolute -top-2 -right-2 flex gap-1 bg-slate-900/80 p-1 rounded-md opacity-0 transition-opacity",
             isHovered && "opacity-100"
           )}>
             <button 

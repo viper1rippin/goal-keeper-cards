@@ -7,7 +7,6 @@ import GoalCardContent from "./GoalCardContent";
 import GoalCardGlow from "./GoalCardGlow";
 import GoalCardEditButton from "./GoalCardEditButton";
 import GoalCardDragHandle from "./GoalCardDragHandle";
-import { useTheme } from "@/context/ThemeContext";
 
 export interface GoalCardProps {
   title: string;
@@ -45,8 +44,6 @@ const GoalCard = ({
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
-  const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
   
   // State to track hover status
   const [isHovered, setIsHovered] = useState(false);
@@ -130,15 +127,13 @@ const GoalCard = ({
           "glass-card rounded-lg p-4 h-full hover-scale transition-all duration-300 relative overflow-hidden",
           // Only use the active gradients when this card is the active focused card
           isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} ${isDarkMode ? 'border-emerald/30' : 'border-emerald/20'} shadow-lg ${isDarkMode ? 'shadow-emerald/20' : 'shadow-emerald/10'}`
+            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} ${isDarkMode ? 'border-emerald/25' : 'border-emerald/15'} shadow-md ${isDarkMode ? 'shadow-emerald/15' : 'shadow-emerald/5'}` 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} ${isDarkMode ? 'border-emerald/15' : 'border-emerald/10'} shadow-sm ${isDarkMode ? 'shadow-emerald/10' : 'shadow-emerald/5'} opacity-90`
-                : isDarkMode 
-                  ? "bg-slate-900/80 border-slate-800/60 opacity-75" 
-                  : "bg-white border-slate-200/80 opacity-90",
-          progress === 100 && !isFocused && !isActiveFocus && isDarkMode ? "border-emerald/15" : progress === 100 && !isFocused && !isActiveFocus ? "border-emerald/10" : "",
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
+                : "bg-slate-900/80 border-slate-800/60 opacity-75",
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
           isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
         )}
         onClick={handleClick}
@@ -157,9 +152,7 @@ const GoalCard = ({
         <div 
           className="absolute inset-0 opacity-15 pointer-events-none"
           style={{
-            background: isDarkMode 
-              ? 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)'
-              : 'linear-gradient(145deg, rgba(255,255,255,0.7) 0%, transparent 60%, rgba(0,0,0,0.03) 100%)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)',
             zIndex: 0,
           }}
         />
