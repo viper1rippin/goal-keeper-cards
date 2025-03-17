@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -40,14 +41,19 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      const transformedData = data?.map(goal => ({
-        ...goal,
+      // Explicitly convert data to avoid type recursion
+      const transformedData = data ? data.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        position: goal.position,
+        user_id: goal.user_id,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
+          ? [...goalToEdit.goals]
           : []
-      })) || [];
+      } as ParentGoalWithGoals)) : [];
       
-      setParentGoals(transformedData as ParentGoalWithGoals[]);
+      setParentGoals(transformedData);
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({
@@ -68,13 +74,19 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
   const saveParentGoalOrder = async (updatedGoals: ParentGoalWithGoals[]) => {
     try {
-      for (let i = 0; i < updatedGoals.length; i++) {
+      // Create a simple array of objects with just id and position to avoid type issues
+      const goalPositions = updatedGoals.map((goal, index) => ({
+        id: goal.id,
+        position: index
+      }));
+      
+      for (let i = 0; i < goalPositions.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
           .update({ 
-            position: i 
+            position: goalPositions[i].position 
           })
-          .eq('id', updatedGoals[i].id);
+          .eq('id', goalPositions[i].id);
         
         if (error) throw error;
       }

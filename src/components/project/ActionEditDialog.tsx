@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Action } from './ZodiacMindMap';
+import { Action } from '@/utils/actionsUtils';
 
 // Form validation schema
 const actionSchema = z.object({

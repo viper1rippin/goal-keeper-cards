@@ -4,7 +4,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Action } from './ZodiacMindMap';
+import { Action } from '@/utils/actionsUtils';
 import { cn } from '@/lib/utils';
 
 interface ActionStarProps {
@@ -40,7 +40,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
   const containerRef = useRef<HTMLDivElement>(null);
   const colorGradient = getRandomColor(action.content);
   
-  // Set up drag functionality with useDraggable instead of useDrag
+  // Set up drag functionality with useDraggable
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: action.id || 'temp-id',
     data: { action },

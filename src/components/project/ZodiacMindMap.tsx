@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import ActionStar from './ActionStar';
@@ -8,16 +7,7 @@ import AddActionButton from './AddActionButton';
 import ActionEditDialog from './ActionEditDialog';
 import { Card } from '@/components/ui/card';
 import { DndContext, DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-
-export interface Action {
-  id?: string;
-  content: string;
-  position_x: number;
-  position_y: number;
-  project_id: string;
-  user_id?: string;
-  created_at?: string;
-}
+import { Action, actionsService } from '@/utils/actionsUtils';
 
 interface ZodiacMindMapProps {
   projectId: string;
@@ -48,73 +38,32 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
       try {
         setIsLoading(true);
         
-        // First check if the table exists using a more reliable approach
-        // Using RPC call that won't throw a type error
-        const { data: tableExistsData, error: tableCheckError } = await supabase.rpc(
-          'check_table_exists', 
-          { table_name: 'actions' }
-        );
+        // First check if the table exists
+        const exists = await actionsService.checkTableExists();
+        setTableExists(exists);
         
-        // If we can't check via RPC (function might not exist), try a different approach
-        if (tableCheckError) {
-          // Use a raw query (this approach will work if RPC doesn't)
-          const { error: rawQueryError } = await supabase.from('actions').select('id').limit(1);
-          
-          if (rawQueryError && rawQueryError.message.includes('relation "actions" does not exist')) {
-            console.log("Table 'actions' doesn't exist. Using local storage only.");
-            setTableExists(false);
-            setActions([]);
-            setIsLoading(false);
-            return;
-          }
-        } else if (tableExistsData === false) {
-          // RPC worked but table doesn't exist
-          console.log("Table 'actions' doesn't exist (RPC check). Using local storage only.");
-          setTableExists(false);
+        if (!exists) {
+          console.log("Table 'actions' doesn't exist. Using local storage only.");
           setActions([]);
           setIsLoading(false);
           return;
         }
         
-        // Table exists (or we couldn't definitively determine it doesn't), try fetching actions
+        // If table exists, fetch actions
         try {
-          // Using executeQuery to avoid TypeScript issues since the table might not be in the types
-          const { data, error } = await supabase.rpc('get_actions_for_project', { 
-            p_project_id: projectId,
-            p_user_id: user.id
-          });
-          
-          if (error) throw error;
-          
-          if (data && Array.isArray(data)) {
-            setActions(data as Action[]);
-            setTableExists(true);
-          } else {
-            // Try direct query as a fallback, with try/catch to handle if table doesn't exist
-            try {
-              const { data: directData, error: directError } = await supabase
-                .from('actions')
-                .select('*')
-                .eq('project_id', projectId)
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: true });
-              
-              if (directError) throw directError;
-              
-              if (directData) {
-                setActions(directData as Action[]);
-                setTableExists(true);
-              }
-            } catch (directQueryError) {
-              console.error("Error in direct query:", directQueryError);
-              setTableExists(false);
-              setActions([]);
-            }
-          }
+          const actionsData = await actionsService.getActionsForProject(projectId, user.id);
+          setActions(actionsData);
+          setTableExists(true);
         } catch (error) {
           console.error("Error fetching actions:", error);
           setTableExists(false);
           setActions([]);
+          
+          toast({
+            title: "Error",
+            description: "Failed to load actions. Using local state instead.",
+            variant: "destructive",
+          });
         }
       } catch (error) {
         console.error("Overall error fetching actions:", error);
@@ -173,18 +122,14 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
         return;
       }
       
-      // When table exists, use Supabase with RPC to avoid type issues
+      // When table exists, use our service functions
       if (actionToEdit) {
         // Update existing action
-        const { error } = await supabase.rpc('update_action', {
-          p_id: actionToEdit.id,
-          p_user_id: user.id,
-          p_content: actionData.content,
-          p_position_x: actionData.position_x,
-          p_position_y: actionData.position_y
+        await actionsService.updateAction({
+          ...actionData,
+          id: actionToEdit.id,
+          user_id: user.id
         });
-        
-        if (error) throw error;
         
         setActions(prev => 
           prev.map(a => a.id === actionToEdit.id ? { ...actionData, id: actionToEdit.id } : a)
@@ -197,30 +142,10 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
           project_id: projectId,
         };
         
-        const { data, error } = await supabase.rpc('create_action', {
-          p_content: newAction.content,
-          p_position_x: newAction.position_x,
-          p_position_y: newAction.position_y,
-          p_project_id: newAction.project_id,
-          p_user_id: newAction.user_id
-        });
+        const createdAction = await actionsService.createAction(newAction);
         
-        if (error) throw error;
-        
-        if (data) {
-          // Add the new action to state
-          const createdAction: Action = {
-            id: data.id,
-            content: newAction.content,
-            position_x: newAction.position_x,
-            position_y: newAction.position_y,
-            project_id: newAction.project_id,
-            user_id: newAction.user_id,
-            created_at: new Date().toISOString()
-          };
-          
-          setActions(prev => [...prev, createdAction]);
-        }
+        // Add the new action to state
+        setActions(prev => [...prev, createdAction]);
       }
       
       toast({
@@ -270,13 +195,8 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
         return;
       }
       
-      // Delete from database using RPC
-      const { error } = await supabase.rpc('delete_action', {
-        p_id: id,
-        p_user_id: user.id
-      });
-      
-      if (error) throw error;
+      // Delete from database using our service function
+      await actionsService.deleteAction(id, user.id);
       
       setActions(prev => prev.filter(a => a.id !== id));
       toast({
@@ -311,15 +231,8 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
     }
     
     try {
-      // Update position using RPC
-      const { error } = await supabase.rpc('update_action_position', {
-        p_id: id,
-        p_user_id: user.id,
-        p_position_x: x,
-        p_position_y: y
-      });
-      
-      if (error) throw error;
+      // Update position using our service function
+      await actionsService.updateActionPosition(id, user.id, x, y);
     } catch (error) {
       console.error("Error updating action position:", error);
       // Silently fail position updates to avoid disrupting UX
