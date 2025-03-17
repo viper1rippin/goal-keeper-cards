@@ -78,7 +78,11 @@ const UserBadge = ({ level }: { level: number }) => {
           <span className="text-slate-200 truncate max-w-[100px]">
             {displayName}
           </span>
-          <Badge variant="outline" className="ml-1 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600">
+          <Badge 
+            variant="outline" 
+            className="ml-1 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600 cursor-pointer hover:border-emerald/40 transition-colors"
+            onClick={() => navigate('/progress')}
+          >
             <BadgeIcon className="h-2.5 w-2.5 mr-0.5" />
             {currentBadge.name}
           </Badge>

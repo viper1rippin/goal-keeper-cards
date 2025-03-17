@@ -12,7 +12,7 @@ export interface Badge {
 export const badges: Badge[] = [
   { name: "Soldier", level: 10, icon: Target, color: "from-blue-400 to-blue-600" },
   { name: "Knight", level: 20, icon: Sword, color: "from-emerald to-green-600" },
-  { name: "Elite Knight", level: 45, icon: Shield, color: "from-purple-400 to-purple-600" },
+  { name: "Hero", level: 45, icon: Shield, color: "from-purple-400 to-purple-600" },
   { name: "General", level: 70, icon: Trophy, color: "from-yellow-400 to-yellow-600" },
   { name: "Commander", level: 100, icon: Award, color: "from-orange-400 to-orange-600" },
   { name: "King", level: 120, icon: Crown, color: "from-pink-400 to-pink-600" },

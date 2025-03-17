@@ -30,7 +30,14 @@ const SidebarProfile = ({ collapsed, username, avatarUrl, userLevel = 10 }: Side
           <p className="text-white font-medium truncate">{username}</p>
           <div className="flex items-center">
             <p className="text-slate-400 text-sm truncate">Level {userLevel}</p>
-            <Badge variant="outline" className="ml-2 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600">
+            <Badge 
+              variant="outline" 
+              className="ml-2 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600 cursor-pointer hover:border-emerald/40 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/progress');
+              }}
+            >
               <BadgeIcon className="h-2.5 w-2.5 mr-0.5" />
               {currentBadge.name}
             </Badge>
