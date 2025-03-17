@@ -106,16 +106,40 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
         return;
       }
       
-      const { error } = await supabase
+      // First check if a record already exists
+      const { data: existingNote } = await supabase
         .from('project_notes')
-        .upsert({
-          project_id: projectId,
-          user_id: userId,
-          content: currentContent,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'project_id,user_id'
-        });
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .single();
+      
+      let error;
+      
+      if (existingNote) {
+        // Update existing record
+        const response = await supabase
+          .from('project_notes')
+          .update({
+            content: currentContent,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingNote.id);
+        
+        error = response.error;
+      } else {
+        // Insert new record
+        const response = await supabase
+          .from('project_notes')
+          .insert({
+            project_id: projectId,
+            user_id: userId,
+            content: currentContent,
+            updated_at: new Date().toISOString()
+          });
+        
+        error = response.error;
+      }
       
       if (error) throw error;
       
