@@ -9,9 +9,7 @@ interface GoalRowActionsProps {
 }
 
 const GoalRowActions: React.FC<GoalRowActionsProps> = ({
-  title,
-  onEdit,
-  onDelete
+  onEdit
 }) => {
   return (
     <div className="absolute top-0 right-0 flex space-x-2">
@@ -22,14 +20,6 @@ const GoalRowActions: React.FC<GoalRowActionsProps> = ({
         onClick={onEdit}
       >
         Edit
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-        onClick={onDelete}
-      >
-        Delete
       </Button>
     </div>
   );

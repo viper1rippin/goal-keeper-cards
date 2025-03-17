@@ -1,17 +1,17 @@
 
 import React from "react";
-import GoalRow from "@/components/GoalRow";
-import { SubGoal, ParentGoal } from "@/types/goal-types";
+import GoalRow, { Goal } from "@/components/GoalRow";
 import AnimatedContainer from "./AnimatedContainer";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { ParentGoal } from "./index/IndexPageTypes";
 import GoalRowActions from "./parentgoal/GoalRowActions";
 
 interface GoalsListProps {
   parentGoals: ParentGoal[];
   activeGoalIndices: {rowIndex: number, goalIndex: number} | null;
-  onGoalFocus: (goal: SubGoal, rowIndex: number, goalIndex: number) => void;
-  onUpdateSubGoals: (parentIndex: number, updatedGoals: SubGoal[]) => void;
+  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
+  onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   onEditGoal: (goal: ParentGoal) => void;
   onDragEnd: (event: DragEndEvent) => void;
   onDeleteParentGoal: (id: string) => Promise<void>;
@@ -66,7 +66,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
               <GoalRowActions
                 title={parentGoal.title}
                 onEdit={() => onEditGoal(parentGoal)}
-                onDelete={async () => onDeleteParentGoal(parentGoal.id)}
+                onDelete={async () => Promise.resolve()} // Return a resolved Promise to match the expected type
               />
             </div>
           ))}

@@ -1,61 +1,44 @@
-
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
+
+// Add this import at the top
 import { useAuth } from "@/context/AuthContext";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { Button } from "./ui/button";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
-interface UserBadgeProps {
-  level: number;
-}
-
-const UserBadge = ({ level }: UserBadgeProps) => {
+// Update the existing component to include logout functionality
+const UserBadge = ({ level }: { level: number }) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   
-  const userEmail = user?.email || "User";
-  const shortEmail = userEmail.length > 15 
-    ? `${userEmail.substring(0, 15)}...` 
-    : userEmail;
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn(
-            "relative bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/30",
-            "text-slate-100 rounded-xl flex items-center gap-2 h-auto py-1.5 px-3"
-          )}
-        >
-          <span className="flex items-center justify-center w-6 h-6 bg-emerald rounded-full text-xs font-medium">
+  // Add a logout button if the user is logged in
+  if (user) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
+          <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
             {level}
+          </div>
+          <span className="text-slate-200 truncate max-w-[100px]">
+            {user.email?.split('@')[0] || 'User'}
           </span>
-          <span className="text-sm font-medium">{shortEmail}</span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-8 px-2">
+          <LogOut size={16} />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-slate-800" />
-        <DropdownMenuItem className="flex gap-2 cursor-pointer">
-          <User className="w-4 h-4" />
-          <span>Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          className="flex gap-2 text-red-400 focus:text-red-400 cursor-pointer" 
-          onClick={() => signOut()}
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </div>
+    );
+  }
+  
+  // Return the default badge for non-logged in users
+  return (
+    <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
+      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
+        {level}
+      </div>
+      <span className="text-slate-200">Guest</span>
+    </div>
   );
 };
 

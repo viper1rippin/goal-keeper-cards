@@ -1,32 +1,21 @@
 
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
-  const location = useLocation();
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const { user, loading } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-apple-dark">
-        <Loader2 className="h-12 w-12 animate-spin text-emerald" />
-      </div>
-    );
+  if (loading) {
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
 
   if (!user) {
-    // Redirect to the login page, but save the current location they were
-    // trying to go to when they were redirected. This allows us
-    // to send them to that page after they login, which is a nicer user experience
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
-};
-
-export default ProtectedRoute;
+}

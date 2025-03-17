@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ParentGoal } from "@/types/goal-types";
+import { ParentGoal } from "./IndexPageTypes";
 
 export function useGoalDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

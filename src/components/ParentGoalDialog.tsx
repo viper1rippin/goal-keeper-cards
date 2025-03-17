@@ -3,7 +3,6 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
-import { useAuth } from "@/context/AuthContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -18,11 +17,7 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
-  const { user } = useAuth();
-  
   const handleSubmit = async (values: { title: string; description: string }) => {
-    if (!user) return;
-    
     try {
       if (goalToEdit?.id) {
         // Update existing goal
@@ -70,7 +65,7 @@ const ParentGoalDialog = ({
   };
 
   const handleDelete = async () => {
-    if (!goalToEdit?.id || !user) return;
+    if (!goalToEdit?.id) return;
     
     try {
       // First delete all sub-goals associated with this parent goal

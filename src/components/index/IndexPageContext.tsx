@@ -1,9 +1,10 @@
+
 import React, { createContext, useContext, useEffect } from "react";
-import { SubGoal, ParentGoal } from "@/types/goal-types";
+import { Goal } from "@/components/GoalRow";
 import { useToast } from "@/hooks/use-toast";
 import { arrayMove } from '@dnd-kit/sortable';
 import { DragEndEvent } from '@dnd-kit/core';
-import { IndexPageContextType } from "./IndexPageTypes";
+import { IndexPageContextType, ParentGoal } from "./IndexPageTypes";
 import { useParentGoals } from "./useParentGoals";
 import { useGoalFocus } from "./useGoalFocus";
 import { useGoalDialog } from "./useGoalDialog";
@@ -68,7 +69,7 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
   
   // Handle updating sub-goals for a parent goal
-  const handleUpdateSubGoals = (parentIndex: number, updatedGoals: SubGoal[]) => {
+  const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
     const updatedParentGoals = [...parentGoals];
     updatedParentGoals[parentIndex] = {
       ...updatedParentGoals[parentIndex],

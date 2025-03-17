@@ -5,20 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
-import { SubGoal } from '@/types/goal-types';
+import { Goal } from '../GoalRow';
+import { SubGoalFormValues } from '../SubGoalDialog';
 import { Trash2 } from "lucide-react";
 
-// Must match the form values in SubGoalDialog
-interface FormValues {
-  title: string;
-  description: string;
-}
-
 interface SubGoalFormProps {
-  form: UseFormReturn<FormValues>;
-  onSubmit: (values: FormValues) => Promise<void>;
+  form: UseFormReturn<SubGoalFormValues>;
+  onSubmit: (values: SubGoalFormValues) => Promise<void>;
   onClose: () => void;
-  subGoalToEdit: SubGoal | null;
+  subGoalToEdit: Goal | null;
   onDelete?: () => Promise<void>;
 }
 
@@ -35,7 +30,7 @@ export const SubGoalForm = ({
     // Check if Enter is pressed (without Shift key to allow multiline text)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // Prevent new line
-      void form.handleSubmit(onSubmit)(); // Submit the form
+      form.handleSubmit(onSubmit)(); // Submit the form
     }
   };
   

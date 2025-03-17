@@ -1,12 +1,11 @@
 
 import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import ParentGoalForm from "../ParentGoalForm";
-import { ParentGoalData } from "@/types/goal-types";
 
 interface ParentGoalDialogContentProps {
   isOpen: boolean;
   onClose: () => void;
-  goalToEdit?: ParentGoalData | null;
+  goalToEdit?: { id: string; title: string; description: string } | null;
   onSubmit: (values: { title: string; description: string }) => Promise<void>;
   onDelete?: () => Promise<void>;
 }

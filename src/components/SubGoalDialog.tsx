@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
-import { useAuth } from "@/context/AuthContext";
-import { SubGoal } from '@/types/goal-types';
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -15,29 +15,19 @@ const subGoalSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-// Define the form values type explicitly - avoid using z.infer for nested components
-interface FormValues {
-  title: string;
-  description: string;
-}
-
-// Interface for the data passed to onSave
-export interface SubGoalData {
-  id?: string;
-  title: string;
-  description: string;
-}
+export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
 
 interface SubGoalDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goal: SubGoalData) => void;
-  subGoalToEdit: SubGoal | null;
+  onSave: (goal: Omit<Goal, 'progress'>) => void;
+  subGoalToEdit: Goal | null;
   parentGoalTitle: string;
   parentGoalId: string;
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
+// Main component
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -48,10 +38,9 @@ const SubGoalDialog = ({
   onDelete
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   
-  // Initialize form with proper explicit typing
-  const form = useForm<FormValues>({
+  // Initialize form with default values or editing values
+  const form = useForm<SubGoalFormValues>({
     resolver: zodResolver(subGoalSchema),
     defaultValues: {
       title: subGoalToEdit?.title || "",
@@ -70,9 +59,7 @@ const SubGoalDialog = ({
   }, [isOpen, subGoalToEdit, form]);
 
   // Handle form submission
-  const onSubmit = async (values: FormValues): Promise<void> => {
-    if (!user) return;
-    
+  const onSubmit = async (values: SubGoalFormValues) => {
     try {
       await saveSubGoal(values);
       form.reset();
@@ -86,9 +73,7 @@ const SubGoalDialog = ({
     }
   };
 
-  const saveSubGoal = async (values: FormValues): Promise<void> => {
-    if (!user) return;
-    
+  const saveSubGoal = async (values: SubGoalFormValues) => {
     // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
@@ -96,8 +81,6 @@ const SubGoalDialog = ({
       description: values.description,
       progress: subGoalToEdit?.progress || 0
     };
-    
-    // No need to verify parent goal ownership since user_id column doesn't exist
     
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
@@ -116,16 +99,15 @@ const SubGoalDialog = ({
       if (error) throw error;
     }
     
-    // Call the onSave callback to update UI with a simpler data structure
+    // Call the onSave callback to update UI
     onSave({
-      id: subGoalToEdit?.id,
       title: values.title,
       description: values.description,
     });
   };
 
   // Handle delete sub-goal
-  const handleDeleteSubGoal = async (): Promise<void> => {
+  const handleDeleteSubGoal = async () => {
     if (subGoalToEdit?.id && onDelete) {
       try {
         await onDelete(subGoalToEdit.id);
@@ -141,13 +123,8 @@ const SubGoalDialog = ({
     }
   };
 
-  // Create a simple handler function for dialog open state changes
-  const handleOpenChange = (open: boolean): void => {
-    if (!open) onClose();
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">

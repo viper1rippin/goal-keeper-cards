@@ -2,7 +2,6 @@
 import React from "react";
 import ParentGoalDialog from "@/components/ParentGoalDialog";
 import { useIndexPage } from "./IndexPageContext";
-import { ParentGoalData } from "@/types/goal-types";
 
 const DialogManager: React.FC = () => {
   const {
@@ -16,11 +15,7 @@ const DialogManager: React.FC = () => {
     <ParentGoalDialog
       isOpen={isDialogOpen}
       onClose={closeDialog}
-      goalToEdit={goalToEdit ? {
-        id: goalToEdit.id || "",
-        title: goalToEdit.title,
-        description: goalToEdit.description
-      } : null}
+      goalToEdit={goalToEdit}
       onGoalSaved={fetchParentGoals}
     />
   );

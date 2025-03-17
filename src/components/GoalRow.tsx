@@ -8,16 +8,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import GoalRowHeader from "./GoalRowHeader";
 import SubGoalsSection from "./SubGoalsSection";
-import { SubGoal } from "@/types/goal-types";
+
+export interface Goal {
+  id?: string;
+  title: string;
+  description: string;
+  progress: number;
+}
 
 interface GoalRowProps {
   title: string;
   description: string;
-  goals: SubGoal[];
+  goals: Goal[];
   index: number;
   activeGoal?: {rowIndex: number, goalIndex: number} | null;
-  onGoalFocus: (goal: SubGoal, rowIndex: number, goalIndex: number) => void;
-  onUpdateSubGoals: (parentIndex: number, updatedGoals: SubGoal[]) => void;
+  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
+  onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   onDeleteSubGoal: (subGoalId: string) => Promise<void>;
   id: string; // Added id prop for drag and drop
 }
@@ -46,7 +52,7 @@ const GoalRow = ({
   const { toast } = useToast();
   
   // State for sub-goals loaded from the database
-  const [subGoals, setSubGoals] = useState<SubGoal[]>(goals);
+  const [subGoals, setSubGoals] = useState<Goal[]>(goals);
   const [isLoading, setIsLoading] = useState(false);
   
   // Apply transform styles from dnd-kit for the row
@@ -103,7 +109,7 @@ const GoalRow = ({
   }, [id]);
   
   // Handler to update sub-goals from child component
-  const handleUpdateSubGoals = (updatedGoals: SubGoal[]) => {
+  const handleUpdateSubGoals = (updatedGoals: Goal[]) => {
     // If this was called from a child component we refetch to ensure fresh data
     fetchSubGoals();
   };
