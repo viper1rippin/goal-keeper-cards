@@ -120,7 +120,7 @@ export type Database = {
     Functions: {
       check_table_exists: {
         Args: {
-          table_name: string
+          check_name: string
         }
         Returns: boolean
       }

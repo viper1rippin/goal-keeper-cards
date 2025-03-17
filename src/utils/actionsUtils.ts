@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 export interface Action {
   id?: string;
@@ -9,6 +10,7 @@ export interface Action {
   project_id: string;
   user_id?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 // Local storage key for actions
@@ -29,7 +31,7 @@ export const actionsService = {
     try {
       // Call the database function to check if the table exists
       const { data, error } = await supabase.rpc('check_table_exists', {
-        table_name: 'actions'
+        check_name: 'actions'
       });
       
       if (error) {
@@ -67,7 +69,7 @@ export const actionsService = {
         throw error;
       }
       
-      return data as Action[] || [];
+      return (data as Action[]) || [];
     } catch (error) {
       console.error("Error getting actions:", error);
       // Fallback to local storage on error
