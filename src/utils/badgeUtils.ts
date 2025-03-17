@@ -1,5 +1,5 @@
 
-import { Award, Shield, Sword, Trophy, Crown, Target, Flag } from "lucide-react";
+import { Award, Shield, Sword, Trophy, Crown, Target, Flag, UserRound } from "lucide-react";
 
 export interface Badge {
   name: string;
@@ -10,6 +10,7 @@ export interface Badge {
 
 // Badge definitions based on user levels
 export const badges: Badge[] = [
+  { name: "Peasant", level: 1, icon: UserRound, color: "from-gray-400 to-gray-600" },
   { name: "Soldier", level: 10, icon: Target, color: "from-blue-400 to-blue-600" },
   { name: "Knight", level: 20, icon: Sword, color: "from-emerald to-green-600" },
   { name: "Hero", level: 45, icon: Shield, color: "from-purple-400 to-purple-600" },
@@ -27,8 +28,8 @@ export const getCurrentBadge = (level: number): Badge => {
       return badges[i];
     }
   }
-  // Default badge if below all levels
-  return { name: "Beginner", level: 0, icon: Target, color: "from-slate-400 to-slate-600" };
+  // Default badge if below all levels (should never happen now with Peasant)
+  return badges[0];
 };
 
 // Get next badge based on user level
