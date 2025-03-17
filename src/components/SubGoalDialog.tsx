@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -9,11 +10,14 @@ import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
 import { SubGoal, SubGoalData, SubGoalFormValues } from '@/types/goal-types';
 
-// Form validation schema
+// Form validation schema - kept separate from type definitions
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
 });
+
+// Explicitly define the type for form values
+type FormValues = z.infer<typeof subGoalSchema>;
 
 interface SubGoalDialogProps {
   isOpen: boolean;
@@ -25,7 +29,7 @@ interface SubGoalDialogProps {
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
-// Main component
+// Main component - not using React.FC to avoid deep type instantiation
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -39,7 +43,7 @@ const SubGoalDialog = ({
   const { user } = useAuth();
   
   // Initialize form with default values or editing values
-  const form = useForm<SubGoalFormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(subGoalSchema),
     defaultValues: {
       title: subGoalToEdit?.title || "",
@@ -58,7 +62,7 @@ const SubGoalDialog = ({
   }, [isOpen, subGoalToEdit, form]);
 
   // Handle form submission
-  const onSubmit = async (values: SubGoalFormValues) => {
+  const onSubmit = async (values: FormValues) => {
     if (!user) return;
     
     try {
@@ -74,7 +78,7 @@ const SubGoalDialog = ({
     }
   };
 
-  const saveSubGoal = async (values: SubGoalFormValues) => {
+  const saveSubGoal = async (values: FormValues) => {
     if (!user) return;
     
     // Prepare sub-goal data

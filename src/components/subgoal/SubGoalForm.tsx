@@ -5,12 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
-import { SubGoal, SubGoalFormValues } from '@/types/goal-types';
+import { SubGoal } from '@/types/goal-types';
 import { Trash2 } from "lucide-react";
 
+// Using a simpler type for form values
+interface FormValues {
+  title: string;
+  description: string;
+}
+
 interface SubGoalFormProps {
-  form: UseFormReturn<SubGoalFormValues>;
-  onSubmit: (values: SubGoalFormValues) => Promise<void>;
+  form: UseFormReturn<FormValues>;
+  onSubmit: (values: FormValues) => Promise<void>;
   onClose: () => void;
   subGoalToEdit: SubGoal | null;
   onDelete?: () => Promise<void>;

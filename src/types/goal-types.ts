@@ -43,3 +43,12 @@ export interface SubGoalFormValues {
   title: string;
   description: string;
 }
+
+/**
+ * Parent goal data for forms and dialogs
+ */
+export interface ParentGoalData {
+  id: string;
+  title: string;
+  description: string;
+}
