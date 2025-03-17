@@ -1,6 +1,6 @@
 
 import React from "react";
-import { formatTime } from "@/utils/timerUtils";
+import { formatTime, pointsToHours } from "@/utils/timerUtils";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { getCurrentBadge, getNextBadge, POINTS_FOR_LEVEL_UP } from "@/utils/badgeUtils";
@@ -29,9 +29,10 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   const nextBadge = getNextBadge(userLevel);
   const CurrentBadgeIcon = currentBadge.icon;
   
-  // Calculate days remaining for next level
-  const hoursNeeded = Math.ceil(pointsForNextLevel / 60);
-  const daysNeeded = Math.ceil(hoursNeeded / 24);
+  // Calculate hours needed for next level
+  const hoursCompleted = pointsToHours(earnedPoints);
+  const hoursNeeded = pointsToHours(pointsForNextLevel);
+  const hoursRemaining = Math.max(0, hoursNeeded - hoursCompleted);
   
   return (
     <div className="space-y-6">
@@ -52,7 +53,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
           </div>
         </div>
         <div className="text-right text-slate-400 text-sm">
-          {earnedPoints.toFixed(1)}/{pointsForNextLevel} points
+          {hoursCompleted.toFixed(1)}/{hoursNeeded} hours
         </div>
       </div>
       
@@ -65,7 +66,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
           {formatTime(time)}
         </div>
         <div className="text-slate-400 text-sm mt-2">
-          ~{daysNeeded} days of focus needed for next level
+          ~{hoursRemaining} hours of focus needed for next level
         </div>
         
         {nextBadge && (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Award, Timer, Target, Flag } from "lucide-react";
-import { formatTime, calculateTimeForNextLevel, calculateDaysForNextBadge } from "@/utils/timerUtils";
+import { formatTime, calculateTimeForNextLevel, calculateDaysForNextBadge, pointsToHours } from "@/utils/timerUtils";
 import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
 
@@ -33,6 +34,10 @@ const ProgressTracker = () => {
   
   // Calculate days needed for next badge
   const daysForNextBadge = nextBadge ? calculateDaysForNextBadge(level, nextBadge.level) : 0;
+  
+  // Convert points to hours for display
+  const hoursCompleted = pointsToHours(points);
+  const hoursNeededForLevel = pointsToHours(pointsForNextLevel);
 
   useEffect(() => {
     if (user) {
@@ -74,8 +79,8 @@ const ProgressTracker = () => {
   
   // Data for level progress chart
   const levelProgressData = [
-    { name: 'Current Progress', points: points, fill: '#10b981' },
-    { name: 'Remaining', points: Math.max(0, pointsForNextLevel - points), fill: '#1f2937' }
+    { name: 'Hours Completed', hours: hoursCompleted, fill: '#10b981' },
+    { name: 'Hours Remaining', hours: Math.max(0, hoursNeededForLevel - hoursCompleted), fill: '#1f2937' }
   ];
   
   return (
@@ -128,13 +133,13 @@ const ProgressTracker = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>{points} points</span>
-                      <span>{pointsForNextLevel} points for level {level + 1}</span>
+                      <span>{hoursCompleted} hours completed</span>
+                      <span>{hoursNeededForLevel} hours needed for level {level + 1}</span>
                     </div>
                     <Progress value={progressPercentage} className="h-2" />
                     <p className="text-sm text-muted-foreground mt-2">
                       <Timer className="inline h-4 w-4 mr-1" />
-                      {hoursForNextLevel} hours of focus time needed for next level
+                      {hoursForNextLevel} more hours of focus time needed for next level
                     </p>
                     {nextBadge && (
                       <p className="text-sm text-muted-foreground mt-1">
@@ -254,7 +259,7 @@ const ProgressTracker = () => {
                               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                             >
                               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                              <XAxis type="number" domain={[0, pointsForNextLevel]} />
+                              <XAxis type="number" domain={[0, hoursNeededForLevel]} />
                               <YAxis dataKey="name" type="category" width={120} />
                               <Tooltip 
                                 content={({ active, payload }) => {
@@ -262,7 +267,7 @@ const ProgressTracker = () => {
                                     return (
                                       <div className="rounded-lg border bg-background p-2 shadow-md">
                                         <p className="font-semibold">{payload[0].payload.name}</p>
-                                        <p>{payload[0].value} points</p>
+                                        <p>{payload[0].value} hours</p>
                                       </div>
                                     );
                                   }
@@ -270,7 +275,7 @@ const ProgressTracker = () => {
                                 }}
                               />
                               <Legend />
-                              <Bar dataKey="points" fill="#10b981" />
+                              <Bar dataKey="hours" fill="#10b981" />
                             </BarChart>
                           </ResponsiveContainer>
                         </ChartContainer>
@@ -280,9 +285,9 @@ const ProgressTracker = () => {
                         <div className="bg-muted rounded-lg p-4">
                           <div className="flex justify-between items-center mb-2">
                             <span className="font-medium">Hours of Focus Required</span>
-                            <span>24 hours per level</span>
+                            <span>{pointsToHours(POINTS_FOR_LEVEL_UP)} hours per level</span>
                           </div>
-                          <p className="text-sm text-muted-foreground">Each minute of focus time earns you {POINTS_PER_MINUTE} point. You need {POINTS_FOR_LEVEL_UP} points to advance to the next level.</p>
+                          <p className="text-sm text-muted-foreground">Each minute of focus time counts toward your progress. You need {pointsToHours(POINTS_FOR_LEVEL_UP)} hours to advance to the next level.</p>
                         </div>
                         
                         <div className="bg-muted rounded-lg p-4">

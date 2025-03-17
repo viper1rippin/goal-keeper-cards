@@ -20,6 +20,11 @@ export const formatTime = (seconds: number): string => {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
+// Convert points to hours
+export const pointsToHours = (points: number): number => {
+  return Math.round(points / 60);
+};
+
 // Calculate time needed for next level (in hours)
 export const calculateTimeForNextLevel = (earnedPoints: number, pointsForNextLevel: number): number => {
   const minutesForNextLevel = Math.ceil((pointsForNextLevel - earnedPoints) / POINTS_PER_MINUTE);
