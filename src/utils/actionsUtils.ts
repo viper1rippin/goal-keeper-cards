@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError } from "@supabase/supabase-js";
 
 export interface Action {
   id?: string;
@@ -28,20 +27,22 @@ export const actionsService = {
   // Check if actions table exists
   async checkTableExists(): Promise<boolean> {
     try {
-      // Use a raw query to check if the table exists
-      const { data, error } = await supabase.rpc(
-        'check_table_exists',
-        { table_name: 'actions' }
-      );
+      // Use a simple select query to check if the table exists
+      const { data, error } = await supabase
+        .from('actions')
+        .select('id')
+        .limit(1)
+        .single();
       
-      if (error) {
-        console.error("Error checking if table exists:", error);
+      if (error && error.code === 'PGRST116') {
+        // Table doesn't exist
         return false;
       }
       
-      return !!data;
+      // Table exists, even if empty
+      return true;
     } catch (error) {
-      console.error("Error in checkTableExists:", error);
+      console.error("Error checking if table exists:", error);
       return false;
     }
   },
@@ -58,14 +59,12 @@ export const actionsService = {
         return this._getActionsFromLocalStorage(projectId, userId);
       }
       
-      // Use raw SQL query instead of typed client
-      const { data, error } = await supabase.rpc(
-        'get_actions_for_project',
-        { 
-          p_project_id: projectId,
-          p_user_id: userId
-        }
-      );
+      // Fetch from database using standard query
+      const { data, error } = await supabase
+        .from('actions')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('user_id', userId);
       
       if (error) throw error;
       
@@ -93,17 +92,18 @@ export const actionsService = {
         return this._createActionInLocalStorage(action);
       }
       
-      // Use raw SQL query instead of typed client
-      const { data, error } = await supabase.rpc(
-        'create_action',
-        {
-          p_content: action.content,
-          p_position_x: action.position_x,
-          p_position_y: action.position_y,
-          p_project_id: action.project_id,
-          p_user_id: action.user_id
-        }
-      );
+      // Insert into database
+      const { data, error } = await supabase
+        .from('actions')
+        .insert({
+          content: action.content,
+          position_x: action.position_x,
+          position_y: action.position_y,
+          project_id: action.project_id,
+          user_id: action.user_id
+        })
+        .select('*')
+        .single();
       
       if (error) throw error;
       
@@ -135,17 +135,16 @@ export const actionsService = {
         return;
       }
       
-      // Use raw SQL query instead of typed client
-      const { error } = await supabase.rpc(
-        'update_action',
-        {
-          p_id: action.id,
-          p_user_id: action.user_id,
-          p_content: action.content,
-          p_position_x: action.position_x,
-          p_position_y: action.position_y
-        }
-      );
+      // Update in database
+      const { error } = await supabase
+        .from('actions')
+        .update({
+          content: action.content,
+          position_x: action.position_x,
+          position_y: action.position_y
+        })
+        .eq('id', action.id)
+        .eq('user_id', action.user_id);
       
       if (error) throw error;
     } catch (error) {
@@ -173,16 +172,15 @@ export const actionsService = {
         return;
       }
       
-      // Use raw SQL query instead of typed client
-      const { error } = await supabase.rpc(
-        'update_action_position',
-        {
-          p_id: id,
-          p_user_id: userId,
-          p_position_x: position_x,
-          p_position_y: position_y
-        }
-      );
+      // Update position in database
+      const { error } = await supabase
+        .from('actions')
+        .update({
+          position_x,
+          position_y
+        })
+        .eq('id', id)
+        .eq('user_id', userId);
       
       if (error) throw error;
     } catch (error) {
@@ -205,14 +203,12 @@ export const actionsService = {
         return;
       }
       
-      // Use raw SQL query instead of typed client
-      const { error } = await supabase.rpc(
-        'delete_action',
-        {
-          p_id: id,
-          p_user_id: userId
-        }
-      );
+      // Delete from database
+      const { error } = await supabase
+        .from('actions')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId);
       
       if (error) throw error;
     } catch (error) {

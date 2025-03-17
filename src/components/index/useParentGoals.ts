@@ -64,12 +64,12 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
       const groupedSubGoals: Record<string, Goal[]> = {};
       
       // Initialize groups
-      (parentGoalsData as ParentGoalData[] || []).forEach(parent => {
+      ((parentGoalsData as ParentGoalData[]) || []).forEach(parent => {
         groupedSubGoals[parent.id] = [];
       });
       
       // Populate groups
-      (subGoalsData as SubGoalData[] || []).forEach(subGoal => {
+      ((subGoalsData as SubGoalData[]) || []).forEach(subGoal => {
         if (groupedSubGoals[subGoal.parent_goal_id]) {
           groupedSubGoals[subGoal.parent_goal_id].push({
             id: subGoal.id,
@@ -81,7 +81,7 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
       });
       
       // Map parent goals with their sub goals
-      const mappedParentGoals = (parentGoalsData as ParentGoalData[] || []).map(parent => ({
+      const mappedParentGoals = ((parentGoalsData as ParentGoalData[]) || []).map(parent => ({
         id: parent.id,
         title: parent.title,
         description: parent.description,
@@ -109,22 +109,16 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
     if (!user) return;
     
     try {
-      // Update position numbers
-      const updates = reorderedGoals.map((goal, index) => ({
-        id: goal.id,
-        position: index,
-        user_id: user.id,
-      }));
-      
-      // Batch update all parent goals with new positions
-      const { error } = await supabase.from('parent_goals').upsert(
-        updates.map(u => ({
-          id: u.id,
-          position: u.position,
-        }))
-      );
-      
-      if (error) throw error;
+      // Create an array of updates for each goal
+      for (const goal of reorderedGoals) {
+        const { error } = await supabase
+          .from('parent_goals')
+          .update({ position: reorderedGoals.findIndex(g => g.id === goal.id) })
+          .eq('id', goal.id)
+          .eq('user_id', user.id);
+          
+        if (error) throw error;
+      }
       
     } catch (error) {
       console.error('Error updating goal order:', error);
