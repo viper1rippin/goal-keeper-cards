@@ -17,11 +17,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
-      // Filter goals by user_id
+      // Filter goals by user_id - use string type for user.id to avoid type instantiation issues
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id as string)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -65,10 +65,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .from('parent_goals')
           .update({ 
             position: i,
-            user_id: user.id // Ensure user_id is set
+            user_id: user.id as string // Explicitly cast user.id to string
           })
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user.id); // Only update goals owned by this user
+          .eq('id', updatedGoals[i].id as string)
+          .eq('user_id', user.id as string); // Only update goals owned by this user
         
         if (error) throw error;
       }
@@ -92,7 +92,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('sub_goals')
         .delete()
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id); // Only delete sub-goals owned by this user
+        .eq('user_id', user.id as string); // Use type assertion to avoid inference issues
       
       if (subGoalError) throw subGoalError;
       
@@ -101,7 +101,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('parent_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Only delete goals owned by this user
+        .eq('user_id', user.id as string); // Use type assertion
       
       if (error) throw error;
       
@@ -131,7 +131,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('sub_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Only delete sub-goals owned by this user
+        .eq('user_id', user.id as string); // Use type assertion
       
       if (error) throw error;
       
