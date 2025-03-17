@@ -15,7 +15,7 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
-  user_id?: string; // Add user_id field
+  user_id?: string;
 }
 
 interface GoalRowProps {
@@ -27,7 +27,7 @@ interface GoalRowProps {
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   onDeleteSubGoal: (subGoalId: string) => Promise<void>;
-  id: string; // Added id prop for drag and drop
+  id: string;
 }
 
 const GoalRow = ({ 
@@ -52,7 +52,7 @@ const GoalRow = ({
   } = useSortable({ id });
 
   const { toast } = useToast();
-  const { user } = useAuth(); // Get the current authenticated user
+  const { user } = useAuth();
   
   // State for sub-goals loaded from the database
   const [subGoals, setSubGoals] = useState<Goal[]>(goals);
@@ -80,18 +80,21 @@ const GoalRow = ({
         return;
       }
 
+      console.log("Fetching sub-goals for parent:", id, "user:", user.id);
+
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id) // Only fetch user's own sub-goals
-        .order('created_at', { ascending: true });
+        .eq('user_id', user.id);
       
       if (error) {
+        console.error("Supabase error:", error);
         throw error;
       }
       
       if (data) {
+        console.log("Sub-goals fetched:", data.length);
         const formattedData = data.map(goal => ({
           id: goal.id,
           title: goal.title,
@@ -116,9 +119,11 @@ const GoalRow = ({
     }
   };
   
-  // Fetch sub-goals when the component mounts
+  // Fetch sub-goals when the component mounts or user/id changes
   useEffect(() => {
-    fetchSubGoals();
+    if (user && id) {
+      fetchSubGoals();
+    }
   }, [id, user]);
   
   // Handler to update sub-goals from child component

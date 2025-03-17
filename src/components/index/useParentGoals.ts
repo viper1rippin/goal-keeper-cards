@@ -33,12 +33,14 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       if (error) throw error;
       
       // Transform data to include empty goals array if no data
-      const transformedData = data?.map(goal => ({
-        ...goal,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
-      })) || [];
+      const transformedData = data ? data.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        position: goal.position,
+        user_id: goal.user_id,
+        goals: goalToEdit?.id === goal.id && goalToEdit?.goals ? goalToEdit.goals : []
+      })) : [];
       
       setParentGoals(transformedData);
     } catch (error) {
@@ -60,10 +62,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          } as any)
-          .eq('id', updatedGoals[i].id);
+          .update({ position: i })
+          .eq('id', updatedGoals[i].id)
+          .eq('user_id', user?.id);
         
         if (error) throw error;
       }
