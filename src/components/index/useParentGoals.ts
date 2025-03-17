@@ -17,12 +17,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
-      // Filter goals by user_id - use string type for user.id to avoid type instantiation issues
-      const userId: string = user.id;
+      // Remove the user_id filter since the column might not exist
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', userId)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -62,17 +60,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     try {
       // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
-        const userId: string = user.id;
-        const goalId: string = updatedGoals[i].id as string;
-        
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i,
-            user_id: userId // Use the explicitly typed variable
-          })
-          .eq('id', goalId)
-          .eq('user_id', userId); // Only update goals owned by this user
+          .update({ position: i })
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -91,14 +82,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     if (!user) return;
     
     try {
-      const userId: string = user.id;
-      
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', id)
-        .eq('user_id', userId); // Use explicitly typed variable
+        .eq('parent_goal_id', id);
       
       if (subGoalError) throw subGoalError;
       
@@ -106,8 +94,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', userId); // Use explicitly typed variable
+        .eq('id', id);
       
       if (error) throw error;
       
@@ -133,13 +120,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     if (!user) return;
     
     try {
-      const userId: string = user.id;
-      
       const { error } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', userId); // Use explicitly typed variable
+        .eq('id', id);
       
       if (error) throw error;
       

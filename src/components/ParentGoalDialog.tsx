@@ -31,11 +31,9 @@ const ParentGoalDialog = ({
           .update({
             title: values.title,
             description: values.description,
-            updated_at: new Date().toISOString(),
-            user_id: user.id // Ensure user_id is set even for updates
+            updated_at: new Date().toISOString()
           })
-          .eq('id', goalToEdit.id)
-          .eq('user_id', user.id); // Only update if owned by this user
+          .eq('id', goalToEdit.id);
 
         if (error) throw error;
         toast({ 
@@ -48,8 +46,7 @@ const ParentGoalDialog = ({
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description,
-            user_id: user.id // Set user_id for new goals
+            description: values.description
           }]);
 
         if (error) throw error;
@@ -80,8 +77,7 @@ const ParentGoalDialog = ({
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', goalToEdit.id)
-        .eq('user_id', user.id); // Only delete if owned by this user
+        .eq('parent_goal_id', goalToEdit.id);
       
       if (subGoalError) throw subGoalError;
       
@@ -89,8 +85,7 @@ const ParentGoalDialog = ({
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id)
-        .eq('user_id', user.id); // Only delete if owned by this user
+        .eq('id', goalToEdit.id);
       
       if (error) throw error;
       
