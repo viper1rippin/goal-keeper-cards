@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { POINTS_PER_MINUTE } from "@/utils/timerUtils";
-import { getCurrentBadge, getNextBadge, badges } from "@/utils/badgeUtils";
+import { getCurrentBadge, getNextBadge, badges, POINTS_FOR_LEVEL_UP } from "@/utils/badgeUtils";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,8 +21,7 @@ const ProgressTracker = () => {
   const [points, setPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Calculate points needed for next level (assuming each level requires 24 hours = 1440 minutes of focus)
-  const POINTS_FOR_LEVEL_UP = 1440; // 24 hours * 60 minutes
+  // Calculate points needed for next level
   const pointsForNextLevel = POINTS_FOR_LEVEL_UP;
   const progressPercentage = Math.min(100, (points / pointsForNextLevel) * 100);
   
@@ -30,8 +29,25 @@ const ProgressTracker = () => {
   const currentBadge = getCurrentBadge(level);
   const nextBadge = getNextBadge(level);
   
-  // Calculate time needed for next level
+  // Calculate time needed for next level and the next badge
   const hoursForNextLevel = calculateTimeForNextLevel(points, pointsForNextLevel);
+  const daysForNextLevel = Math.ceil(hoursForNextLevel / 24);
+
+  // Calculate days needed to reach next badge (if there is one)
+  const calculateDaysForNextBadge = () => {
+    if (!nextBadge) return null;
+    
+    // Calculate how many level-ups needed to reach next badge
+    const levelsNeeded = nextBadge.level - level;
+    
+    // Calculate total points needed (accounting for current progress)
+    const totalPointsNeeded = (levelsNeeded * POINTS_FOR_LEVEL_UP) - points;
+    
+    // Convert to days (points per minute * 60 minutes * 24 hours)
+    return Math.ceil(totalPointsNeeded / (POINTS_PER_MINUTE * 60 * 24));
+  };
+  
+  const daysForNextBadge = nextBadge ? calculateDaysForNextBadge() : null;
 
   useEffect(() => {
     if (user) {
@@ -133,8 +149,15 @@ const ProgressTracker = () => {
                     <Progress value={progressPercentage} className="h-2" />
                     <p className="text-sm text-muted-foreground mt-2">
                       <Timer className="inline h-4 w-4 mr-1" />
-                      {hoursForNextLevel} hours of focus time needed for next level
+                      {daysForNextLevel} days of focus time needed for next level
                     </p>
+                    
+                    {nextBadge && daysForNextBadge && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <Target className="inline h-4 w-4 mr-1" />
+                        {daysForNextBadge} days of focus time needed for next badge
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -272,8 +295,8 @@ const ProgressTracker = () => {
                       <div className="mt-6 space-y-4">
                         <div className="bg-muted rounded-lg p-4">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium">Hours of Focus Required</span>
-                            <span>24 hours per level</span>
+                            <span className="font-medium">Focus Time for Progression</span>
+                            <span>{Math.ceil(POINTS_FOR_LEVEL_UP / (POINTS_PER_MINUTE * 60))} days per level</span>
                           </div>
                           <p className="text-sm text-muted-foreground">Each minute of focus time earns you {POINTS_PER_MINUTE} point. You need {POINTS_FOR_LEVEL_UP} points to advance to the next level.</p>
                         </div>
@@ -289,8 +312,14 @@ const ProgressTracker = () => {
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <Flag className="h-4 w-4 text-emerald" />
-                            <p className="text-sm">Approximately {hoursForNextLevel} more hours of focus needed</p>
+                            <p className="text-sm">Approximately {daysForNextLevel} more days of focus needed for level {level + 1}</p>
                           </div>
+                          {nextBadge && daysForNextBadge && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <Award className="h-4 w-4 text-emerald" />
+                              <p className="text-sm">Approximately {daysForNextBadge} more days of focus needed for {nextBadge.name} badge</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
