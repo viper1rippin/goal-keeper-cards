@@ -91,12 +91,14 @@ const GoalRow = ({
       }
       
       if (data) {
+        // Map the database results to the Goal interface, explicitly handling user_id
         const formattedData = data.map(goal => ({
           id: goal.id,
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
-          user_id: goal.user_id as string  // Explicitly cast as string
+          // Add user_id with explicit type assertion since it's not in the DB type
+          user_id: user.id
         }));
         
         setSubGoals(formattedData);
