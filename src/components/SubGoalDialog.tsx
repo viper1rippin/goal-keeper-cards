@@ -90,7 +90,13 @@ const SubGoalDialog = ({
     if (!user) return;
 
     // Prepare sub-goal data
-    const subGoalData = {
+    const subGoalData: {
+      parent_goal_id: string;
+      title: string;
+      description: string;
+      progress: number;
+      user_id: string;
+    } = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
