@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Timer } from "lucide-react";
 import AnimatedContainer from "./AnimatedContainer";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 interface WelcomeCardProps {
@@ -14,11 +15,11 @@ interface WelcomeCardProps {
 
 const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer, showFocusTimer }) => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [displayName, setDisplayName] = useState<string>("");
   
   useEffect(() => {
     if (user) {
-      // Initial fetch
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
@@ -35,7 +36,6 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer
       
       fetchProfile();
       
-      // Subscribe to changes
       const channel = supabase
         .channel('welcome-profile-updates')
         .on(
@@ -64,10 +64,15 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer
   
   return (
     <AnimatedContainer className="w-full mb-8">
-      <div className="glass-card p-5 rounded-lg border border-slate-800/80">
+      <div className="glass-card p-5 rounded-lg">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <p className="text-slate-400 text-sm">Welcome back, {username}. Set a goal and stay focused.</p>
+            <p className={cn(
+              "text-sm",
+              theme === "dark" ? "text-slate-400" : "text-slate-600"
+            )}>
+              Welcome back, {username}. Set a goal and stay focused.
+            </p>
           </div>
           <div className="flex items-center space-x-3 self-end md:self-auto">
             {user && (
