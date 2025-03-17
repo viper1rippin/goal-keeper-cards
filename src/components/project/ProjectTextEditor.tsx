@@ -21,7 +21,7 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   
-  // Initialize the editor
+  // Initialize the editor with proper list configurations
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -67,7 +67,7 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
           throw error;
         }
         
-        if (data) {
+        if (data && data.content) {
           setContent(data.content);
           editor?.commands.setContent(data.content);
         }
@@ -94,18 +94,32 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
     
     try {
       setIsSaving(true);
+      const currentContent = editor.getHTML();
+      
+      // Verify we have content to save
+      if (!currentContent) {
+        toast({
+          title: 'Warning',
+          description: 'No content to save.',
+        });
+        setIsSaving(false);
+        return;
+      }
       
       const { error } = await supabase
         .from('project_notes')
         .upsert({
           project_id: projectId,
           user_id: userId,
-          content: editor.getHTML(),
+          content: currentContent,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'project_id,user_id'
         });
       
       if (error) throw error;
       
+      setContent(currentContent);
       toast({
         title: 'Success',
         description: 'Your project notes have been saved.',
@@ -122,7 +136,7 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
     }
   };
 
-  // Auto-save content every 10 seconds if changes detected
+  // Auto-save content every 15 seconds if changes detected
   useEffect(() => {
     if (!editor || isLoading) return;
     
@@ -132,7 +146,7 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
       if (content !== editor.getHTML()) {
         saveContent();
       }
-    }, 10000);
+    }, 15000);
     
     return () => clearInterval(interval);
   }, [editor, isLoading, content]);
