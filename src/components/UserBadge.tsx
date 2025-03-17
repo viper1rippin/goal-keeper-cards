@@ -1,112 +1,61 @@
 
-import React from "react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Shield, Sword, Award, Crown, Trophy } from "lucide-react";
-
-export type BadgeLevel = 
-  | "soldier" 
-  | "knight" 
-  | "elite_knight" 
-  | "general" 
-  | "commander" 
-  | "king" 
-  | "emperor";
-
-interface BadgeConfig {
-  name: string;
-  level: number;
-  icon: React.ReactNode;
-  color: string;
-}
-
-export const badgeConfigs: Record<BadgeLevel, BadgeConfig> = {
-  soldier: {
-    name: "Soldier",
-    level: 10,
-    icon: <Shield className="mr-1" size={14} />,
-    color: "bg-slate-500"
-  },
-  knight: {
-    name: "Knight",
-    level: 20,
-    icon: <Sword className="mr-1" size={14} />,
-    color: "bg-slate-400"
-  },
-  elite_knight: {
-    name: "Elite Knight",
-    level: 45,
-    icon: <Sword className="mr-1" size={14} strokeWidth={2.5} />,
-    color: "bg-blue-500"
-  },
-  general: {
-    name: "General",
-    level: 70,
-    icon: <Award className="mr-1" size={14} />,
-    color: "bg-purple-500"
-  },
-  commander: {
-    name: "Commander",
-    level: 100,
-    icon: <Award className="mr-1" size={14} strokeWidth={2.5} />,
-    color: "bg-purple-400"
-  },
-  king: {
-    name: "King",
-    level: 120,
-    icon: <Crown className="mr-1" size={14} />,
-    color: "bg-amber-500"
-  },
-  emperor: {
-    name: "Emperor",
-    level: 200,
-    icon: <Trophy className="mr-1" size={14} />,
-    color: "bg-emerald"
-  }
-};
+import { Button } from "./ui/button";
+import { useAuth } from "@/context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User } from "lucide-react";
 
 interface UserBadgeProps {
   level: number;
-  showLevel?: boolean;
-  size?: "sm" | "md" | "lg";
 }
 
-export const getBadgeByLevel = (level: number): BadgeLevel => {
-  if (level >= 200) return "emperor";
-  if (level >= 120) return "king";
-  if (level >= 100) return "commander";
-  if (level >= 70) return "general";
-  if (level >= 45) return "elite_knight";
-  if (level >= 20) return "knight";
-  return "soldier";
-};
-
-const UserBadge: React.FC<UserBadgeProps> = ({ 
-  level, 
-  showLevel = true,
-  size = "md" 
-}) => {
-  const badgeType = getBadgeByLevel(level);
-  const badge = badgeConfigs[badgeType];
+const UserBadge = ({ level }: UserBadgeProps) => {
+  const { user, signOut } = useAuth();
   
-  const sizeClasses = {
-    sm: "text-xs py-0 px-1.5",
-    md: "text-xs py-0.5 px-2",
-    lg: "text-sm py-1 px-2.5"
-  };
+  const userEmail = user?.email || "User";
+  const shortEmail = userEmail.length > 15 
+    ? `${userEmail.substring(0, 15)}...` 
+    : userEmail;
 
   return (
-    <Badge 
-      className={cn(
-        "flex items-center font-medium", 
-        badge.color,
-        sizeClasses[size]
-      )}
-    >
-      {badge.icon}
-      {badge.name}
-      {showLevel && <span className="ml-1 opacity-80">Lvl {level}</span>}
-    </Badge>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className={cn(
+            "relative bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/30",
+            "text-slate-100 rounded-xl flex items-center gap-2 h-auto py-1.5 px-3"
+          )}
+        >
+          <span className="flex items-center justify-center w-6 h-6 bg-emerald rounded-full text-xs font-medium">
+            {level}
+          </span>
+          <span className="text-sm font-medium">{shortEmail}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800 text-slate-200">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-slate-800" />
+        <DropdownMenuItem className="flex gap-2 cursor-pointer">
+          <User className="w-4 h-4" />
+          <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          className="flex gap-2 text-red-400 focus:text-red-400 cursor-pointer" 
+          onClick={() => signOut()}
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

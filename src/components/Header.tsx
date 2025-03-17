@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Timer } from "lucide-react";
 import FocusTimer from "./FocusTimer";
 import { Goal } from "./GoalRow";
+import { useAuth } from "@/context/AuthContext";
 
 interface HeaderProps {
   activeGoal?: Goal | null;
@@ -24,6 +25,7 @@ const Header = ({
   const [userLevel, setUserLevel] = useState(10); // Default starting level
   // Reference to track the last scroll position
   const lastScrollPosition = useRef(0);
+  const { user } = useAuth();
   
   // Handle showing/hiding focus timer without scroll jumping
   useLayoutEffect(() => {
@@ -49,13 +51,16 @@ const Header = ({
     setShowFocusTimer(!showFocusTimer);
   };
   
+  // Get the user's email or display a default name
+  const userName = user?.email?.split('@')[0] || "User";
+  
   return (
     <header className="w-full py-8 px-6 sm:px-8 md:px-12 lg:px-16 border-b border-slate-800/80">
       <AnimatedContainer animation="slide-up" className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              <span className="text-gradient">John's App</span>
+              <span className="text-gradient">{userName}'s Goals</span>
             </h1>
             <p className="text-slate-400 mt-1">Set, track, and accomplish your goals</p>
           </div>
