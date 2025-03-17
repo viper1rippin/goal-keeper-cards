@@ -1,4 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Action } from '@/utils/actionsUtils';
@@ -34,9 +37,18 @@ const getRandomColor = (seed: string) => {
 
 const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpdatePosition }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const colorGradient = getRandomColor(action.content);
+  
+  // Set up drag functionality with useDraggable
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: action.id || 'temp-id',
+    data: { action },
+  });
+  
+  const style = transform ? {
+    transform: CSS.Translate.toString(transform),
+  } : {};
   
   // Position the star based on its coordinates
   useEffect(() => {
@@ -46,60 +58,22 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
     }
   }, [action.position_x, action.position_y]);
   
-  // Handle right mouse button for moving
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default context menu
-    if (!action.id) return;
-    
-    setIsDragging(true);
-    
-    // Calculate parent bounds
-    const parentElement = containerRef.current?.parentElement;
-    if (!parentElement) return;
-    
-    const parentRect = parentElement.getBoundingClientRect();
-    
-    // Function to handle mouse move during drag
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (containerRef.current) {
-        // Calculate position within parent as percentage
-        const x = ((moveEvent.clientX - parentRect.left) / parentRect.width) * 100;
-        const y = ((moveEvent.clientY - parentRect.top) / parentRect.height) * 100;
-        
-        // Keep within bounds (0-100%)
-        const boundedX = Math.max(0, Math.min(100, x));
-        const boundedY = Math.max(0, Math.min(100, y));
-        
-        // Update visual position
-        containerRef.current.style.left = `${boundedX}%`;
-        containerRef.current.style.top = `${boundedY}%`;
+  // Handle end of dragging
+  useEffect(() => {
+    if (!transform && containerRef.current && action.id) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const parentRect = containerRef.current.parentElement!.getBoundingClientRect();
+      
+      // Calculate position as percentage of parent container
+      const x = ((rect.left + rect.width / 2) - parentRect.left) / parentRect.width * 100;
+      const y = ((rect.top + rect.height / 2) - parentRect.top) / parentRect.height * 100;
+      
+      // Update position if it changed
+      if (Math.abs(x - action.position_x) > 0.5 || Math.abs(y - action.position_y) > 0.5) {
+        onUpdatePosition(action.id, Math.max(0, Math.min(100, x)), Math.max(0, Math.min(100, y)));
       }
-    };
-    
-    // Function to handle mouse up - end of drag
-    const handleMouseUp = (upEvent: MouseEvent) => {
-      setIsDragging(false);
-      
-      // Calculate final position within parent as percentage
-      const x = ((upEvent.clientX - parentRect.left) / parentRect.width) * 100;
-      const y = ((upEvent.clientY - parentRect.top) / parentRect.height) * 100;
-      
-      // Keep within bounds (0-100%)
-      const boundedX = Math.max(0, Math.min(100, x));
-      const boundedY = Math.max(0, Math.min(100, y));
-      
-      // Update position in state and database
-      onUpdatePosition(action.id, boundedX, boundedY);
-      
-      // Remove event listeners
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    // Add event listeners for tracking the drag
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
+    }
+  }, [transform]);
   
   // Generate line to center based on star position
   const calculateLine = () => {
@@ -113,19 +87,20 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
   
   return (
     <div 
-      ref={containerRef}
+      ref={(node) => {
+        containerRef.current = node;
+        setNodeRef(node);
+      }}
       style={{
+        ...style,
         position: 'absolute',
         transform: 'translate(-50%, -50%)',
       }}
-      className={cn(
-        "z-10", 
-        isDragging ? "cursor-grabbing" : "cursor-grab",
-        isDragging ? "z-20" : "z-10"
-      )}
+      {...attributes}
+      {...listeners}
+      className="z-10 cursor-move"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onContextMenu={handleContextMenu}
     >
       {/* Connection line to center */}
       <svg
@@ -157,8 +132,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
         className={cn(
           "p-3 w-[140px] backdrop-blur-sm transition-all duration-300 shadow-lg",
           `bg-gradient-to-br ${colorGradient} bg-opacity-80 border-transparent`,
-          isHovered ? "scale-110 shadow-xl z-20" : "scale-100",
-          isDragging ? "scale-110 shadow-xl opacity-80" : ""
+          isHovered ? "scale-110 shadow-xl z-20" : "scale-100"
         )}
       >
         {/* Glow effect */}
