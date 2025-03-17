@@ -25,7 +25,7 @@ export function useGoalFocus() {
     }
   }, [showFocusTimer]);
   
-  // Handle goal focus - only set focus state, don't start timer
+  // Handle goal focus - select a goal but don't start the timer
   const handleGoalFocus = (goal: Goal, rowIndex: number, goalIndex: number) => {
     // If clicking on the already active goal, do nothing (maintain active state)
     if (activeGoalIndices?.rowIndex === rowIndex && activeGoalIndices?.goalIndex === goalIndex) {
@@ -38,8 +38,6 @@ export function useGoalFocus() {
     // Set the active goal - but don't show the timer
     setActiveGoal(goal);
     setActiveGoalIndices({ rowIndex, goalIndex });
-    
-    // Note: We removed setShowFocusTimer(true) to stop auto-starting the timer
     
     // Restore scroll position after state updates
     setTimeout(() => {
@@ -54,6 +52,12 @@ export function useGoalFocus() {
   const handleStartFocus = () => {
     if (activeGoal) {
       setShowFocusTimer(true);
+    } else {
+      toast({
+        title: "No goal selected",
+        description: "Please select a goal before starting focus timer",
+        variant: "default"
+      });
     }
   };
   
@@ -62,6 +66,7 @@ export function useGoalFocus() {
     // Clear both the active goal and its indices
     setActiveGoal(null);
     setActiveGoalIndices(null);
+    setShowFocusTimer(false);
   };
   
   return {
@@ -70,8 +75,8 @@ export function useGoalFocus() {
     showFocusTimer,
     setShowFocusTimer,
     handleGoalFocus,
-    handleStartFocus, // New explicit method to start timer
+    handleStartFocus,
     handleStopFocus,
-    setActiveGoalIndices  // Export this function so it can be used in IndexPageContext
+    setActiveGoalIndices
   };
 }
