@@ -1,16 +1,31 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Goal } from "@/components/GoalRow";
 import type { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
 
+// Define a more explicit interface for the data from Supabase
 interface ParentGoalRecord {
   id: string;
   title: string;
   description: string;
   user_id: string;
+  position?: number;
   order?: number;
+  created_at?: string;
+  updated_at?: string;
+  sub_goals?: {
+    id: string;
+    title: string;
+    description: string;
+    progress: number;
+    parent_goal_id: string;
+    user_id: string;
+    created_at?: string;
+    updated_at?: string;
+  }[];
   [key: string]: any;
 }
 
@@ -18,7 +33,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const fetchParentGoals = async () => {
     try {
@@ -41,12 +56,15 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
       if (error) throw error;
 
-      const transformedData = (data || []).map((goal: ParentGoalRecord) => {
+      // Use a type assertion to help TypeScript understand the structure
+      const typedData = data as ParentGoalRecord[];
+      
+      const transformedData = (typedData || []).map((goal: ParentGoalRecord) => {
         return {
           ...goal,
           goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
             ? goalToEdit.goals 
-            : (goal.sub_goals || []).map((subGoal: any) => ({
+            : (goal.sub_goals || []).map((subGoal) => ({
                 id: subGoal.id,
                 title: subGoal.title,
                 description: subGoal.description,

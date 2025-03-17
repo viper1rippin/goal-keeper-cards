@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -18,7 +17,7 @@ const subGoalSchema = z.object({
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
 
-// Define a simple type for the sub-goal data to prevent infinite type depth
+// Define an explicit type for the sub-goal data to prevent infinite type depth
 interface SubGoalData {
   parent_goal_id: string;
   title: string;
@@ -98,7 +97,7 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data with explicit type
+    // Prepare sub-goal data with an explicit type
     const subGoalData: SubGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
