@@ -18,10 +18,17 @@ const subGoalSchema = z.object({
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
 
+// Define a simpler type for SubGoal data to avoid deep nesting
+export interface SubGoalData {
+  id?: string;
+  title: string;
+  description: string;
+}
+
 interface SubGoalDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goal: Omit<Goal, 'progress'>) => void;
+  onSave: (goal: SubGoalData) => void;
   subGoalToEdit: Goal | null;
   parentGoalTitle: string;
   parentGoalId: string;
@@ -118,8 +125,9 @@ const SubGoalDialog = ({
       if (error) throw error;
     }
     
-    // Call the onSave callback to update UI
+    // Call the onSave callback to update UI with a simpler data structure
     onSave({
+      id: subGoalToEdit?.id,
       title: values.title,
       description: values.description,
     });

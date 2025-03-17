@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
-import SubGoalDialog from './SubGoalDialog';
+import SubGoalDialog, { SubGoalData } from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useToast } from "@/hooks/use-toast";
@@ -68,7 +68,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
   
-  const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
+  const handleSaveSubGoal = (subGoal: SubGoalData) => {
     setIsSubGoalDialogOpen(false);
     onUpdateSubGoals(subGoals);
   };
