@@ -15,7 +15,11 @@ const DialogManager: React.FC = () => {
     <ParentGoalDialog
       isOpen={isDialogOpen}
       onClose={closeDialog}
-      goalToEdit={goalToEdit}
+      goalToEdit={goalToEdit ? {
+        id: goalToEdit.id || "",
+        title: goalToEdit.title,
+        description: goalToEdit.description
+      } : null}
       onGoalSaved={fetchParentGoals}
     />
   );

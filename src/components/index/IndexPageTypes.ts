@@ -25,5 +25,5 @@ export interface IndexPageContextType {
   fetchParentGoals: () => Promise<void>;
 }
 
-// Re-export ParentGoal for convenience
+// Re-export types for convenience
 export { type ParentGoal, type SubGoal };

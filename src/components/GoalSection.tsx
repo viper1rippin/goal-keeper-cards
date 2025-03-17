@@ -1,11 +1,11 @@
 
 import React from "react";
-import { Goal } from "./GoalRow";
+import { SubGoal } from "@/types/goal-types";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface GoalSectionProps {
-  activeGoal: Goal | null | undefined;
+  activeGoal: SubGoal | null | undefined;
 }
 
 const GoalSection: React.FC<GoalSectionProps> = ({ activeGoal }) => {

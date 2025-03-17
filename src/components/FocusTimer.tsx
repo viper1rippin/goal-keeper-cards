@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Timer, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Goal } from "./GoalRow";
+import { SubGoal } from "@/types/goal-types";
 import { useTimer } from "@/hooks/useTimer";
 import TimerDisplay from "./TimerDisplay";
 import TimerControls from "./TimerControls";
@@ -13,7 +13,7 @@ interface FocusTimerProps {
   userLevel: number;
   onLevelUp: (newLevel: number) => void;
   onClose: () => void;
-  activeGoal?: Goal | null;
+  activeGoal?: SubGoal | null;
 }
 
 const FocusTimer: React.FC<FocusTimerProps> = ({ 

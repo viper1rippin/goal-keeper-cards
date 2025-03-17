@@ -6,11 +6,11 @@ import UserBadge from "./UserBadge";
 import { Button } from "./ui/button";
 import { Timer } from "lucide-react";
 import FocusTimer from "./FocusTimer";
-import { Goal } from "./GoalRow";
+import { SubGoal } from "@/types/goal-types";
 import { useAuth } from "@/context/AuthContext";
 
 interface HeaderProps {
-  activeGoal?: Goal | null;
+  activeGoal?: SubGoal | null;
   showFocusTimer: boolean;
   setShowFocusTimer: (show: boolean) => void;
   onStopFocus?: () => void;

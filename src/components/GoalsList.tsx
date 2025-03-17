@@ -1,17 +1,17 @@
 
 import React from "react";
-import GoalRow, { Goal } from "@/components/GoalRow";
+import GoalRow from "@/components/GoalRow";
+import { SubGoal, ParentGoal } from "@/types/goal-types";
 import AnimatedContainer from "./AnimatedContainer";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ParentGoal } from "./index/IndexPageTypes";
 import GoalRowActions from "./parentgoal/GoalRowActions";
 
 interface GoalsListProps {
   parentGoals: ParentGoal[];
   activeGoalIndices: {rowIndex: number, goalIndex: number} | null;
-  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
-  onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
+  onGoalFocus: (goal: SubGoal, rowIndex: number, goalIndex: number) => void;
+  onUpdateSubGoals: (parentIndex: number, updatedGoals: SubGoal[]) => void;
   onEditGoal: (goal: ParentGoal) => void;
   onDragEnd: (event: DragEndEvent) => void;
   onDeleteParentGoal: (id: string) => Promise<void>;

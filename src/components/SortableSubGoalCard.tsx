@@ -2,10 +2,10 @@
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import GoalCard from "./GoalCard";
-import { Goal } from "./GoalRow";
+import { SubGoal } from "@/types/goal-types";
 
 interface SortableSubGoalCardProps {
-  goal: Goal;
+  goal: SubGoal;
   index: number;
   isActiveGoal: boolean;
   onGoalFocus: () => void;

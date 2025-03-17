@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Goal } from '../GoalRow';
+import { SubGoal } from '@/types/goal-types';
 import SortableSubGoalCard from '../SortableSubGoalCard';
 import SubGoalAddCard from '../SubGoalAddCard';
 import { 
@@ -20,16 +20,16 @@ import {
 import GoalCard from '../GoalCard';
 
 interface SubGoalDndContextProps {
-  subGoals: Goal[];
+  subGoals: SubGoal[];
   parentTitle: string;
   rowIndex: number;
   activeGoal?: {rowIndex: number, goalIndex: number} | null;
-  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
+  onGoalFocus: (goal: SubGoal, rowIndex: number, goalIndex: number) => void;
   onDragStart: (event: DragStartEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
-  activeSubGoal: Goal | null;
+  activeSubGoal: SubGoal | null;
   activeSubGoalId: string | null;
-  onEdit: (goal: Goal, index: number) => void;
+  onEdit: (goal: SubGoal, index: number) => void;
   onDelete: (subGoalId: string) => void;
   onAddSubGoal: () => void;
 }
