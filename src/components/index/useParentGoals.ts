@@ -3,19 +3,30 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
+import { useAuth } from "@/context/AuthContext";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth(); // Get the current authenticated user
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
     setIsLoading(true);
     try {
+      // Only fetch goals if user is authenticated
+      if (!user) {
+        setParentGoals([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Filter goals by the current user's ID
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
+        .eq('user_id', user.id) // Filter by user_id
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -69,11 +80,22 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   // Delete a parent goal
   const deleteParentGoal = async (id: string) => {
     try {
+      // Only proceed if user is authenticated
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to delete goals.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', id);
+        .eq('parent_goal_id', id)
+        .eq('user_id', user.id); // Only delete user's own sub-goals
       
       if (subGoalError) throw subGoalError;
       
@@ -81,7 +103,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Only delete user's own goal
       
       if (error) throw error;
       
@@ -105,10 +128,21 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   // Delete a sub-goal
   const deleteSubGoal = async (id: string) => {
     try {
+      // Only proceed if user is authenticated
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to delete sub-goals.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Only delete user's own sub-goal
       
       if (error) throw error;
       

@@ -8,6 +8,7 @@ export interface ParentGoal {
   description: string;
   goals: Goal[];
   position?: number;
+  user_id?: string; // Add user_id field
 }
 
 export interface IndexPageContextType {

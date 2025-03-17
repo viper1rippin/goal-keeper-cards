@@ -22,6 +22,10 @@ const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
   title,
   onDelete
 }) => {
+  const handleDelete = async () => {
+    await onDelete();
+  };
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -47,7 +51,7 @@ const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
           </AlertDialogCancel>
           <AlertDialogAction 
             className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={onDelete}
+            onClick={handleDelete}
           >
             Delete
           </AlertDialogAction>

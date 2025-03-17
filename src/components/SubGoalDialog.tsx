@@ -8,6 +8,7 @@ import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
+import { useAuth } from "@/context/AuthContext";
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -38,6 +39,7 @@ const SubGoalDialog = ({
   onDelete
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
+  const { user } = useAuth(); // Get the current authenticated user
   
   // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
@@ -61,6 +63,16 @@ const SubGoalDialog = ({
   // Handle form submission
   const onSubmit = async (values: SubGoalFormValues) => {
     try {
+      // Check if user is authenticated
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to save sub-goals.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       await saveSubGoal(values);
       form.reset();
     } catch (error) {
@@ -74,12 +86,16 @@ const SubGoalDialog = ({
   };
 
   const saveSubGoal = async (values: SubGoalFormValues) => {
+    // Check if user is authenticated
+    if (!user) return;
+
     // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
-      progress: subGoalToEdit?.progress || 0
+      progress: subGoalToEdit?.progress || 0,
+      user_id: user.id // Associate sub-goal with user
     };
     
     // If editing, update the existing sub-goal
@@ -87,7 +103,8 @@ const SubGoalDialog = ({
       const { error } = await supabase
         .from('sub_goals')
         .update(subGoalData)
-        .eq('id', subGoalToEdit.id);
+        .eq('id', subGoalToEdit.id)
+        .eq('user_id', user.id); // Only update if user owns the sub-goal
       
       if (error) throw error;
     } else {
