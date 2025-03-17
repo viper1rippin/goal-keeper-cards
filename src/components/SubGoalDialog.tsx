@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -15,8 +16,11 @@ const subGoalSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-// Define the form values type
-type FormValues = z.infer<typeof subGoalSchema>;
+// Define the form values type explicitly - avoid using z.infer for nested components
+interface FormValues {
+  title: string;
+  description: string;
+}
 
 // Interface for the data passed to onSave
 export interface SubGoalData {
@@ -47,7 +51,7 @@ const SubGoalDialog = ({
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Initialize form with default values or editing values
+  // Initialize form with proper explicit typing
   const form = useForm<FormValues>({
     resolver: zodResolver(subGoalSchema),
     defaultValues: {
@@ -67,7 +71,7 @@ const SubGoalDialog = ({
   }, [isOpen, subGoalToEdit, form]);
 
   // Handle form submission
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: FormValues): Promise<void> => {
     if (!user) return;
     
     try {
@@ -83,7 +87,7 @@ const SubGoalDialog = ({
     }
   };
 
-  const saveSubGoal = async (values: FormValues) => {
+  const saveSubGoal = async (values: FormValues): Promise<void> => {
     if (!user) return;
     
     // Prepare sub-goal data
@@ -133,7 +137,7 @@ const SubGoalDialog = ({
   };
 
   // Handle delete sub-goal
-  const handleDeleteSubGoal = async () => {
+  const handleDeleteSubGoal = async (): Promise<void> => {
     if (subGoalToEdit?.id && onDelete) {
       try {
         await onDelete(subGoalToEdit.id);
@@ -149,8 +153,8 @@ const SubGoalDialog = ({
     }
   };
 
-  // Use a direct onOpenChange handler that simply calls onClose when dialog is closing
-  const handleOpenChange = (open: boolean) => {
+  // Create a simple handler function for dialog open state changes
+  const handleOpenChange = (open: boolean): void => {
     if (!open) onClose();
   };
 

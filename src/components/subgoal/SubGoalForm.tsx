@@ -8,7 +8,7 @@ import { UseFormReturn } from "react-hook-form";
 import { SubGoal } from '@/types/goal-types';
 import { Trash2 } from "lucide-react";
 
-// Match the form values with SubGoalDialog schema
+// Must match the form values in SubGoalDialog
 interface FormValues {
   title: string;
   description: string;
