@@ -2,7 +2,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Infinity, Star, Brain } from "lucide-react";
+import { Infinity, Star, Brain, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "../AnimatedContainer";
@@ -36,6 +36,11 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ open, onOpenChange }) => 
       title: "AI Companion",
       description: "Get AI-powered suggestions and advice for your goals and projects",
       icon: <Brain className="w-6 h-6 text-indigo-500" />
+    },
+    {
+      title: "Team Collaboration",
+      description: "Work together with your team members on shared goals and projects",
+      icon: <Users className="w-6 h-6 text-blue-500" />
     }
   ];
 
