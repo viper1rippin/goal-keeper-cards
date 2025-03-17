@@ -21,6 +21,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actionToEdit, setActionToEdit] = useState<Action | null>(null);
   const [tableExists, setTableExists] = useState(true);
+  const [isMigrating, setIsMigrating] = useState(false);
   
   // Set up DnD sensors
   const sensors = useSensors(
@@ -42,28 +43,32 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
         const exists = await actionsService.checkTableExists();
         setTableExists(exists);
         
-        if (!exists) {
-          console.log("Table 'actions' doesn't exist. Using local storage only.");
-          setActions([]);
-          setIsLoading(false);
-          return;
-        }
+        // Get actions (either from DB or localStorage depending on table existence)
+        const actionsData = await actionsService.getActionsForProject(projectId, user.id);
+        setActions(actionsData);
         
-        // If table exists, fetch actions
-        try {
-          const actionsData = await actionsService.getActionsForProject(projectId, user.id);
-          setActions(actionsData);
-          setTableExists(true);
-        } catch (error) {
-          console.error("Error fetching actions:", error);
-          setTableExists(false);
-          setActions([]);
-          
-          toast({
-            title: "Error",
-            description: "Failed to load actions. Using local state instead.",
-            variant: "destructive",
-          });
+        // If table exists and we have local actions, offer to migrate
+        if (exists) {
+          const localActions = actionsService._getActionsFromLocalStorage(projectId, user.id);
+          if (localActions.length > 0) {
+            toast({
+              title: "Local actions found",
+              description: "You have actions stored locally. Migrating to database...",
+            });
+            
+            setIsMigrating(true);
+            await actionsService.migrateLocalStorageToDatabase(user.id);
+            setIsMigrating(false);
+            
+            // Refresh the actions list after migration
+            const updatedActions = await actionsService.getActionsForProject(projectId, user.id);
+            setActions(updatedActions);
+            
+            toast({
+              title: "Migration complete",
+              description: "Your actions have been saved to the database.",
+            });
+          }
         }
       } catch (error) {
         console.error("Overall error fetching actions:", error);
@@ -73,14 +78,16 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
           variant: "destructive",
         });
         setTableExists(false);
-        setActions([]);
+        // Still attempt to get actions from localStorage
+        const localActions = actionsService._getActionsFromLocalStorage(projectId, user.id);
+        setActions(localActions);
       } finally {
         setIsLoading(false);
       }
     };
     
     checkTableAndFetchActions();
-  }, [projectId, user]);
+  }, [projectId, user, toast]);
 
   const handleAddAction = () => {
     setActionToEdit(null);
@@ -255,6 +262,14 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
           <p className="text-amber-300 text-sm">
             The actions table doesn't exist yet in your database. Your actions will be stored locally for now.
             Please run the migration to create the table for persistent storage.
+          </p>
+        </div>
+      )}
+      
+      {isMigrating && (
+        <div className="bg-blue-900/30 border border-blue-700/50 rounded-md p-4 mb-6">
+          <p className="text-blue-300 text-sm">
+            Migrating your locally stored actions to the database...
           </p>
         </div>
       )}

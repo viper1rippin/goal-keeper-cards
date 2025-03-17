@@ -304,5 +304,76 @@ export const actionsService = {
     } catch (error) {
       console.error("Error deleting from localStorage:", error);
     }
+  },
+  
+  // Migrate local storage data to database
+  async migrateLocalStorageToDatabase(userId: string): Promise<void> {
+    try {
+      const tableExists = await this.checkTableExists();
+      if (!tableExists) {
+        console.info("Table 'actions' doesn't exist. Cannot migrate data.");
+        return;
+      }
+      
+      const storedActions = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!storedActions) return;
+      
+      const allActions = JSON.parse(storedActions) as Action[];
+      const userActions = allActions.filter(a => a.user_id === userId);
+      
+      if (userActions.length === 0) return;
+      
+      // Insert all user actions from localStorage to database
+      for (const action of userActions) {
+        try {
+          // Skip actions that already have IDs starting with 'local-'
+          if (action.id && action.id.startsWith('local-')) {
+            // Create a new action without the 'local-' ID
+            await supabase
+              .from('actions')
+              .insert({
+                content: action.content,
+                position_x: action.position_x,
+                position_y: action.position_y,
+                project_id: action.project_id,
+                user_id: userId
+              });
+          } else {
+            // Check if action already exists in database
+            const { data: existingAction } = await supabase
+              .from('actions')
+              .select('id')
+              .eq('id', action.id)
+              .eq('user_id', userId)
+              .single();
+            
+            if (!existingAction) {
+              // Insert action if it doesn't exist
+              await supabase
+                .from('actions')
+                .insert({
+                  ...(action.id ? { id: action.id } : {}),
+                  content: action.content,
+                  position_x: action.position_x,
+                  position_y: action.position_y,
+                  project_id: action.project_id,
+                  user_id: userId
+                });
+            }
+          }
+        } catch (error) {
+          console.error("Error migrating action:", error);
+          // Continue with next action
+        }
+      }
+      
+      // Remove migrated actions from localStorage
+      const remainingActions = allActions.filter(a => a.user_id !== userId);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remainingActions));
+      
+      console.log(`Successfully migrated ${userActions.length} actions to database.`);
+    } catch (error) {
+      console.error("Error migrating actions to database:", error);
+    }
   }
 };
