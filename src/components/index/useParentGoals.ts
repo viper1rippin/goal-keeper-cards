@@ -22,6 +22,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
+      console.log("Fetching parent goals for user:", user.id);
+      
       // Filter goals by the current user's ID
       const { data, error } = await supabase
         .from('parent_goals')
@@ -31,6 +33,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
+      
+      console.log("Parent goals fetched:", data?.length || 0);
       
       // Transform data to include empty goals array if no data
       const transformedData = data ? data.map(goal => ({
