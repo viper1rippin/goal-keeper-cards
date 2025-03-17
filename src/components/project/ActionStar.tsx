@@ -48,6 +48,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
   
   const style = transform ? {
     transform: CSS.Translate.toString(transform),
+    zIndex: 20,
   } : {};
   
   // Position the star based on its coordinates
@@ -73,7 +74,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
         onUpdatePosition(action.id, Math.max(0, Math.min(100, x)), Math.max(0, Math.min(100, y)));
       }
     }
-  }, [transform]);
+  }, [transform, action.id, action.position_x, action.position_y, onUpdatePosition]);
   
   // Generate line to center based on star position
   const calculateLine = () => {
@@ -94,11 +95,11 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       style={{
         ...style,
         position: 'absolute',
-        transform: 'translate(-50%, -50%)',
+        transform: transform ? style.transform : 'translate(-50%, -50%)',
       }}
       {...attributes}
       {...listeners}
-      className="z-10 cursor-move"
+      className="z-10 cursor-move transition-transform duration-200"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
