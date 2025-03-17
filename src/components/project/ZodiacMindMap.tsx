@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -5,16 +6,7 @@ import ActionStar from './ActionStar';
 import AddActionButton from './AddActionButton';
 import ActionEditDialog from './ActionEditDialog';
 import { Card } from '@/components/ui/card';
-import { 
-  DndContext, 
-  DragEndEvent, 
-  DragStartEvent,
-  DragOverlay,
-  PointerSensor, 
-  useSensor, 
-  useSensors,
-  closestCenter 
-} from '@dnd-kit/core';
+import { DndContext, DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Action, actionsService } from '@/utils/actionsUtils';
 
 interface ZodiacMindMapProps {
@@ -30,12 +22,12 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
   const [actionToEdit, setActionToEdit] = useState<Action | null>(null);
   const [tableExists, setTableExists] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
   
+  // Set up DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 8,
       },
     })
   );
@@ -47,12 +39,15 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
       try {
         setIsLoading(true);
         
+        // First check if the table exists
         const exists = await actionsService.checkTableExists();
         setTableExists(exists);
         
+        // Get actions (either from DB or localStorage depending on table existence)
         const actionsData = await actionsService.getActionsForProject(projectId, user.id);
         setActions(actionsData);
         
+        // If table exists and we have local actions, offer to migrate
         if (exists) {
           const localActions = actionsService._getActionsFromLocalStorage(projectId, user.id);
           if (localActions.length > 0) {
@@ -65,6 +60,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
             await actionsService.migrateLocalStorageToDatabase(user.id);
             setIsMigrating(false);
             
+            // Refresh the actions list after migration
             const updatedActions = await actionsService.getActionsForProject(projectId, user.id);
             setActions(updatedActions);
             
@@ -82,6 +78,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
           variant: "destructive",
         });
         setTableExists(false);
+        // Still attempt to get actions from localStorage
         const localActions = actionsService._getActionsFromLocalStorage(projectId, user.id);
         setActions(localActions);
       } finally {
@@ -106,12 +103,15 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
     if (!user) return;
     
     try {
+      // When table doesn't exist, just use local state
       if (!tableExists) {
         if (actionToEdit) {
+          // Update existing action in local state
           setActions(prev => 
             prev.map(a => a.id === actionToEdit.id ? { ...actionData, id: actionToEdit.id } : a)
           );
         } else {
+          // Add new action to local state
           const newAction = {
             ...actionData,
             id: `local-${Date.now()}`,
@@ -129,7 +129,9 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
         return;
       }
       
+      // When table exists, use our service functions
       if (actionToEdit) {
+        // Update existing action
         await actionsService.updateAction({
           ...actionData,
           id: actionToEdit.id,
@@ -140,6 +142,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
           prev.map(a => a.id === actionToEdit.id ? { ...actionData, id: actionToEdit.id } : a)
         );
       } else {
+        // Create new action
         const newAction = {
           ...actionData,
           user_id: user.id,
@@ -148,6 +151,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
         
         const createdAction = await actionsService.createAction(newAction);
         
+        // Add the new action to state
         setActions(prev => [...prev, createdAction]);
       }
       
@@ -158,6 +162,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
     } catch (error) {
       console.error("Error saving action:", error);
       
+      // Fallback to local storage on error
       if (actionToEdit) {
         setActions(prev => 
           prev.map(a => a.id === actionToEdit.id ? { ...actionData, id: actionToEdit.id } : a)
@@ -187,6 +192,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
     if (!user) return;
     
     try {
+      // For local-only mode
       if (!tableExists || id.startsWith('local-')) {
         setActions(prev => prev.filter(a => a.id !== id));
         toast({
@@ -196,6 +202,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
         return;
       }
       
+      // Delete from database using our service function
       await actionsService.deleteAction(id, user.id);
       
       setActions(prev => prev.filter(a => a.id !== id));
@@ -206,6 +213,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
     } catch (error) {
       console.error("Error deleting action:", error);
       
+      // Delete locally anyway to maintain UI consistency
       setActions(prev => prev.filter(a => a.id !== id));
       
       toast({
@@ -219,56 +227,27 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
   const handleUpdatePosition = async (id: string, x: number, y: number) => {
     if (!user) return;
     
+    // Update local state first for immediate feedback
     setActions(prev => 
       prev.map(a => a.id === id ? { ...a, position_x: x, position_y: y } : a)
     );
     
+    // Skip server update for local-only mode
     if (!tableExists || id.startsWith('local-')) {
       return;
     }
     
     try {
+      // Update position using our service function
       await actionsService.updateActionPosition(id, user.id, x, y);
     } catch (error) {
       console.error("Error updating action position:", error);
+      // Silently fail position updates to avoid disrupting UX
     }
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
-    
-    const { active, over } = event;
-    
-    if (!active) return;
-    
-    const actionId = active.id as string;
-    const action = actions.find(a => a.id === actionId);
-    
-    if (!action) return;
-    
-    if (event.activatorEvent instanceof PointerEvent) {
-      const containerElement = document.querySelector('.zodiac-mindmap-container');
-      if (!containerElement) return;
-      
-      const containerRect = containerElement.getBoundingClientRect();
-      const pointerX = event.activatorEvent.clientX;
-      const pointerY = event.activatorEvent.clientY;
-      
-      const x = ((pointerX - containerRect.left) / containerRect.width) * 100;
-      const y = ((pointerY - containerRect.top) / containerRect.height) * 100;
-      
-      setActions(prev => 
-        prev.map(a => a.id === actionId ? { ...a, position_x: x, position_y: y } : a)
-      );
-      
-      if (action.id) {
-        handleUpdatePosition(action.id, x, y);
-      }
-    }
+    // Handle drag end if needed
   };
 
   return (
@@ -296,19 +275,15 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
       )}
       
       <Card className="bg-slate-900/50 border-slate-800 overflow-hidden relative">
-        <DndContext 
-          sensors={sensors} 
-          collisionDetection={closestCenter} 
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div 
-            className="relative min-h-[500px] w-full p-8 rounded-lg zodiac-mindmap-container"
+            className="relative min-h-[500px] w-full p-8 rounded-lg"
             style={{
               background: 'radial-gradient(circle at center, #1a2036 0%, #131625 100%)',
               boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.4)'
             }}
           >
+            {/* Starry background */}
             <div className="absolute inset-0 overflow-hidden opacity-30">
               {[...Array(100)].map((_, i) => (
                 <div
@@ -326,10 +301,12 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
               ))}
             </div>
             
+            {/* Center point */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/80 shadow-lg shadow-emerald-500/40 z-10">
               <div className="absolute inset-0 rounded-full animate-pulse bg-emerald-400/40"></div>
             </div>
             
+            {/* Action stars */}
             {actions.map((action) => (
               <ActionStar
                 key={action.id}

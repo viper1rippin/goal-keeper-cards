@@ -37,33 +37,26 @@ const getRandomColor = (seed: string) => {
 
 const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpdatePosition }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const colorGradient = getRandomColor(action.content);
   
   // Set up drag functionality with useDraggable
-  const { attributes, listeners, setNodeRef, transform, isDragging: dndIsDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: action.id || 'temp-id',
     data: { action },
   });
   
-  // Update dragging state when dnd state changes
-  useEffect(() => {
-    setIsDragging(dndIsDragging);
-  }, [dndIsDragging]);
-  
   const style = transform ? {
     transform: CSS.Translate.toString(transform),
-    zIndex: 50, // Raise z-index while dragging
   } : {};
   
   // Position the star based on its coordinates
   useEffect(() => {
-    if (containerRef.current && !isDragging) {
+    if (containerRef.current) {
       containerRef.current.style.left = `${action.position_x}%`;
       containerRef.current.style.top = `${action.position_y}%`;
     }
-  }, [action.position_x, action.position_y, isDragging]);
+  }, [action.position_x, action.position_y]);
   
   // Handle end of dragging
   useEffect(() => {
@@ -75,16 +68,12 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       const x = ((rect.left + rect.width / 2) - parentRect.left) / parentRect.width * 100;
       const y = ((rect.top + rect.height / 2) - parentRect.top) / parentRect.height * 100;
       
-      // Ensure values are within bounds (0-100%)
-      const boundedX = Math.max(0, Math.min(100, x));
-      const boundedY = Math.max(0, Math.min(100, y));
-      
       // Update position if it changed
-      if (Math.abs(boundedX - action.position_x) > 0.1 || Math.abs(boundedY - action.position_y) > 0.1) {
-        onUpdatePosition(action.id, boundedX, boundedY);
+      if (Math.abs(x - action.position_x) > 0.5 || Math.abs(y - action.position_y) > 0.5) {
+        onUpdatePosition(action.id, Math.max(0, Math.min(100, x)), Math.max(0, Math.min(100, y)));
       }
     }
-  }, [transform, action.id, action.position_x, action.position_y, onUpdatePosition]);
+  }, [transform]);
   
   // Generate line to center based on star position
   const calculateLine = () => {
@@ -105,15 +94,11 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       style={{
         ...style,
         position: 'absolute',
-        transform: isDragging ? style.transform : 'translate(-50%, -50%)',
-        transition: isDragging ? 'none' : 'transform 0.2s ease-out, left 0.2s ease-out, top 0.2s ease-out',
+        transform: 'translate(-50%, -50%)',
       }}
       {...attributes}
       {...listeners}
-      className={cn(
-        "z-10 cursor-move",
-        isDragging ? "z-50" : ""
-      )}
+      className="z-10 cursor-move"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -121,10 +106,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       <svg
         width="100%"
         height="100%"
-        className={cn(
-          "absolute inset-0 pointer-events-none",
-          isDragging ? "opacity-70" : "opacity-30"
-        )}
+        className="absolute inset-0 pointer-events-none opacity-30"
         style={{
           width: '200vw',
           height: '200vh',
@@ -137,11 +119,11 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       >
         <path
           d={calculateLine()}
-          stroke={isDragging ? "rgba(255, 255, 255, 0.6)" : "white"}
-          strokeWidth={isDragging ? "0.004" : "0.002"}
+          stroke="white"
+          strokeWidth="0.002"
           fill="none"
           strokeDasharray="0.01 0.01"
-          className={isDragging ? "opacity-70" : "opacity-30"}
+          className="opacity-30"
         />
       </svg>
       
@@ -150,18 +132,11 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
         className={cn(
           "p-3 w-[140px] backdrop-blur-sm transition-all duration-300 shadow-lg",
           `bg-gradient-to-br ${colorGradient} bg-opacity-80 border-transparent`,
-          isDragging 
-            ? "scale-110 shadow-2xl z-50" 
-            : isHovered 
-              ? "scale-110 shadow-xl z-20" 
-              : "scale-100"
+          isHovered ? "scale-110 shadow-xl z-20" : "scale-100"
         )}
       >
         {/* Glow effect */}
-        <div className={cn(
-          "absolute inset-0 rounded-md filter blur-md opacity-70 -z-10 bg-inherit",
-          isDragging && "opacity-90 blur-lg"
-        )}></div>
+        <div className="absolute inset-0 rounded-md filter blur-md opacity-70 -z-10 bg-inherit"></div>
         
         {/* Content */}
         <div className="relative">
@@ -170,7 +145,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
           {/* Action buttons */}
           <div className={cn(
             "absolute -top-2 -right-2 flex gap-1 bg-slate-900/80 p-1 rounded-md opacity-0 transition-opacity",
-            (isHovered && !isDragging) && "opacity-100"
+            isHovered && "opacity-100"
           )}>
             <button 
               onClick={(e) => {
