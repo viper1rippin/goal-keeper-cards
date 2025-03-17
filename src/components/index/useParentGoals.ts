@@ -43,7 +43,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           : []
       })) || [];
       
-      setParentGoals(transformedData);
+      setParentGoals(transformedData as ParentGoal[]);
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({

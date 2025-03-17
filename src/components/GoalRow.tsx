@@ -97,7 +97,8 @@ const GoalRow = ({
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
-          user_id: goal.user_id
+          // Handle user_id properly with type assertion if it exists on the database record
+          ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
         }));
         
         setSubGoals(formattedData);
