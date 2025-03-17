@@ -35,6 +35,36 @@
 
     --radius: 8px;
   }
+
+  .light-mode {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 151 93% 37%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 151 93% 37%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 151 93% 37%;
+  }
 }
 
 @layer base {
@@ -43,7 +73,15 @@
   }
 
   body {
-    @apply bg-apple-dark text-slate-100 antialiased;
+    @apply text-slate-100 antialiased;
+  }
+  
+  .dark-mode body {
+    @apply bg-apple-dark;
+  }
+  
+  .light-mode body {
+    @apply bg-slate-50 text-slate-900;
   }
 
   #root {
@@ -55,12 +93,22 @@
 }
 
 @layer components {
+  /* Dark mode components */
   .glass-card {
     @apply bg-gradient-to-br from-apple-light to-apple-dark backdrop-blur-sm border border-slate-800/80 shadow-lg;
   }
   
   .glass-card-emerald {
     @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
+  }
+  
+  /* Light mode components */
+  .glass-card-light {
+    @apply bg-gradient-to-br from-white to-slate-100/90 backdrop-blur-sm border border-slate-200/80 shadow-md;
+  }
+  
+  .glass-card-emerald-light {
+    @apply bg-gradient-to-br from-emerald-100/30 to-white border border-emerald-200 shadow-sm;
   }
 
   .text-gradient {
@@ -71,13 +119,56 @@
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
   }
   
+  /* Gold dust sparkles - visible in light mode */
+  .gold-dust {
+    @apply pointer-events-none fixed inset-0 z-0 opacity-0;
+  }
+  
+  .light-mode .gold-dust {
+    background-image: radial-gradient(circle, rgba(250, 215, 100, 0.2) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: sparkle 4s ease-in-out infinite;
+    @apply opacity-30;
+  }
+  
+  /* Golden waves - visible in light mode */
+  .golden-waves {
+    @apply hidden;
+  }
+  
+  .light-mode .golden-waves {
+    @apply block fixed -z-10 inset-0 opacity-10;
+    background: linear-gradient(
+      45deg,
+      transparent 0%,
+      rgba(250, 215, 100, 0.05) 25%,
+      transparent 50%,
+      rgba(250, 215, 100, 0.05) 75%,
+      transparent 100%
+    );
+    background-size: 200% 200%;
+    animation: shimmerWaves 15s linear infinite;
+  }
+  
   /* Sidebar specific styles */
   .sidebar-menu-item {
-    @apply flex items-center w-full p-2 rounded-lg text-slate-300 hover:text-white hover:bg-muted transition-colors;
+    @apply flex items-center w-full p-2 rounded-lg transition-colors;
+  }
+  
+  .dark-mode .sidebar-menu-item {
+    @apply text-slate-300 hover:text-white hover:bg-muted;
+  }
+  
+  .light-mode .sidebar-menu-item {
+    @apply text-slate-600 hover:text-slate-900 hover:bg-slate-200/50;
   }
   
   .sidebar-menu-item.active {
     @apply bg-muted text-white;
+  }
+  
+  .light-mode .sidebar-menu-item.active {
+    @apply bg-slate-200 text-slate-900;
   }
 }
 
@@ -116,6 +207,17 @@
   100% { opacity: 0.5; filter: blur(10px); }
 }
 
+/* Gold dust animations */
+@keyframes sparkle {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes shimmerWaves {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
 .animate-fade-in {
   animation: fade-in 0.5s ease-out forwards;
 }
@@ -138,4 +240,17 @@
 
 .animate-green-lantern {
   animation: green-lantern-pulse 4s infinite;
+}
+
+/* Hidden sparkles that reveal on hover/focus - for light mode */
+.hidden-sparkle {
+  @apply absolute inset-0 pointer-events-none opacity-0 z-0;
+  background-image: radial-gradient(circle, rgba(250, 215, 100, 0.4) 1px, transparent 1px);
+  background-size: 15px 15px;
+  transition: opacity 0.5s ease;
+}
+
+.light-mode .hover-sparkle:hover .hidden-sparkle,
+.light-mode .hover-sparkle:focus .hidden-sparkle {
+  @apply opacity-70;
 }
