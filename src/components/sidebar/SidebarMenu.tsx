@@ -8,8 +8,8 @@ import {
   Palette, 
   Moon, 
   Sun, 
-  Award,
-  Trophy
+  Star,
+  Award
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import SidebarMenuItem from "./SidebarMenuItem";
@@ -41,13 +41,13 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           onClick={() => navigate('/profile')} 
         />
         <SidebarMenuItem 
-          icon={<Trophy size={20} />} 
+          icon={<Award size={20} />} 
           label="Progress" 
           collapsed={collapsed} 
           onClick={() => navigate('/progress')} 
         />
         <SidebarMenuItem 
-          icon={<Palette size={20} strokeWidth={1.75} />} 
+          icon={<Palette size={20} />} 
           label="Custom Themes" 
           collapsed={collapsed} 
           onClick={() => {}} 
@@ -66,7 +66,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           }
         />
         <SidebarMenuItem 
-          icon={<Award size={20} strokeWidth={1.75} />} 
+          icon={<Star size={20} />} 
           label="Upgrade" 
           collapsed={collapsed} 
           onClick={() => setIsPremiumDialogOpen(true)}
