@@ -28,23 +28,17 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .select('*')
         .eq('user_id', user.id) // Filter by user_id
         .order('position', { ascending: true })
-        .order('created_at', { ascending: false }); // Changed to descending order to show newest first
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Transform data to include empty goals array
-      const transformedData: ParentGoal[] = [];
-      
-      if (data) {
-        for (const goal of data) {
-          transformedData.push({
-            ...goal,
-            goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-              ? goalToEdit.goals
-              : []
-          });
-        }
-      }
+      // Transform data to include empty goals array if no data
+      const transformedData = data?.map(goal => ({
+        ...goal,
+        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+          ? goalToEdit.goals
+          : []
+      })) || [];
       
       setParentGoals(transformedData);
     } catch (error) {
