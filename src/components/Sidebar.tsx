@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -31,27 +30,40 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const [darkMode, setDarkMode] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('display_name, avatar_url')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (data) {
-          setDisplayName(data.display_name || user.email?.split('@')[0] || 'User');
-          setAvatarUrl(data.avatar_url);
+        setIsLoading(true);
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('id', user.id)
+            .maybeSingle();
+            
+          if (data) {
+            if (data.display_name) {
+              setDisplayName(data.display_name);
+            } else {
+              setDisplayName(user.email?.split('@')[0] || 'User');
+            }
+            setAvatarUrl(data.avatar_url);
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          setDisplayName(user.email?.split('@')[0] || 'User');
+        } finally {
+          setIsLoading(false);
         }
       };
       
       fetchProfile();
       
-      // Subscribe to profile changes
+      // Subscribe to profile changes with a unique channel name
       const channel = supabase
-        .channel('sidebar-profile-updates')
+        .channel('sidebar-profile-updates-unique')
         .on(
           'postgres_changes',
           {
@@ -62,7 +74,9 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           },
           (payload) => {
             if (payload.new) {
-              setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
+              if (payload.new.display_name) {
+                setDisplayName(payload.new.display_name);
+              }
               setAvatarUrl(payload.new.avatar_url);
             }
           }
@@ -88,7 +102,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
     }
   };
 
-  const username = displayName || user?.email?.split('@')[0] || 'Guest';
+  const username = isLoading ? 'Loading...' : (displayName || user?.email?.split('@')[0] || 'Guest');
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);

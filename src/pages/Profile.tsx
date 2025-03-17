@@ -45,7 +45,9 @@ const Profile = () => {
         if (error) throw error;
         
         if (data) {
-          setDisplayName(data.display_name || "");
+          if (data.display_name) {
+            setDisplayName(data.display_name);
+          }
           setAvatarUrl(data.avatar_url);
         }
         
@@ -63,6 +65,31 @@ const Profile = () => {
     };
     
     fetchProfile();
+    
+    const channel = supabase
+      .channel('profile-updates-profile-page')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.new) {
+            if (payload.new.display_name) {
+              setDisplayName(payload.new.display_name);
+            }
+            setAvatarUrl(payload.new.avatar_url);
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, toast]);
 
   const uploadAvatar = async (file: File) => {
@@ -204,6 +231,24 @@ const Profile = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar onCollapseChange={setCollapsed} />
+        <div className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`}>
+          <div className="container mx-auto py-6 px-4 md:px-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold">Profile Settings</h1>
+            </div>
+            <div className="flex items-center justify-center h-[70vh]">
+              <div className="animate-pulse text-gray-400">Loading profile...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen">
       <Sidebar onCollapseChange={setCollapsed} />
@@ -291,7 +336,7 @@ const Profile = () => {
                     
                     <Button
                       onClick={updateProfile}
-                      disabled={saving || isLoading}
+                      disabled={saving}
                       className="mt-4 w-full md:w-auto"
                     >
                       <Save size={16} className="mr-2" />

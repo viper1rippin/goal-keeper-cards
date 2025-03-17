@@ -15,21 +15,30 @@ interface WelcomeCardProps {
 const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer, showFocusTimer }) => {
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     if (user) {
       // Initial fetch
       const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('display_name')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (data && data.display_name) {
-          setDisplayName(data.display_name);
-        } else {
+        setIsLoading(true);
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('id', user.id)
+            .maybeSingle();
+            
+          if (data && data.display_name) {
+            setDisplayName(data.display_name);
+          } else {
+            setDisplayName(user.email?.split('@')[0] || 'Guest');
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
           setDisplayName(user.email?.split('@')[0] || 'Guest');
+        } finally {
+          setIsLoading(false);
         }
       };
       
@@ -60,7 +69,7 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer
     }
   }, [user]);
   
-  const username = displayName || user?.email?.split('@')[0] || 'Guest';
+  const username = isLoading ? 'Loading...' : (displayName || user?.email?.split('@')[0] || 'Guest');
   
   return (
     <AnimatedContainer className="w-full mb-8">
