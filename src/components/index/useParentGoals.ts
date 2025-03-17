@@ -18,10 +18,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     setIsLoading(true);
     try {
       // Filter goals by user_id - use string type for user.id to avoid type instantiation issues
+      const userId: string = user.id;
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id as string)
+        .eq('user_id', userId)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -61,14 +62,17 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     try {
       // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
+        const userId: string = user.id;
+        const goalId: string = updatedGoals[i].id as string;
+        
         const { error } = await supabase
           .from('parent_goals')
           .update({ 
             position: i,
-            user_id: user.id as string // Explicitly cast user.id to string
+            user_id: userId // Use the explicitly typed variable
           })
-          .eq('id', updatedGoals[i].id as string)
-          .eq('user_id', user.id as string); // Only update goals owned by this user
+          .eq('id', goalId)
+          .eq('user_id', userId); // Only update goals owned by this user
         
         if (error) throw error;
       }
@@ -87,12 +91,14 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     if (!user) return;
     
     try {
+      const userId: string = user.id;
+      
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id as string); // Use type assertion to avoid inference issues
+        .eq('user_id', userId); // Use explicitly typed variable
       
       if (subGoalError) throw subGoalError;
       
@@ -101,7 +107,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('parent_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id as string); // Use type assertion
+        .eq('user_id', userId); // Use explicitly typed variable
       
       if (error) throw error;
       
@@ -127,11 +133,13 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     if (!user) return;
     
     try {
+      const userId: string = user.id;
+      
       const { error } = await supabase
         .from('sub_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id as string); // Use type assertion
+        .eq('user_id', userId); // Use explicitly typed variable
       
       if (error) throw error;
       
