@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      actions: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          position_x: number
+          position_y: number
+          project_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          position_x: number
+          position_y: number
+          project_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          position_x?: number
+          position_y?: number
+          project_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       parent_goals: {
         Row: {
           created_at: string
@@ -85,7 +118,73 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_table_exists: {
+        Args: {
+          table_name: string
+        }
+        Returns: boolean
+      }
+      create_action: {
+        Args: {
+          p_content: string
+          p_position_x: number
+          p_position_y: number
+          p_project_id: string
+          p_user_id: string
+        }
+        Returns: {
+          content: string
+          created_at: string | null
+          id: string
+          position_x: number
+          position_y: number
+          project_id: string
+          updated_at: string | null
+          user_id: string
+        }
+      }
+      delete_action: {
+        Args: {
+          p_id: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      get_actions_for_project: {
+        Args: {
+          p_project_id: string
+          p_user_id: string
+        }
+        Returns: {
+          content: string
+          created_at: string | null
+          id: string
+          position_x: number
+          position_y: number
+          project_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      update_action: {
+        Args: {
+          p_id: string
+          p_user_id: string
+          p_content: string
+          p_position_x: number
+          p_position_y: number
+        }
+        Returns: undefined
+      }
+      update_action_position: {
+        Args: {
+          p_id: string
+          p_user_id: string
+          p_position_x: number
+          p_position_y: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

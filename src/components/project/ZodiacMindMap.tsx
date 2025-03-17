@@ -20,7 +20,7 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actionToEdit, setActionToEdit] = useState<Action | null>(null);
-  const [tableExists, setTableExists] = useState(true);
+  const [tableExists, setTableExists] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
   
   // Set up DnD sensors
@@ -260,8 +260,8 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
       {!tableExists && (
         <div className="bg-amber-900/30 border border-amber-700/50 rounded-md p-4 mb-6">
           <p className="text-amber-300 text-sm">
-            The actions table doesn't exist yet in your database. Your actions will be stored locally for now.
-            Please run the migration to create the table for persistent storage.
+            The actions table is now available in your database, but this session hasn't connected to it yet.
+            Please refresh the page to connect to the database for persistent storage.
           </p>
         </div>
       )}

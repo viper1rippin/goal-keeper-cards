@@ -27,20 +27,17 @@ export const actionsService = {
   // Check if actions table exists
   async checkTableExists(): Promise<boolean> {
     try {
-      // Use a simple select query to check if the table exists
-      const { data, error } = await supabase
-        .from('actions')
-        .select('id')
-        .limit(1)
-        .single();
+      // Call the database function to check if the table exists
+      const { data, error } = await supabase.rpc('check_table_exists', {
+        table_name: 'actions'
+      });
       
-      if (error && error.code === 'PGRST116') {
-        // Table doesn't exist
+      if (error) {
+        console.error("Error checking if table exists:", error);
         return false;
       }
       
-      // Table exists, even if empty
-      return true;
+      return data || false;
     } catch (error) {
       console.error("Error checking if table exists:", error);
       return false;
@@ -59,14 +56,16 @@ export const actionsService = {
         return this._getActionsFromLocalStorage(projectId, userId);
       }
       
-      // Fetch from database using standard query
-      const { data, error } = await supabase
-        .from('actions')
-        .select('*')
-        .eq('project_id', projectId)
-        .eq('user_id', userId);
+      // Fetch from database using RPC function
+      const { data, error } = await supabase.rpc('get_actions_for_project', {
+        p_project_id: projectId,
+        p_user_id: userId
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error getting actions:", error);
+        throw error;
+      }
       
       return data as Action[] || [];
     } catch (error) {
@@ -92,20 +91,19 @@ export const actionsService = {
         return this._createActionInLocalStorage(action);
       }
       
-      // Insert into database
-      const { data, error } = await supabase
-        .from('actions')
-        .insert({
-          content: action.content,
-          position_x: action.position_x,
-          position_y: action.position_y,
-          project_id: action.project_id,
-          user_id: action.user_id
-        })
-        .select('*')
-        .single();
+      // Insert into database using RPC function
+      const { data, error } = await supabase.rpc('create_action', {
+        p_content: action.content,
+        p_position_x: action.position_x,
+        p_position_y: action.position_y,
+        p_project_id: action.project_id,
+        p_user_id: action.user_id
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating action:", error);
+        throw error;
+      }
       
       return data as Action;
     } catch (error) {
@@ -128,25 +126,26 @@ export const actionsService = {
       // Check if table exists first
       const tableExists = await this.checkTableExists();
       
-      if (!tableExists) {
-        console.info("Table 'actions' doesn't exist. Using local storage only.");
+      if (!tableExists || action.id.startsWith('local-')) {
+        console.info("Table 'actions' doesn't exist or this is a local action. Using local storage only.");
         // Fallback to local storage
         this._updateActionInLocalStorage(action);
         return;
       }
       
-      // Update in database
-      const { error } = await supabase
-        .from('actions')
-        .update({
-          content: action.content,
-          position_x: action.position_x,
-          position_y: action.position_y
-        })
-        .eq('id', action.id)
-        .eq('user_id', action.user_id);
+      // Update in database using RPC function
+      const { error } = await supabase.rpc('update_action', {
+        p_id: action.id,
+        p_user_id: action.user_id,
+        p_content: action.content,
+        p_position_x: action.position_x,
+        p_position_y: action.position_y
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating action:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error updating action:", error);
       // Fallback to local storage on error
@@ -165,24 +164,25 @@ export const actionsService = {
       // Check if table exists first
       const tableExists = await this.checkTableExists();
       
-      if (!tableExists) {
-        console.info("Table 'actions' doesn't exist. Using local storage only.");
+      if (!tableExists || id.startsWith('local-')) {
+        console.info("Table 'actions' doesn't exist or this is a local action. Using local storage only.");
         // Fallback to local storage
         this._updateActionPositionInLocalStorage(id, userId, position_x, position_y);
         return;
       }
       
-      // Update position in database
-      const { error } = await supabase
-        .from('actions')
-        .update({
-          position_x,
-          position_y
-        })
-        .eq('id', id)
-        .eq('user_id', userId);
+      // Update position in database using RPC function
+      const { error } = await supabase.rpc('update_action_position', {
+        p_id: id,
+        p_user_id: userId,
+        p_position_x: position_x,
+        p_position_y: position_y
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating action position:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error updating action position:", error);
       // Fallback to local storage on error
@@ -196,21 +196,23 @@ export const actionsService = {
       // Check if table exists first
       const tableExists = await this.checkTableExists();
       
-      if (!tableExists) {
-        console.info("Table 'actions' doesn't exist. Using local storage only.");
+      if (!tableExists || id.startsWith('local-')) {
+        console.info("Table 'actions' doesn't exist or this is a local action. Using local storage only.");
         // Fallback to local storage
         this._deleteActionFromLocalStorage(id, userId);
         return;
       }
       
-      // Delete from database
-      const { error } = await supabase
-        .from('actions')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
+      // Delete from database using RPC function
+      const { error } = await supabase.rpc('delete_action', {
+        p_id: id,
+        p_user_id: userId
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting action:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error deleting action:", error);
       // Fallback to local storage on error
@@ -240,7 +242,7 @@ export const actionsService = {
       // Generate an ID if one isn't provided
       const newAction = {
         ...action,
-        id: action.id || generateUUID(),
+        id: action.id || `local-${generateUUID()}`,
         created_at: action.created_at || new Date().toISOString()
       };
       
@@ -329,15 +331,13 @@ export const actionsService = {
           // Skip actions that already have IDs starting with 'local-'
           if (action.id && action.id.startsWith('local-')) {
             // Create a new action without the 'local-' ID
-            await supabase
-              .from('actions')
-              .insert({
-                content: action.content,
-                position_x: action.position_x,
-                position_y: action.position_y,
-                project_id: action.project_id,
-                user_id: userId
-              });
+            await supabase.rpc('create_action', {
+              p_content: action.content,
+              p_position_x: action.position_x,
+              p_position_y: action.position_y,
+              p_project_id: action.project_id,
+              p_user_id: userId
+            });
           } else {
             // Check if action already exists in database
             const { data: existingAction } = await supabase
@@ -349,16 +349,13 @@ export const actionsService = {
             
             if (!existingAction) {
               // Insert action if it doesn't exist
-              await supabase
-                .from('actions')
-                .insert({
-                  ...(action.id ? { id: action.id } : {}),
-                  content: action.content,
-                  position_x: action.position_x,
-                  position_y: action.position_y,
-                  project_id: action.project_id,
-                  user_id: userId
-                });
+              await supabase.rpc('create_action', {
+                p_content: action.content,
+                p_position_x: action.position_x,
+                p_position_y: action.position_y,
+                p_project_id: action.project_id,
+                p_user_id: userId
+              });
             }
           }
         } catch (error) {
