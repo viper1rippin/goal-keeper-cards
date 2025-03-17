@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Timer } from "lucide-react";
 import AnimatedContainer from "./AnimatedContainer";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 interface WelcomeCardProps {
@@ -14,6 +16,8 @@ interface WelcomeCardProps {
 
 const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer, showFocusTimer }) => {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const [displayName, setDisplayName] = useState<string>("");
   
   useEffect(() => {
@@ -64,10 +68,15 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer
   
   return (
     <AnimatedContainer className="w-full mb-8">
-      <div className="glass-card p-5 rounded-lg border border-slate-800/80">
+      <div className="glass-card p-5 rounded-lg">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <p className="text-slate-400 text-sm">Welcome back, {username}. Set a goal and stay focused.</p>
+            <p className={cn(
+              "text-sm",
+              isDarkMode ? "text-slate-400" : "text-slate-600"
+            )}>
+              Welcome back, {username}. Set a goal and stay focused.
+            </p>
           </div>
           <div className="flex items-center space-x-3 self-end md:self-auto">
             {user && (
@@ -75,7 +84,13 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer
                 variant={showFocusTimer ? "default" : "outline"}
                 onClick={onToggleFocusTimer}
                 size="sm"
-                className={`${showFocusTimer ? "bg-emerald hover:bg-emerald-dark" : "border-emerald/20 hover:border-emerald/40"}`}
+                className={cn(
+                  showFocusTimer 
+                    ? "bg-emerald hover:bg-emerald-dark" 
+                    : isDarkMode 
+                      ? "border-emerald/20 hover:border-emerald/40" 
+                      : "border-emerald/30 hover:border-emerald/60"
+                )}
               >
                 <Timer className="mr-2" size={16} />
                 {showFocusTimer ? "Focusing" : "Focus"}

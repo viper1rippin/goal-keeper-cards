@@ -1,10 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Dark theme (default) */
+  .dark {
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
 
@@ -32,7 +32,40 @@
     --border: 0 0% 12%;
     --input: 0 0% 12%;
     --ring: 151 93% 37%;
+  }
 
+  /* Light theme */
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 151 93% 37%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 0 0% 92%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 151 93% 37%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 151 93% 37%;
+  }
+
+  :root {
     --radius: 8px;
   }
 }
@@ -43,7 +76,17 @@
   }
 
   body {
-    @apply bg-apple-dark text-slate-100 antialiased;
+    @apply antialiased;
+  }
+
+  /* Dark mode styles */
+  .dark body {
+    @apply bg-apple-dark text-slate-100;
+  }
+
+  /* Light mode styles */
+  .light body {
+    @apply bg-slate-50 text-slate-900;
   }
 
   #root {
@@ -55,14 +98,25 @@
 }
 
 @layer components {
-  .glass-card {
+  /* Dark mode card styles */
+  .dark .glass-card {
     @apply bg-gradient-to-br from-apple-light to-apple-dark backdrop-blur-sm border border-slate-800/80 shadow-lg;
   }
   
-  .glass-card-emerald {
+  .dark .glass-card-emerald {
     @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
   }
 
+  /* Light mode card styles */
+  .light .glass-card {
+    @apply bg-gradient-to-br from-white to-slate-100 backdrop-blur-sm border border-slate-200 shadow-md;
+  }
+  
+  .light .glass-card-emerald {
+    @apply bg-gradient-to-br from-emerald/5 to-white border border-emerald/10 shadow-sm;
+  }
+
+  /* Text gradient styles for both themes */
   .text-gradient {
     @apply bg-gradient-to-r from-emerald to-emerald-light bg-clip-text text-transparent;
   }
@@ -71,17 +125,25 @@
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
   }
   
-  /* Sidebar specific styles */
-  .sidebar-menu-item {
+  /* Sidebar specific styles for both themes */
+  .dark .sidebar-menu-item {
     @apply flex items-center w-full p-2 rounded-lg text-slate-300 hover:text-white hover:bg-muted transition-colors;
   }
   
-  .sidebar-menu-item.active {
+  .light .sidebar-menu-item {
+    @apply flex items-center w-full p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-muted transition-colors;
+  }
+  
+  .dark .sidebar-menu-item.active {
     @apply bg-muted text-white;
+  }
+  
+  .light .sidebar-menu-item.active {
+    @apply bg-muted text-slate-900;
   }
 }
 
-/* Animations for our components */
+/* Animations for our components - keep these the same for both themes */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
