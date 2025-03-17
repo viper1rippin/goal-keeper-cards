@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Home,
   UserRound, 
-  Settings, 
+  BarChart2, 
   Palette, 
   Moon, 
   Sun, 
@@ -37,10 +37,10 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
         onClick={() => navigate('/profile')} 
       />
       <SidebarMenuItem 
-        icon={<Settings size={20} />} 
-        label="Settings" 
+        icon={<BarChart2 size={20} />} 
+        label="Progress" 
         collapsed={collapsed} 
-        onClick={() => {}} 
+        onClick={() => navigate('/progress')} 
       />
       <SidebarMenuItem 
         icon={<Palette size={20} />} 
