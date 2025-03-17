@@ -36,8 +36,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data with type casting to avoid deep instantiation
-      const transformedData: ParentGoal[] = (data || []).map((goal: RawParentGoal) => ({
+      // Use any[] for initial data type to avoid deep instantiation issues
+      const rawData = data as any[] || [];
+      
+      // Transform data with explicit typing for each property
+      const transformedData: ParentGoal[] = rawData.map((goal) => ({
         id: goal.id,
         title: goal.title,
         description: goal.description,
