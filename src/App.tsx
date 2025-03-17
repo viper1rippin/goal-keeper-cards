@@ -12,7 +12,6 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProjectDetails from "./pages/ProjectDetails";
 import Profile from "./pages/Profile";
-import ProgressTracker from "./pages/ProgressTracker";
 
 const queryClient = new QueryClient();
 
@@ -38,11 +37,6 @@ const App = () => (
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/progress" element={
-              <ProtectedRoute>
-                <ProgressTracker />
               </ProtectedRoute>
             } />
             
