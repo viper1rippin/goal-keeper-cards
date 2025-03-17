@@ -84,8 +84,7 @@ const GoalRow = ({
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id) // Only fetch user's own sub-goals
-        .order('created_at', { ascending: true });
+        .eq('user_id', user.id); // Only fetch user's own sub-goals
       
       if (error) {
         throw error;
@@ -97,7 +96,7 @@ const GoalRow = ({
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
-          user_id: goal.user_id
+          user_id: goal.user_id as string  // Explicitly cast as string
         }));
         
         setSubGoals(formattedData);

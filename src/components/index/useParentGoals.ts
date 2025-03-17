@@ -40,18 +40,14 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       if (error) throw error;
       
       // Transform data to include empty goals array
-      const transformedData = data?.map(goal => ({
+      const transformedData: ParentGoal[] = data ? data.map(goal => ({
         id: goal.id,
         title: goal.title,
         description: goal.description,
         position: goal.position,
-        created_at: goal.created_at,
-        updated_at: goal.updated_at,
-        user_id: goal.user_id,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
-      })) || [];
+        user_id: goal.user_id as string, // Explicitly cast to string
+        goals: goalToEdit?.id === goal.id && goalToEdit.goals ? goalToEdit.goals : []
+      })) : [];
       
       setParentGoals(transformedData);
     } catch (error) {
