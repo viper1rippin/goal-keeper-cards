@@ -10,7 +10,6 @@ interface GoalCardContentProps {
   isActiveFocus: boolean;
   isFocused: boolean;
   isHovered: boolean;
-  isDarkMode: boolean;
 }
 
 const GoalCardContent = ({ 
@@ -20,26 +19,21 @@ const GoalCardContent = ({
   progressGradient,
   isActiveFocus, 
   isFocused, 
-  isHovered,
-  isDarkMode
+  isHovered 
 }: GoalCardContentProps) => {
   return (
     <div className="flex flex-col h-full relative z-2 pt-4">
       <h3 className={cn(
         "font-medium text-lg mb-2",
         isActiveFocus 
-          ? isDarkMode ? "text-white" : "text-slate-800" 
-          : (isFocused || isHovered) 
-            ? isDarkMode ? "text-slate-100" : "text-slate-700"
-            : isDarkMode ? "text-slate-400" : "text-slate-600"
+          ? "text-white" 
+          : (isFocused || isHovered ? "text-slate-100" : "text-slate-400")
       )}>{title}</h3>
       <p className={cn(
         "text-sm flex-1 mb-4",
         isActiveFocus 
-          ? isDarkMode ? "text-slate-200" : "text-slate-700"
-          : (isFocused || isHovered) 
-            ? isDarkMode ? "text-slate-300" : "text-slate-600"
-            : isDarkMode ? "text-slate-500" : "text-slate-500"
+          ? "text-slate-200" 
+          : (isFocused || isHovered ? "text-slate-300" : "text-slate-500")
       )}>{description}</p>
       
       <GoalCardProgress 
@@ -48,7 +42,6 @@ const GoalCardContent = ({
         isActiveFocus={isActiveFocus}
         isFocused={isFocused}
         isHovered={isHovered}
-        isDarkMode={isDarkMode}
       />
     </div>
   );
