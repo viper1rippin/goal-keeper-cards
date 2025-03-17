@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -7,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -32,6 +34,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   isLoading
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
@@ -131,6 +134,20 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
 
+  // Handle navigation to detail page
+  const handleViewDetail = (goal: Goal) => {
+    if (!goal.id) return;
+    
+    // For now, we'll just show a toast indicating we would navigate
+    toast({
+      title: "Coming Soon",
+      description: `Project detail page for ${goal.title} will be implemented soon!`,
+    });
+    
+    // When the project detail page is implemented, uncomment this:
+    // navigate(`/projects/${goal.id}`);
+  };
+
   if (isLoading) {
     return (
       <div className="col-span-4 py-8 text-center text-slate-400">
@@ -154,6 +171,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         onEdit={handleEditSubGoal}
         onDelete={handleConfirmDeleteSubGoal}
         onAddSubGoal={handleAddSubGoal}
+        onViewDetail={handleViewDetail}
       />
       
       <SubGoalDialog

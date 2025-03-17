@@ -32,6 +32,7 @@ interface SubGoalDndContextProps {
   onEdit: (goal: Goal, index: number) => void;
   onDelete: (subGoalId: string) => void;
   onAddSubGoal: () => void;
+  onViewDetail?: (goal: Goal) => void;
 }
 
 const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
@@ -46,7 +47,8 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   activeSubGoalId,
   onEdit,
   onDelete,
-  onAddSubGoal
+  onAddSubGoal,
+  onViewDetail
 }) => {
   // Setup sensors for drag and drop
   const sensors = useSensors(
@@ -82,6 +84,7 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
                 onEdit={() => onEdit(goal, goalIndex)}
                 onDelete={goal.id ? () => onDelete(goal.id as string) : undefined}
                 isDragging={activeSubGoalId === goal.id}
+                onViewDetail={onViewDetail ? () => onViewDetail(goal) : undefined}
               />
             );
           })}

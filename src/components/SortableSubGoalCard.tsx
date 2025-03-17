@@ -12,6 +12,7 @@ interface SortableSubGoalCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   isDragging?: boolean;
+  onViewDetail?: () => void;
 }
 
 const SortableSubGoalCard = ({
@@ -21,7 +22,8 @@ const SortableSubGoalCard = ({
   onGoalFocus,
   onEdit,
   onDelete,
-  isDragging
+  isDragging,
+  onViewDetail
 }: SortableSubGoalCardProps) => {
   // Setup sortable hook
   const {
@@ -57,6 +59,7 @@ const SortableSubGoalCard = ({
         onEdit={onEdit}
         isDragging={isDragging}
         onDelete={onDelete}
+        onViewDetail={onViewDetail}
       />
     </div>
   );

@@ -24,6 +24,8 @@ export interface GoalCardProps {
   onDelete?: () => void;
   // Add drag state
   isDragging?: boolean;
+  // Add new prop for navigating to project detail
+  onViewDetail?: () => void;
 }
 
 const GoalCard = ({ 
@@ -37,7 +39,8 @@ const GoalCard = ({
   onStartFocus,
   onEdit,
   onDelete,
-  isDragging = false
+  isDragging = false,
+  onViewDetail
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
@@ -102,11 +105,13 @@ const GoalCard = ({
     }
   }, [isActiveFocus]);
 
-  // Handle card click to start focus timer
+  // Handle card click - modified to go to detail page instead of starting timer
   const handleClick = () => {
-    onFocus(); // Toggle focus state as before
-    if (onStartFocus) {
-      onStartFocus(); // Start focus timer with this goal
+    onFocus(); // Keep the focus state toggling
+    
+    // If we have a handler for viewing details, call it
+    if (onViewDetail) {
+      onViewDetail();
     }
   };
   
