@@ -8,7 +8,7 @@ import { UseFormReturn } from "react-hook-form";
 import { SubGoal } from '@/types/goal-types';
 import { Trash2 } from "lucide-react";
 
-// Explicitly define form values interface to match SubGoalDialog
+// Match the form values with SubGoalDialog schema
 interface FormValues {
   title: string;
   description: string;
@@ -35,7 +35,7 @@ export const SubGoalForm = ({
     // Check if Enter is pressed (without Shift key to allow multiline text)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // Prevent new line
-      form.handleSubmit(onSubmit)(); // Submit the form
+      void form.handleSubmit(onSubmit)(); // Submit the form
     }
   };
   

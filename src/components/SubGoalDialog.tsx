@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -16,11 +15,8 @@ const subGoalSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-// Define the form values interface explicitly to avoid deep nesting
-interface FormValues {
-  title: string;
-  description: string;
-}
+// Define the form values type
+type FormValues = z.infer<typeof subGoalSchema>;
 
 // Interface for the data passed to onSave
 export interface SubGoalData {
@@ -39,7 +35,6 @@ interface SubGoalDialogProps {
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
-// Removed React.FC type to avoid deep type instantiation
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -154,11 +149,13 @@ const SubGoalDialog = ({
     }
   };
 
-  // Simplified onOpenChange handler to avoid deep nesting
+  // Use a direct onOpenChange handler that simply calls onClose when dialog is closing
+  const handleOpenChange = (open: boolean) => {
+    if (!open) onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) onClose();
-    }}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
