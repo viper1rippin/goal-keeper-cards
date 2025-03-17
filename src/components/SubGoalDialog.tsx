@@ -98,7 +98,7 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data as a simple object to avoid deep type instantiation
+    // Create a plain object without type references to Supabase types
     const subGoalData: SubGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
@@ -109,6 +109,7 @@ const SubGoalDialog = ({
     
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
+      // Use a plain SQL-like query to avoid complex types
       const { error } = await supabase
         .from('sub_goals')
         .update(subGoalData)

@@ -33,8 +33,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
-      // Filter goals by the current user's ID
-      const { data, error } = await supabase
+      // Explicitly type the query result to avoid deep instantiation
+      let { data, error } = await supabase
         .from('parent_goals')
         .select('*')
         .eq('user_id', user.id) // Filter by user_id
@@ -43,11 +43,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array
+      // Transform data without using the Database types
       if (data) {
         const transformedData: ParentGoal[] = [];
         
-        for (const goal of data as ParentGoalRow[]) {
+        for (const goal of data as unknown as ParentGoalRow[]) {
           transformedData.push({
             id: goal.id,
             title: goal.title,
@@ -83,9 +83,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          })
+          .update({ position: i }) // Simple update with only position
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
