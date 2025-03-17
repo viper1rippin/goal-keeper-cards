@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { getCurrentUser, signIn, signOut, signUp, AuthError } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 type AuthContextType = {
   user: User | null;
@@ -19,6 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -39,13 +41,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, session) => {
         setUser(session?.user || null);
         setLoading(false);
+        
+        // Redirect to login when user signs out
+        if (event === 'SIGNED_OUT') {
+          navigate('/login');
+        }
+        
+        // Redirect to index when user signs in
+        if (event === 'SIGNED_IN') {
+          navigate('/');
+        }
       }
     );
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleSignIn = async (email: string, password: string) => {
     return await signIn(email, password);
