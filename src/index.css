@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,6 +69,15 @@
 
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  /* Sidebar specific styles */
+  .sidebar-menu-item {
+    @apply flex items-center w-full p-2 rounded-lg text-slate-300 hover:text-white hover:bg-muted transition-colors;
+  }
+  
+  .sidebar-menu-item.active {
+    @apply bg-muted text-white;
   }
 }
 

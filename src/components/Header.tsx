@@ -2,7 +2,6 @@
 import { useState, useRef, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
-import UserBadge from "./UserBadge";
 import { Button } from "./ui/button";
 import { Timer, LogIn, UserPlus } from "lucide-react";
 import FocusTimer from "./FocusTimer";
@@ -65,8 +64,6 @@ const Header = ({
           
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex items-center space-x-4">
-              <UserBadge level={userLevel} />
-              
               <div className="glass-card px-4 py-2 rounded-lg text-sm text-slate-300">
                 Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
