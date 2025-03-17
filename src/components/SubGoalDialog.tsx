@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,17 +9,17 @@ import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
 import { SubGoal, SubGoalData } from '@/types/goal-types';
 
-// Form validation schema - kept separate from type definitions
+// Form validation schema
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
 });
 
-// Explicitly define the type for form values
-type FormValues = {
+// Explicitly define form values type to avoid deep nesting
+interface FormValues {
   title: string;
   description: string;
-};
+}
 
 interface SubGoalDialogProps {
   isOpen: boolean;
@@ -32,7 +31,6 @@ interface SubGoalDialogProps {
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
-// Main component - not using React.FC to avoid deep type instantiation
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
