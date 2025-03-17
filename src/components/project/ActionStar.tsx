@@ -1,7 +1,5 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Action } from '@/utils/actionsUtils';
@@ -37,18 +35,10 @@ const getRandomColor = (seed: string) => {
 
 const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpdatePosition }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const colorGradient = getRandomColor(action.content);
-  
-  // Set up drag functionality with useDraggable
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: action.id || 'temp-id',
-    data: { action },
-  });
-  
-  const style = transform ? {
-    transform: CSS.Translate.toString(transform),
-  } : {};
   
   // Position the star based on its coordinates
   useEffect(() => {
@@ -57,23 +47,6 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
       containerRef.current.style.top = `${action.position_y}%`;
     }
   }, [action.position_x, action.position_y]);
-  
-  // Handle end of dragging
-  useEffect(() => {
-    if (!transform && containerRef.current && action.id) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const parentRect = containerRef.current.parentElement!.getBoundingClientRect();
-      
-      // Calculate position as percentage of parent container
-      const x = ((rect.left + rect.width / 2) - parentRect.left) / parentRect.width * 100;
-      const y = ((rect.top + rect.height / 2) - parentRect.top) / parentRect.height * 100;
-      
-      // Update position if it changed
-      if (Math.abs(x - action.position_x) > 0.5 || Math.abs(y - action.position_y) > 0.5) {
-        onUpdatePosition(action.id, Math.max(0, Math.min(100, x)), Math.max(0, Math.min(100, y)));
-      }
-    }
-  }, [transform]);
   
   // Generate line to center based on star position
   const calculateLine = () => {
@@ -85,22 +58,99 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
     return `M 0.5 0.5 L ${x} ${y}`;
   };
   
+  // Handle mouse down for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left mouse button
+      e.preventDefault();
+      
+      if (containerRef.current) {
+        // Calculate the offset from the mouse position to the element's position
+        const rect = containerRef.current.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        
+        setDragOffset({ x: offsetX, y: offsetY });
+        setIsDragging(true);
+      }
+    }
+  };
+  
+  // Handle mouse move during drag
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging && containerRef.current) {
+      e.preventDefault();
+      
+      const parentElement = containerRef.current.parentElement;
+      if (parentElement) {
+        const parentRect = parentElement.getBoundingClientRect();
+        
+        // Calculate the new position based on mouse position minus the offset
+        // and convert to percentage of parent container
+        const x = ((e.clientX - dragOffset.x) - parentRect.left + containerRef.current.offsetWidth / 2) / parentRect.width * 100;
+        const y = ((e.clientY - dragOffset.y) - parentRect.top + containerRef.current.offsetHeight / 2) / parentRect.height * 100;
+        
+        // Constrain to parent container boundaries
+        const constrainedX = Math.max(0, Math.min(100, x));
+        const constrainedY = Math.max(0, Math.min(100, y));
+        
+        // Update the element's position
+        containerRef.current.style.left = `${constrainedX}%`;
+        containerRef.current.style.top = `${constrainedY}%`;
+      }
+    }
+  };
+  
+  // Handle mouse up to end dragging
+  const handleMouseUp = () => {
+    if (isDragging && containerRef.current && action.id) {
+      const parentElement = containerRef.current.parentElement;
+      if (parentElement) {
+        const parentRect = parentElement.getBoundingClientRect();
+        const rect = containerRef.current.getBoundingClientRect();
+        
+        // Calculate position as percentage of parent container
+        const x = ((rect.left + rect.width / 2) - parentRect.left) / parentRect.width * 100;
+        const y = ((rect.top + rect.height / 2) - parentRect.top) / parentRect.height * 100;
+        
+        // Constrain to parent container boundaries
+        const constrainedX = Math.max(0, Math.min(100, x));
+        const constrainedY = Math.max(0, Math.min(100, y));
+        
+        // Update position if it changed
+        if (Math.abs(constrainedX - action.position_x) > 0.5 || Math.abs(constrainedY - action.position_y) > 0.5) {
+          onUpdatePosition(action.id, constrainedX, constrainedY);
+        }
+      }
+      
+      setIsDragging(false);
+    }
+  };
+  
+  // Set up event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+  
   return (
     <div 
-      ref={(node) => {
-        containerRef.current = node;
-        setNodeRef(node);
-      }}
+      ref={containerRef}
       style={{
-        ...style,
         position: 'absolute',
         transform: 'translate(-50%, -50%)',
+        cursor: isDragging ? 'grabbing' : 'grab',
       }}
-      {...attributes}
-      {...listeners}
-      className="z-10 cursor-move"
+      className="z-10"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onMouseDown={handleMouseDown}
     >
       {/* Connection line to center */}
       <svg
