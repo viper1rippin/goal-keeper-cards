@@ -1,73 +1,81 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ParentGoal } from "./IndexPageTypes";
+import type { Goal } from "@/components/GoalRow";
+import type { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
+
+interface ParentGoalRecord {
+  id: string;
+  title: string;
+  description: string;
+  user_id: string;
+  order?: number;
+  [key: string]: any;
+}
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth(); // Get the current authenticated user and auth loading state
-  
-  // Fetch parent goals from Supabase
+  const { user } = useAuth();
+
   const fetchParentGoals = async () => {
-    setIsLoading(true);
     try {
-      // Only fetch goals if user is authenticated
       if (!user) {
-        // Don't clear goals if auth is still loading
-        if (!authLoading) {
-          setParentGoals([]);
-        }
+        setParentGoals([]);
         setIsLoading(false);
         return;
       }
 
-      // Filter goals by the current user's ID
+      setIsLoading(true);
+
       const { data, error } = await supabase
         .from('parent_goals')
-        .select('*')
-        .eq('user_id', user.id) // Filter by user_id
-        .order('position', { ascending: true })
-        .order('created_at', { ascending: false });
-      
+        .select(`
+          *,
+          sub_goals(*)
+        `)
+        .eq('user_id', user.id)
+        .order('order');
+
       if (error) throw error;
-      
-      // Transform data to include empty goals array if no data
-      const transformedData = data?.map((goal: any) => ({
-        ...goal,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
-      })) || [];
-      
-      setParentGoals(transformedData as ParentGoal[]);
+
+      const transformedData = (data || []).map((goal: ParentGoalRecord) => {
+        return {
+          ...goal,
+          goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+            ? goalToEdit.goals 
+            : (goal.sub_goals || []).map((subGoal: any) => ({
+                id: subGoal.id,
+                title: subGoal.title,
+                description: subGoal.description,
+                progress: subGoal.progress || 0,
+              }))
+        } as ParentGoal;
+      });
+
+      setParentGoals(transformedData);
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({
         title: "Error",
-        description: "Failed to load your goals. Please refresh the page.",
+        description: "Could not fetch goals. Please try again later.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Re-fetch goals when auth state changes or is confirmed
+
   useEffect(() => {
-    // Only fetch if authentication loading is complete
     if (!authLoading) {
       fetchParentGoals();
     }
   }, [user, authLoading]);
-  
-  // Save the updated order of parent goals to the database
+
   const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
     try {
-      // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
@@ -88,10 +96,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     }
   };
 
-  // Delete a parent goal
   const deleteParentGoal = async (id: string) => {
     try {
-      // Only proceed if user is authenticated
       if (!user) {
         toast({
           title: "Authentication Error",
@@ -101,27 +107,24 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
-      // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id); // Only delete user's own sub-goals
-      
+        .eq('user_id', user.id);
+
       if (subGoalError) throw subGoalError;
-      
-      // Then delete the parent goal
+
       const { error } = await supabase
         .from('parent_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Only delete user's own goal
-      
+        .eq('user_id', user.id);
+
       if (error) throw error;
-      
-      // Update local state
+
       setParentGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
-      
+
       toast({
         title: "Goal Deleted",
         description: "The goal and all its sub-goals have been deleted.",
@@ -135,11 +138,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       });
     }
   };
-  
-  // Delete a sub-goal
+
   const deleteSubGoal = async (id: string) => {
     try {
-      // Only proceed if user is authenticated
       if (!user) {
         toast({
           title: "Authentication Error",
@@ -153,10 +154,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('sub_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Only delete user's own sub-goal
-      
+        .eq('user_id', user.id);
+
       if (error) throw error;
-      
+
       toast({
         title: "Sub-Goal Deleted",
         description: "The sub-goal has been deleted successfully.",
@@ -170,7 +171,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       });
     }
   };
-  
+
   return {
     parentGoals,
     setParentGoals,

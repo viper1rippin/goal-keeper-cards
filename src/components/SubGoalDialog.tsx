@@ -18,6 +18,15 @@ const subGoalSchema = z.object({
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
 
+// Define a simple type for the sub-goal data to prevent infinite type depth
+interface SubGoalData {
+  parent_goal_id: string;
+  title: string;
+  description: string;
+  progress: number;
+  user_id: string;
+}
+
 interface SubGoalDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -89,14 +98,8 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data
-    const subGoalData: {
-      parent_goal_id: string;
-      title: string;
-      description: string;
-      progress: number;
-      user_id: string;
-    } = {
+    // Prepare sub-goal data with explicit type
+    const subGoalData: SubGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
