@@ -17,14 +17,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
 }
 
 const Sidebar = ({ onCollapseChange }: SidebarProps) => {
-  const { user, userProfile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -42,9 +41,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
     }
   };
 
-  // Get display name from userProfile or fallback to email
-  const displayName = userProfile?.displayName || user?.email?.split('@')[0] || 'Guest';
-  const userInitial = displayName.charAt(0).toUpperCase();
+  const username = user?.email?.split('@')[0] || 'Guest';
   const isDarkMode = theme === "dark";
 
   return (
@@ -68,18 +65,12 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
       <div className="flex flex-col h-full p-4">
         {/* User profile section at top */}
         <div className="flex items-center mb-6 mt-2">
-          <Avatar className="w-10 h-10">
-            {userProfile?.avatarUrl ? (
-              <AvatarImage src={userProfile.avatarUrl} alt={displayName} />
-            ) : (
-              <AvatarFallback className="bg-gradient-to-r from-emerald to-emerald-light text-white text-xl font-bold">
-                {userInitial}
-              </AvatarFallback>
-            )}
-          </Avatar>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald to-emerald-light flex items-center justify-center text-white text-xl font-bold">
+            {username.charAt(0).toUpperCase()}
+          </div>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
-              <p className="text-foreground font-medium truncate">{displayName}</p>
+              <p className="text-foreground font-medium truncate">{username}</p>
               <p className="text-muted-foreground text-sm truncate">Level 10</p>
             </div>
           )}
@@ -114,7 +105,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
               rightElement={
                 <Switch 
                   checked={isDarkMode} 
-                  onCheckedChange={toggleTheme}
+                  onCheckedChange={toggleTheme} 
                   className="ml-auto"
                 />
               }

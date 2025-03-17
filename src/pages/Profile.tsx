@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import Sidebar from "@/components/Sidebar";
 
 const Profile = () => {
-  const { user, setUserProfile } = useAuth();
+  const { user } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -33,59 +33,17 @@ const Profile = () => {
 
   const fetchProfileData = async () => {
     try {
-      // First check if the profile exists, if not create it
-      const { data: existingProfile, error: checkError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user?.id)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error("Error checking profile:", checkError);
-        return;
-      }
-      
-      // If profile doesn't exist, create it
-      if (!existingProfile) {
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user?.id,
-            display_name: user?.email?.split('@')[0] || 'User',
-            updated_at: new Date().toISOString()
-          });
-          
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-          toast.error("Failed to create profile");
-          return;
-        }
-      }
-      
-      // Now fetch the profile
       const { data, error } = await supabase
         .from("profiles")
         .select("display_name, avatar_url")
         .eq("id", user?.id)
         .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Failed to load profile information");
-        return;
-      }
+      if (error) throw error;
       
       if (data) {
         setDisplayName(data.display_name || "");
         setAvatarUrl(data.avatar_url);
-        
-        // Update the user profile in AuthContext
-        if (setUserProfile) {
-          setUserProfile({ 
-            displayName: data.display_name,
-            avatarUrl: data.avatar_url
-          });
-        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -107,14 +65,6 @@ const Profile = () => {
         .eq("id", user.id);
 
       if (error) throw error;
-      
-      // Update the user profile in AuthContext
-      if (setUserProfile) {
-        setUserProfile({ 
-          displayName: displayName, 
-          avatarUrl: avatarUrl 
-        });
-      }
       
       toast.success("Profile updated successfully");
     } catch (error) {
