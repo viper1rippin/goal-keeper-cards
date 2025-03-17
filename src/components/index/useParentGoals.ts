@@ -13,7 +13,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const { user } = useAuth();
   
   // Fetch parent goals from Supabase
-  const fetchParentGoals = async (): Promise<void> => {
+  const fetchParentGoals = async () => {
     if (!user) return;
     
     setIsLoading(true);
@@ -49,7 +49,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
   
   // Save the updated order of parent goals to the database
-  const saveParentGoalOrder = async (updatedGoals: ParentGoal[]): Promise<void> => {
+  const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
     if (!user) return;
     
     try {
@@ -74,7 +74,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
 
   // Delete a parent goal
-  const deleteParentGoal = async (id: string): Promise<void> => {
+  const deleteParentGoal = async (id: string) => {
     if (!user) return;
     
     try {
@@ -113,7 +113,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   };
   
   // Delete a sub-goal
-  const deleteSubGoal = async (id: string): Promise<void> => {
+  const deleteSubGoal = async (id: string) => {
     if (!user) return;
     
     try {
