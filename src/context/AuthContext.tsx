@@ -4,7 +4,6 @@ import { User } from '@supabase/supabase-js';
 import { getCurrentUser, signIn, signOut, signUp, AuthError } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 
 type AuthContextType = {
   user: User | null;
@@ -20,7 +19,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -39,31 +37,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        const currentUser = session?.user || null;
-        setUser(currentUser);
+        setUser(session?.user || null);
         setLoading(false);
-        
-        // Handle navigation based on auth events
-        if (event === 'SIGNED_IN') {
-          navigate('/');
-          toast({
-            title: "Welcome",
-            description: "You are now signed in.",
-          });
-        } else if (event === 'SIGNED_OUT') {
-          navigate('/login');
-          toast({
-            title: "Signed out",
-            description: "You have been signed out successfully.",
-          });
-        }
       }
     );
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, []);
 
   const handleSignIn = async (email: string, password: string) => {
     return await signIn(email, password);
