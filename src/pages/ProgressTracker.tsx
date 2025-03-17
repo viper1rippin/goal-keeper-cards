@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { POINTS_PER_MINUTE } from "@/utils/timerUtils";
-import { getCurrentBadge, getNextBadge, badges } from "@/utils/badgeUtils";
+import { getCurrentBadge, getNextBadge, badges, POINTS_FOR_LEVEL_UP } from "@/utils/badgeUtils";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +10,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Award, Timer, Target, Flag } from "lucide-react";
-import { formatTime, calculateTimeForNextLevel } from "@/utils/timerUtils";
+import { formatTime, calculateTimeForNextLevel, calculateDaysForNextBadge } from "@/utils/timerUtils";
 import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
 
@@ -21,8 +20,7 @@ const ProgressTracker = () => {
   const [points, setPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Calculate points needed for next level (assuming each level requires 24 hours = 1440 minutes of focus)
-  const POINTS_FOR_LEVEL_UP = 1440; // 24 hours * 60 minutes
+  // Calculate points needed for next level
   const pointsForNextLevel = POINTS_FOR_LEVEL_UP;
   const progressPercentage = Math.min(100, (points / pointsForNextLevel) * 100);
   
@@ -32,6 +30,9 @@ const ProgressTracker = () => {
   
   // Calculate time needed for next level
   const hoursForNextLevel = calculateTimeForNextLevel(points, pointsForNextLevel);
+  
+  // Calculate days needed for next badge
+  const daysForNextBadge = nextBadge ? calculateDaysForNextBadge(level, nextBadge.level) : 0;
 
   useEffect(() => {
     if (user) {
@@ -135,6 +136,12 @@ const ProgressTracker = () => {
                       <Timer className="inline h-4 w-4 mr-1" />
                       {hoursForNextLevel} hours of focus time needed for next level
                     </p>
+                    {nextBadge && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <Target className="inline h-4 w-4 mr-1" />
+                        {daysForNextBadge} days of focus time needed for {nextBadge.name} badge
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

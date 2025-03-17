@@ -25,3 +25,19 @@ export const calculateTimeForNextLevel = (earnedPoints: number, pointsForNextLev
   const minutesForNextLevel = Math.ceil((pointsForNextLevel - earnedPoints) / POINTS_PER_MINUTE);
   return Math.ceil(minutesForNextLevel / 60);
 };
+
+// Calculate days needed to reach the next badge
+export const calculateDaysForNextBadge = (currentLevel: number, nextBadgeLevel: number): number => {
+  if (!nextBadgeLevel || currentLevel >= nextBadgeLevel) return 0;
+  
+  // Calculate how many level-ups are needed
+  const levelsNeeded = nextBadgeLevel - currentLevel;
+  
+  // Calculate total points needed
+  const totalPointsNeeded = levelsNeeded * POINTS_FOR_LEVEL_UP;
+  
+  // Convert to days (points per minute * 60 minutes * 24 hours = points per day)
+  const pointsPerDay = POINTS_PER_MINUTE * 60 * 24;
+  
+  return Math.ceil(totalPointsNeeded / pointsPerDay);
+};
