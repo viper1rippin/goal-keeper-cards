@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -7,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
-import { SubGoal, SubGoalData } from '@/types/goal-types';
+import { SubGoal } from '@/types/goal-types';
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -15,8 +16,18 @@ const subGoalSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-// Define form values type directly without nesting
-type FormValues = z.infer<typeof subGoalSchema>;
+// Define the form values interface explicitly to avoid deep nesting
+interface FormValues {
+  title: string;
+  description: string;
+}
+
+// Interface for the data passed to onSave
+export interface SubGoalData {
+  id?: string;
+  title: string;
+  description: string;
+}
 
 interface SubGoalDialogProps {
   isOpen: boolean;
@@ -167,4 +178,3 @@ const SubGoalDialog = ({
 };
 
 export default SubGoalDialog;
-export type { SubGoalData };

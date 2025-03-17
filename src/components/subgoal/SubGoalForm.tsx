@@ -8,7 +8,7 @@ import { UseFormReturn } from "react-hook-form";
 import { SubGoal } from '@/types/goal-types';
 import { Trash2 } from "lucide-react";
 
-// Explicitly define form values type to avoid deep nesting
+// Explicitly define form values interface to match SubGoalDialog
 interface FormValues {
   title: string;
   description: string;
