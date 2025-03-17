@@ -89,7 +89,7 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data
+    // Prepare sub-goal data as a simple object to avoid deep type instantiation
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,

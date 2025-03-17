@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
@@ -32,15 +32,23 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
-      const transformedData = data?.map(goal => ({
-        ...goal,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
-          ? goalToEdit.goals
-          : []
-      })) || [];
-      
-      setParentGoals(transformedData);
+      // Transform data to include empty goals array
+      if (data) {
+        const transformedData: ParentGoal[] = [];
+        
+        for (const goal of data) {
+          transformedData.push({
+            ...goal,
+            goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+              ? goalToEdit.goals
+              : []
+          });
+        }
+        
+        setParentGoals(transformedData);
+      } else {
+        setParentGoals([]);
+      }
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({

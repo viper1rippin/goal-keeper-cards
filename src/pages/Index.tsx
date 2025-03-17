@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { IndexPageProvider } from "@/components/index/IndexPageContext";
 import IndexHeader from "@/components/index/IndexHeader";
 import GoalsContent from "@/components/index/GoalsContent";
