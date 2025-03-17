@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ParentGoal } from "@/types/goal-types";
+import { ParentGoal, SubGoal } from "@/types/goal-types";
 import { useAuth } from "@/context/AuthContext";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
@@ -27,9 +27,12 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data - simplified type handling
+      // Transform data with explicitly typed array
       const transformedData: ParentGoal[] = data?.map(goal => ({
-        ...goal,
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        position: goal.position,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
