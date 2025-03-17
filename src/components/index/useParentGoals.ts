@@ -2,18 +2,31 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Goal } from "@/components/GoalRow";
 import { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
+
+// Define simplified types to avoid deep type instantiation
+interface ParentGoalData {
+  id: string;
+  title: string;
+  description: string;
+  position: number | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth(); // Get the current authenticated user
+  const { user } = useAuth();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
     setIsLoading(true);
+    
     try {
       // Only fetch goals if user is authenticated
       if (!user) {
@@ -22,23 +35,32 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         return;
       }
 
-      // Filter goals by the current user's ID
+      // Use explicit typing for the data to avoid deep type instantiation
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id) // Filter by user_id
+        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
-      const transformedData = data?.map(goal => ({
-        ...goal,
+      // Type the data explicitly
+      const typedData = data as ParentGoalData[];
+      
+      // Transform data with proper type handling
+      const transformedData: ParentGoal[] = typedData.map(goal => ({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        position: goal.position,
+        created_at: goal.created_at,
+        updated_at: goal.updated_at,
+        user_id: goal.user_id,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
-      })) || [];
+      }));
       
       setParentGoals(transformedData);
     } catch (error) {
