@@ -1,9 +1,8 @@
 
 import React from "react";
+import { formatTime } from "@/utils/timerUtils";
 import { cn } from "@/lib/utils";
-import { formatTime, calculateTimeForNextLevel } from "@/utils/timerUtils";
-import { Progress } from "@/components/ui/progress";
-import UserBadge from "./UserBadge";
+import { useAuth } from "@/context/AuthContext";
 
 interface TimerDisplayProps {
   time: number;
@@ -18,37 +17,41 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   isActive,
   earnedPoints,
   pointsForNextLevel,
-  userLevel
+  userLevel,
 }) => {
-  // Calculate progress percentage
-  const progressPercent = Math.min(
-    100, 
-    (earnedPoints / pointsForNextLevel) * 100
-  );
-
-  // Calculate time needed for next level (in hours)
-  const hoursForNextLevel = calculateTimeForNextLevel(earnedPoints, pointsForNextLevel);
-
+  const { user } = useAuth();
+  const username = user?.email?.split('@')[0] || 'User';
+  
+  // Calculate hours remaining for next level
+  const hoursNeeded = Math.ceil(pointsForNextLevel / 60);
+  
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* User info section - removed logout button */}
       <div className="flex items-center justify-between">
-        <UserBadge level={userLevel} />
-        <div className="text-xs text-slate-400">
+        <div className="flex items-center space-x-2">
+          <div className="rounded-full w-8 h-8 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-xs font-bold">
+            {userLevel}
+          </div>
+          <span className="text-slate-200 truncate max-w-[150px]">
+            {username}
+          </span>
+        </div>
+        <div className="text-right text-slate-400 text-sm">
           {earnedPoints.toFixed(1)}/{pointsForNextLevel} points
         </div>
       </div>
       
-      <Progress value={progressPercent} className="h-2" />
-      
+      {/* Timer display */}
       <div className="text-center">
         <div className={cn(
-          "text-4xl font-mono my-4 transition-colors",
-          isActive ? "text-emerald" : "text-slate-300"
+          "font-mono text-5xl tracking-widest",
+          isActive ? "text-emerald" : "text-slate-200"
         )}>
           {formatTime(time)}
         </div>
-        <div className="text-xs text-slate-400">
-          ~{hoursForNextLevel} hours of focus needed for next level
+        <div className="text-slate-400 text-sm mt-2">
+          ~{hoursNeeded} hours of focus needed for next level
         </div>
       </div>
     </div>
