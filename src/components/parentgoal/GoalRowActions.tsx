@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import DeleteParentGoalDialog from './DeleteParentGoalDialog';
 
 interface GoalRowActionsProps {
   title: string;
@@ -9,7 +10,9 @@ interface GoalRowActionsProps {
 }
 
 const GoalRowActions: React.FC<GoalRowActionsProps> = ({
-  onEdit
+  title,
+  onEdit,
+  onDelete
 }) => {
   return (
     <div className="absolute top-0 right-0 flex space-x-2">
@@ -21,6 +24,10 @@ const GoalRowActions: React.FC<GoalRowActionsProps> = ({
       >
         Edit
       </Button>
+      <DeleteParentGoalDialog 
+        title={title}
+        onDelete={onDelete}
+      />
     </div>
   );
 };
