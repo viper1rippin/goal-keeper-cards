@@ -23,7 +23,7 @@ const Header = ({
   setShowFocusTimer,
   onStopFocus
 }: HeaderProps) => {
-  const [userLevel, setUserLevel] = useState(10); // Keep this for FocusTimer
+  const [userLevel, setUserLevel] = useState(10); // Default starting level
   const { user } = useAuth();
   // Reference to track the last scroll position
   const lastScrollPosition = useRef(0);
