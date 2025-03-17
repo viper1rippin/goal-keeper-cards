@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 import { useAuth } from "@/context/AuthContext";
 
@@ -18,7 +18,6 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
-  const { toast } = useToast();
   const { user } = useAuth(); // Get the current authenticated user
 
   const handleSubmit = async (values: { title: string; description: string }) => {
@@ -40,8 +39,7 @@ const ParentGoalDialog = ({
           .update({
             title: values.title,
             description: values.description,
-            updated_at: new Date().toISOString(),
-            user_id: user.id // Ensure user_id is set even on updates
+            updated_at: new Date().toISOString()
           })
           .eq('id', goalToEdit.id)
           .eq('user_id', user.id); // Only update if user owns the goal
@@ -58,8 +56,7 @@ const ParentGoalDialog = ({
           .insert([{
             title: values.title,
             description: values.description,
-            user_id: user.id, // Associate goal with user
-            position: 0 // Default position for new goals
+            user_id: user.id // Associate goal with user
           }]);
 
         if (error) throw error;

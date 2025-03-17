@@ -1,6 +1,7 @@
+
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,7 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
-  user_id?: string;
+  user_id?: string; // Add user_id field
 }
 
 interface GoalRowProps {
@@ -26,7 +27,7 @@ interface GoalRowProps {
   onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
   onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
   onDeleteSubGoal: (subGoalId: string) => Promise<void>;
-  id: string;
+  id: string; // Added id prop for drag and drop
 }
 
 const GoalRow = ({ 
@@ -51,7 +52,7 @@ const GoalRow = ({
   } = useSortable({ id });
 
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Get the current authenticated user
   
   // State for sub-goals loaded from the database
   const [subGoals, setSubGoals] = useState<Goal[]>(goals);
@@ -67,8 +68,8 @@ const GoalRow = ({
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
-  // Fetch sub-goals for this parent goal - use useCallback to prevent unnecessary rerenders
-  const fetchSubGoals = useCallback(async () => {
+  // Fetch sub-goals for this parent goal
+  const fetchSubGoals = async () => {
     try {
       setIsLoading(true);
       
@@ -79,21 +80,18 @@ const GoalRow = ({
         return;
       }
 
-      console.log("Fetching sub-goals for parent:", id, "user:", user.id);
-
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) // Only fetch user's own sub-goals
+        .order('created_at', { ascending: true });
       
       if (error) {
-        console.error("Supabase error:", error);
         throw error;
       }
       
       if (data) {
-        console.log("Sub-goals fetched:", data.length);
         const formattedData = data.map(goal => ({
           id: goal.id,
           title: goal.title,
@@ -116,14 +114,12 @@ const GoalRow = ({
     } finally {
       setIsLoading(false);
     }
-  }, [id, user, rowIndex, onUpdateSubGoals, toast]);
+  };
   
-  // Fetch sub-goals when the component mounts or user/id changes
+  // Fetch sub-goals when the component mounts
   useEffect(() => {
-    if (user && id) {
-      fetchSubGoals();
-    }
-  }, [id, user, fetchSubGoals]);
+    fetchSubGoals();
+  }, [id, user]);
   
   // Handler to update sub-goals from child component
   const handleUpdateSubGoals = (updatedGoals: Goal[]) => {
