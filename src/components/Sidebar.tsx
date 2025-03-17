@@ -1,5 +1,6 @@
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { 
   UserRound, 
   Settings, 
@@ -15,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -25,6 +28,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [profileData, setProfileData] = useState({ displayName: "", avatarUrl: null });
   
   const handleSignOut = async () => {
     await signOut();
@@ -39,11 +43,58 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
     }
   };
 
-  const username = user?.email?.split('@')[0] || 'Guest';
+  React.useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+          
+        if (!error && data) {
+          setProfileData({
+            displayName: data.display_name || user.email?.split('@')[0] || 'Guest',
+            avatarUrl: data.avatar_url
+          });
+        }
+      };
+      
+      fetchProfile();
+      
+      // Subscribe to changes in the profiles table
+      const subscription = supabase
+        .channel('profiles-changes')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        }, payload => {
+          if (payload.new) {
+            setProfileData({
+              displayName: payload.new.display_name || user.email?.split('@')[0] || 'Guest',
+              avatarUrl: payload.new.avatar_url
+            });
+          }
+        })
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(subscription);
+      };
+    }
+  }, [user]);
+
+  const username = profileData.displayName || user?.email?.split('@')[0] || 'Guest';
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     // Here you would implement actual dark mode toggle logic
+  };
+
+  const navigateToProfile = () => {
+    navigate("/profile");
   };
 
   return (
@@ -66,10 +117,16 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
 
       <div className="flex flex-col h-full p-4">
         {/* User profile section at top */}
-        <div className="flex items-center mb-6 mt-2">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald to-emerald-light flex items-center justify-center text-white text-xl font-bold">
-            {username.charAt(0).toUpperCase()}
-          </div>
+        <div className="flex items-center mb-6 mt-2 cursor-pointer" onClick={navigateToProfile}>
+          <Avatar className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald to-emerald-light">
+            {profileData.avatarUrl ? (
+              <AvatarImage src={profileData.avatarUrl} alt={username} />
+            ) : (
+              <AvatarFallback className="text-white text-xl font-bold">
+                {username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            )}
+          </Avatar>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
               <p className="text-white font-medium truncate">{username}</p>
@@ -85,7 +142,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
               icon={<UserRound size={20} />} 
               label="Profile" 
               collapsed={collapsed} 
-              onClick={() => {}} 
+              onClick={navigateToProfile} 
             />
             <MenuItem 
               icon={<Settings size={20} />} 
