@@ -89,7 +89,7 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data with explicit type
+    // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
@@ -102,12 +102,7 @@ const SubGoalDialog = ({
     if (subGoalToEdit && subGoalToEdit.id) {
       const { error } = await supabase
         .from('sub_goals')
-        .update({
-          title: values.title,
-          description: values.description,
-          progress: subGoalToEdit?.progress || 0,
-          user_id: user.id
-        })
+        .update(subGoalData)
         .eq('id', subGoalToEdit.id)
         .eq('user_id', user.id); // Only update if user owns the sub-goal
       
