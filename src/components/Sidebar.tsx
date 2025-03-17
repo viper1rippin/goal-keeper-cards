@@ -49,16 +49,12 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
     <div 
       className={cn(
         "fixed left-0 top-0 h-screen bg-card z-40 border-r border-border transition-all duration-300",
-        collapsed ? "w-16" : "w-64",
-        !isDarkMode && "bg-opacity-80 backdrop-blur-sm border-r-gold-light/20"
+        collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Collapse button */}
       <button 
-        className={cn(
-          "absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-border",
-          !isDarkMode && "animate-gold-sparkle"
-        )}
+        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-border"
         onClick={toggleCollapse}
       >
         {collapsed ? 
@@ -70,12 +66,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
       <div className="flex flex-col h-full p-4">
         {/* User profile section at top */}
         <div className="flex items-center mb-6 mt-2">
-          <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center text-white text-xl font-bold",
-            isDarkMode 
-              ? "bg-gradient-to-r from-emerald to-emerald-light" 
-              : "bg-gradient-to-r from-gold-dark to-gold-light text-foreground"
-          )}>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald to-emerald-light flex items-center justify-center text-white text-xl font-bold">
             {username.charAt(0).toUpperCase()}
           </div>
           {!collapsed && (
