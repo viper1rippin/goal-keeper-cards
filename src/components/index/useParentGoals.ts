@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
@@ -10,13 +10,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth(); // Get the current authenticated user
-  
-  // Ensure state is cleared when user logs out
-  useEffect(() => {
-    if (!user) {
-      setParentGoals([]);
-    }
-  }, [user]);
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
@@ -39,22 +32,13 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data with explicit mapping to avoid deep type instantiation
-      const transformedData: ParentGoal[] = [];
-      
-      if (data) {
-        for (const goal of data) {
-          transformedData.push({
-            id: goal.id,
-            title: goal.title,
-            description: goal.description,
-            position: goal.position,
-            // Add user_id with explicit type assertion
-            user_id: user.id,
-            goals: goalToEdit?.id === goal.id && goalToEdit.goals ? goalToEdit.goals : []
-          });
-        }
-      }
+      // Transform data to include empty goals array if no data
+      const transformedData = data?.map(goal => ({
+        ...goal,
+        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+          ? goalToEdit.goals
+          : []
+      })) || [];
       
       setParentGoals(transformedData);
     } catch (error) {
@@ -76,7 +60,9 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ position: i })
+          .update({ 
+            position: i 
+          } as any)
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;

@@ -89,13 +89,13 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Create a simple object literal to avoid deep type instantiation
+    // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
-      user_id: user.id
+      user_id: user.id // Associate sub-goal with user
     };
     
     // If editing, update the existing sub-goal

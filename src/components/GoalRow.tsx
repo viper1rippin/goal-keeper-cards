@@ -15,7 +15,7 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
-  user_id?: string;
+  user_id?: string; // Add user_id field
 }
 
 interface GoalRowProps {
@@ -84,21 +84,20 @@ const GoalRow = ({
         .from('sub_goals')
         .select('*')
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id); // Only fetch user's own sub-goals
+        .eq('user_id', user.id) // Only fetch user's own sub-goals
+        .order('created_at', { ascending: true });
       
       if (error) {
         throw error;
       }
       
       if (data) {
-        // Map the database results to the Goal interface, explicitly handling user_id
         const formattedData = data.map(goal => ({
           id: goal.id,
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
-          // Add user_id with explicit type assertion since it's not in the DB type
-          user_id: user.id
+          user_id: goal.user_id
         }));
         
         setSubGoals(formattedData);
@@ -117,7 +116,7 @@ const GoalRow = ({
     }
   };
   
-  // Fetch sub-goals when the component mounts or when user changes
+  // Fetch sub-goals when the component mounts
   useEffect(() => {
     fetchSubGoals();
   }, [id, user]);
