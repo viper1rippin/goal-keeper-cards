@@ -58,11 +58,6 @@ export default {
 					DEFAULT: '#059669',
 					dark: '#047857'
 				},
-				gold: {
-					light: '#fef3c7',
-					DEFAULT: '#fbbf24',
-					dark: '#d97706'
-				},
 				slate: {
 					50: '#f8fafc',
 					100: '#f1f5f9',
@@ -118,15 +113,6 @@ export default {
 				},
 				'shimmer': {
 					'100%': { transform: 'translateX(100%)' }
-				},
-				'gold-sparkle': {
-					'0%': { opacity: '0.1', transform: 'scale(0.95)' },
-					'50%': { opacity: '0.3', transform: 'scale(1)' },
-					'100%': { opacity: '0.1', transform: 'scale(0.95)' }
-				},
-				'wave-motion': {
-					'0%': { backgroundPosition: '0% 0%' },
-					'100%': { backgroundPosition: '100% 100%' }
 				}
 			},
 			animation: {
@@ -136,9 +122,7 @@ export default {
 				'fade-in-delayed': 'fade-in-delayed 0.6s ease-out',
 				'scale-in': 'scale-in 0.2s cubic-bezier(0.23, 1, 0.32, 1)',
 				'slide-up': 'slide-up 0.3s cubic-bezier(0.23, 1, 0.32, 1)',
-				'shimmer': 'shimmer 1.5s infinite',
-				'gold-sparkle': 'gold-sparkle 3s infinite',
-				'wave-motion': 'wave-motion 8s linear infinite'
+				'shimmer': 'shimmer 1.5s infinite'
 			}
 		}
 	},
