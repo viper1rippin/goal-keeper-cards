@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,7 +9,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth(); // Get the current authenticated user
+  const { user } = useAuth();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
@@ -23,11 +24,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
       console.log("Fetching parent goals for user:", user.id);
       
-      // Filter goals by the current user's ID - FIX: Corrected the order syntax
+      // Corrected order syntax - use an object with ascending property
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id) // Filter by user_id
+        .eq('user_id', user.id)
         .order('position', { ascending: true });
       
       if (error) throw error;
@@ -98,7 +99,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('sub_goals')
         .delete()
         .eq('parent_goal_id', id)
-        .eq('user_id', user.id); // Only delete user's own sub-goals
+        .eq('user_id', user.id);
       
       if (subGoalError) throw subGoalError;
       
@@ -107,7 +108,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('parent_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Only delete user's own goal
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
@@ -145,7 +146,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         .from('sub_goals')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Only delete user's own sub-goal
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
