@@ -1,9 +1,13 @@
+import { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
+// Add this import at the top
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 
+// Update the existing component to include logout functionality
 const UserBadge = ({ level }: { level: number }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -16,26 +20,11 @@ const UserBadge = ({ level }: { level: number }) => {
           <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
             {level}
           </div>
-          <span className="text-foreground truncate max-w-[100px]">
+          <span className="text-slate-200 truncate max-w-[100px]">
             {user.email?.split('@')[0] || 'User'}
           </span>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => navigate("/profile")} 
-          className="h-8 px-2"
-          title="Profile"
-        >
-          <User size={16} />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => signOut()} 
-          className="h-8 px-2"
-          title="Logout"
-        >
+        <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-8 px-2">
           <LogOut size={16} />
         </Button>
       </div>
@@ -48,7 +37,7 @@ const UserBadge = ({ level }: { level: number }) => {
       <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
         {level}
       </div>
-      <span className="text-foreground">Guest</span>
+      <span className="text-slate-200">Guest</span>
     </div>
   );
 };

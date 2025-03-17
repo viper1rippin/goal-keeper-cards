@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -23,7 +23,6 @@ export default function LoginForm() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -32,10 +31,6 @@ export default function LoginForm() {
       password: "",
     },
   });
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   const onSubmit = async (values: LoginValues) => {
     setIsLoading(true);
@@ -98,22 +93,9 @@ export default function LoginForm() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type={showPassword ? "text" : "password"}
+                    type="password"
                     placeholder="••••••••"
                     className="pl-10"
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="text-muted-foreground hover:text-foreground"
-                        tabIndex={-1}
-                      >
-                        {showPassword ? 
-                          <EyeOff className="h-4 w-4" /> : 
-                          <Eye className="h-4 w-4" />
-                        }
-                      </button>
-                    }
                     {...field}
                   />
                 </div>

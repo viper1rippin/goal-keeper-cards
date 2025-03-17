@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { 
   UserRound, 
   Settings, 
@@ -10,52 +10,42 @@ import {
   Star, 
   LogOut, 
   ChevronLeft,
-  ChevronRight,
-  Home
+  ChevronRight 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
-interface SidebarProps {
-  onCollapseChange?: (collapsed: boolean) => void;
-}
-
-const Sidebar = ({ onCollapseChange }: SidebarProps) => {
+const Sidebar = () => {
   const { user, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   
   const handleSignOut = async () => {
     await signOut();
     navigate("/login");
   };
 
-  const toggleCollapse = () => {
-    const newCollapsedState = !collapsed;
-    setCollapsed(newCollapsedState);
-    if (onCollapseChange) {
-      onCollapseChange(newCollapsedState);
-    }
-  };
-
   const username = user?.email?.split('@')[0] || 'Guest';
-  const isDarkMode = theme === "dark";
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    // Here you would implement actual dark mode toggle logic
+  };
 
   return (
     <div 
       className={cn(
-        "fixed left-0 top-0 h-screen bg-card z-40 border-r border-border transition-all duration-300",
+        "fixed left-0 top-0 h-screen bg-apple-dark z-40 border-r border-slate-800/80 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Collapse button */}
       <button 
-        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-border"
-        onClick={toggleCollapse}
+        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-slate-800"
+        onClick={() => setCollapsed(!collapsed)}
       >
         {collapsed ? 
           <ChevronRight size={18} className="text-emerald" /> : 
@@ -71,8 +61,8 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           </div>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
-              <p className="text-foreground font-medium truncate">{username}</p>
-              <p className="text-muted-foreground text-sm truncate">Level 10</p>
+              <p className="text-white font-medium truncate">{username}</p>
+              <p className="text-slate-400 text-sm truncate">Level 10</p>
             </div>
           )}
         </div>
@@ -81,16 +71,10 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
         <div className="flex-1">
           <ul className="space-y-2">
             <MenuItem 
-              icon={<Home size={20} />} 
-              label="Home" 
-              collapsed={collapsed} 
-              onClick={() => navigate("/")} 
-            />
-            <MenuItem 
               icon={<UserRound size={20} />} 
               label="Profile" 
               collapsed={collapsed} 
-              onClick={() => navigate("/profile")} 
+              onClick={() => {}} 
             />
             <MenuItem 
               icon={<Settings size={20} />} 
@@ -105,13 +89,14 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
               onClick={() => {}} 
             />
             <MenuItem 
-              icon={isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
+              icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
               label="Night Mode" 
               collapsed={collapsed} 
+              onClick={toggleDarkMode} 
               rightElement={
                 <Switch 
-                  checked={isDarkMode} 
-                  onCheckedChange={toggleTheme} 
+                  checked={darkMode} 
+                  onCheckedChange={toggleDarkMode} 
                   className="ml-auto"
                 />
               }
@@ -131,12 +116,12 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           <Button
             variant="ghost"
             className={cn(
-              "w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted p-2 rounded-lg",
+              "w-full justify-start text-slate-300 hover:text-white hover:bg-muted p-2 rounded-lg",
               collapsed && "justify-center"
             )}
             onClick={handleSignOut}
           >
-            <LogOut size={20} className="text-muted-foreground" />
+            <LogOut size={20} className="text-slate-300" />
             {!collapsed && <span className="ml-3">Logout</span>}
           </Button>
         </div>
@@ -149,22 +134,18 @@ interface MenuItemProps {
   icon: React.ReactNode;
   label: string;
   collapsed: boolean;
-  onClick?: () => void;
+  onClick: () => void;
   rightElement?: React.ReactNode;
   highlight?: boolean;
 }
 
 const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: MenuItemProps) => {
-  // If this item has a rightElement (like a switch), we render a div instead of a button
-  // This fixes the DOM nesting error with buttons inside buttons
-  const ItemWrapper = rightElement ? 'div' : 'button';
-  
   return (
     <li>
-      <ItemWrapper
+      <button
         className={cn(
           "flex items-center w-full p-2 rounded-lg hover:bg-muted transition-colors",
-          highlight ? "text-emerald" : "text-muted-foreground hover:text-foreground"
+          highlight ? "text-emerald" : "text-slate-300 hover:text-white"
         )}
         onClick={onClick}
       >
@@ -182,7 +163,7 @@ const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: 
             {rightElement}
           </div>
         )}
-      </ItemWrapper>
+      </button>
     </li>
   );
 };

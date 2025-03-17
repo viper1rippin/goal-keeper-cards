@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Mail, Lock, UserPlus } from "lucide-react";
 
 const signUpSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -27,8 +27,6 @@ export default function SignUpForm() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -38,14 +36,6 @@ export default function SignUpForm() {
       confirmPassword: "",
     },
   });
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
 
   const onSubmit = async (values: SignUpValues) => {
     setIsLoading(true);
@@ -108,22 +98,9 @@ export default function SignUpForm() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type={showPassword ? "text" : "password"}
+                    type="password"
                     placeholder="••••••••"
                     className="pl-10"
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="text-muted-foreground hover:text-foreground"
-                        tabIndex={-1}
-                      >
-                        {showPassword ? 
-                          <EyeOff className="h-4 w-4" /> : 
-                          <Eye className="h-4 w-4" />
-                        }
-                      </button>
-                    }
                     {...field}
                   />
                 </div>
@@ -142,22 +119,9 @@ export default function SignUpForm() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type={showConfirmPassword ? "text" : "password"}
+                    type="password"
                     placeholder="••••••••"
                     className="pl-10"
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={toggleConfirmPasswordVisibility}
-                        className="text-muted-foreground hover:text-foreground"
-                        tabIndex={-1}
-                      >
-                        {showConfirmPassword ? 
-                          <EyeOff className="h-4 w-4" /> : 
-                          <Eye className="h-4 w-4" />
-                        }
-                      </button>
-                    }
                     {...field}
                   />
                 </div>

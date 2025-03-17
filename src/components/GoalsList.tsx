@@ -40,7 +40,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
   );
 
   return (
-    <AnimatedContainer className="w-full">
+    <AnimatedContainer className="max-w-7xl mx-auto">
       <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -51,7 +51,7 @@ const GoalsList: React.FC<GoalsListProps> = ({
           strategy={verticalListSortingStrategy}
         >
           {parentGoals.map((parentGoal, rowIndex) => (
-            <div key={parentGoal.id} className="relative mb-8 last:mb-0">
+            <div key={parentGoal.id} className="relative">
               <GoalRow
                 id={parentGoal.id}
                 title={parentGoal.title}

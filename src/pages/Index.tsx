@@ -1,6 +1,7 @@
 
 import React from "react";
 import { IndexPageProvider } from "@/components/index/IndexPageContext";
+import IndexHeader from "@/components/index/IndexHeader";
 import GoalsContent from "@/components/index/GoalsContent";
 import DialogManager from "@/components/index/DialogManager";
 import Footer from "@/components/Footer";
@@ -22,12 +23,11 @@ const Index = () => {
 
   return (
     <IndexPageProvider>
-      <div className="min-h-screen flex bg-apple-dark">
-        <Sidebar onCollapseChange={setSidebarCollapsed} />
-        <div className={`transition-all duration-300 flex-1 flex flex-col ${sidebarCollapsed ? "ml-16" : "ml-64"}`}>
-          <div className="flex-1 flex flex-col items-center">
-            <GoalsContent />
-          </div>
+      <div className="min-h-screen flex flex-col bg-apple-dark">
+        <Sidebar />
+        <div className={`ml-0 md:ml-16 transition-all duration-300 flex-1 flex flex-col`}>
+          <IndexHeader />
+          <GoalsContent />
           <Footer />
           <DialogManager />
         </div>
