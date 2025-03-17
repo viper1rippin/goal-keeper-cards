@@ -1,0 +1,48 @@
+
+import { Award, Shield, Sword, Trophy, Crown, Target, Flag } from "lucide-react";
+
+export interface Badge {
+  name: string;
+  level: number;
+  icon: typeof Award;
+  color: string;
+}
+
+// Badge definitions based on user levels
+export const badges: Badge[] = [
+  { name: "Soldier", level: 10, icon: Target, color: "from-blue-400 to-blue-600" },
+  { name: "Knight", level: 20, icon: Sword, color: "from-emerald to-green-600" },
+  { name: "Elite Knight", level: 45, icon: Shield, color: "from-purple-400 to-purple-600" },
+  { name: "General", level: 70, icon: Trophy, color: "from-yellow-400 to-yellow-600" },
+  { name: "Commander", level: 100, icon: Award, color: "from-orange-400 to-orange-600" },
+  { name: "King", level: 120, icon: Crown, color: "from-pink-400 to-pink-600" },
+  { name: "Emperor", level: 200, icon: Flag, color: "from-red-400 to-red-600" }
+];
+
+// Get current badge based on user level
+export const getCurrentBadge = (level: number): Badge => {
+  // Find the highest badge the user qualifies for
+  for (let i = badges.length - 1; i >= 0; i--) {
+    if (level >= badges[i].level) {
+      return badges[i];
+    }
+  }
+  // Default badge if below all levels
+  return { name: "Beginner", level: 0, icon: Target, color: "from-slate-400 to-slate-600" };
+};
+
+// Get next badge based on user level
+export const getNextBadge = (level: number): Badge | null => {
+  // Find the next badge the user is working towards
+  for (let i = 0; i < badges.length; i++) {
+    if (level < badges[i].level) {
+      return badges[i];
+    }
+  }
+  // No next badge if user has reached the highest level
+  return null;
+};
+
+// Update the calculation for how many points needed for next level
+// Each level requires 24 hours (1440 minutes) of focus time
+export const POINTS_FOR_LEVEL_UP = 1440;

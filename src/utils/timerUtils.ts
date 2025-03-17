@@ -1,11 +1,13 @@
 
 // Constants for level calculations
+import { POINTS_FOR_LEVEL_UP } from "./badgeUtils";
+
 export const POINTS_PER_MINUTE = 1;
 
 // Calculate points needed for next level
 export const getPointsForNextLevel = (level: number): number => {
   // Each level requires 24 hours (1440 minutes) of focus time
-  return 1440;
+  return POINTS_FOR_LEVEL_UP;
 };
 
 // Format time as HH:MM:SS
