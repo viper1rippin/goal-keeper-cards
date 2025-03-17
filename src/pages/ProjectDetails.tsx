@@ -37,7 +37,6 @@ const ProjectDetails = () => {
           .from('sub_goals')
           .select('*')
           .eq('id', id)
-          .eq('user_id', user.id)
           .single();
           
         if (subGoalError || !subGoalData) {
@@ -46,13 +45,13 @@ const ProjectDetails = () => {
           return;
         }
         
-        // Format the goal data
+        // Format the goal data - make sure user_id is included
         const formattedGoal: Goal = {
           id: subGoalData.id,
           title: subGoalData.title,
           description: subGoalData.description || "",
           progress: subGoalData.progress || 0,
-          user_id: subGoalData.user_id
+          user_id: user.id // Add user_id here
         };
         
         setProject(formattedGoal);
