@@ -74,17 +74,17 @@ const Header = ({
             
             {user ? (
               <Button 
-                variant={activeGoal ? "default" : "outline"}
+                variant={showFocusTimer ? "default" : "outline"}
                 size="sm"
                 onClick={handleTimerToggle}
                 className={cn(
-                  activeGoal 
+                  showFocusTimer 
                     ? "bg-emerald hover:bg-emerald-dark" 
                     : "border-emerald/20 hover:border-emerald/40"
                 )}
               >
                 <Timer className="mr-2" size={16} />
-                {activeGoal ? "Focusing" : "Focus"}
+                {showFocusTimer ? "Focusing" : "Focus"}
               </Button>
             ) : (
               <div className="flex items-center space-x-3">

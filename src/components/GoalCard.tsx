@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
@@ -105,7 +104,7 @@ const GoalCard = ({
     }
   }, [isActiveFocus]);
 
-  // Handle card click - modified to go to detail page instead of starting timer
+  // Handle card click - only select the goal, don't start timer
   const handleClick = () => {
     onFocus(); // Keep the focus state toggling
     
