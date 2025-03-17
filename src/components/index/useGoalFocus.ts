@@ -35,11 +35,11 @@ export function useGoalFocus() {
     // Save current scroll position before changing state
     const scrollPosition = window.scrollY;
     
-    // Set the active goal - but don't show the timer or set it as focused
-    setActiveGoal(null); // First set to null to clear any existing active goal
-    setActiveGoalIndices(null); // Clear active indices
+    // Set the active goal - but don't show the timer
+    setActiveGoal(goal);
+    setActiveGoalIndices({ rowIndex, goalIndex });
     
-    // Note: We removed auto-focusing completely to stop focus timer behavior
+    // Note: We removed setShowFocusTimer(true) to stop auto-starting the timer
     
     // Restore scroll position after state updates
     setTimeout(() => {
@@ -48,13 +48,6 @@ export function useGoalFocus() {
         behavior: "auto"
       });
     }, 0);
-    
-    // Show toast notification for future feature
-    toast({
-      title: "Project Detail View",
-      description: "This feature will be implemented soon.",
-      variant: "default",
-    });
   };
   
   // Handle starting focus explicitly (for timer button)
@@ -77,7 +70,7 @@ export function useGoalFocus() {
     showFocusTimer,
     setShowFocusTimer,
     handleGoalFocus,
-    handleStartFocus, // Explicit method to start timer
+    handleStartFocus, // New explicit method to start timer
     handleStopFocus,
     setActiveGoalIndices  // Export this function so it can be used in IndexPageContext
   };
