@@ -8,7 +8,6 @@ import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
-import { useAuth } from '@/context/AuthContext';
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -39,7 +38,6 @@ const SubGoalDialog = ({
   onDelete
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const { user } = useAuth();
   
   // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
@@ -62,15 +60,6 @@ const SubGoalDialog = ({
 
   // Handle form submission
   const onSubmit = async (values: SubGoalFormValues) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "You must be logged in to manage goals.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       await saveSubGoal(values);
       form.reset();
@@ -85,8 +74,6 @@ const SubGoalDialog = ({
   };
 
   const saveSubGoal = async (values: SubGoalFormValues) => {
-    if (!user) return;
-
     // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
@@ -94,18 +81,6 @@ const SubGoalDialog = ({
       description: values.description,
       progress: subGoalToEdit?.progress || 0
     };
-    
-    // Verify the parent goal belongs to the current user
-    const { data: parentGoal, error: parentError } = await supabase
-      .from('parent_goals')
-      .select('id')
-      .eq('id', parentGoalId)
-      .eq('user_id', user.id)
-      .single();
-    
-    if (parentError || !parentGoal) {
-      throw new Error("You don't have permission to modify this goal");
-    }
     
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
@@ -133,8 +108,6 @@ const SubGoalDialog = ({
 
   // Handle delete sub-goal
   const handleDeleteSubGoal = async () => {
-    if (!user) return;
-    
     if (subGoalToEdit?.id && onDelete) {
       try {
         await onDelete(subGoalToEdit.id);

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-export interface DeleteParentGoalDialogProps {
+interface DeleteParentGoalDialogProps {
   title: string;
   onDelete: () => Promise<void>;
 }
