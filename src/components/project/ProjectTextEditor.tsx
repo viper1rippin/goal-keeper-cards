@@ -24,7 +24,16 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
   // Initialize the editor
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
       Placeholder.configure({
         placeholder: 'Start writing your project notes here...',
       }),
@@ -35,6 +44,9 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
     },
     autofocus: false,
     editable: true,
+    parseOptions: {
+      preserveWhitespace: 'full',
+    },
   });
 
   // Load saved content when component mounts
@@ -205,7 +217,7 @@ export const ProjectTextEditor = ({ projectId, userId }: ProjectTextEditorProps)
       </CardHeader>
       <CardContent className="p-0">
         <div className="min-h-[300px] max-h-[600px] overflow-y-auto p-6 prose prose-invert prose-emerald max-w-none w-full">
-          <EditorContent editor={editor} className="outline-none" />
+          <EditorContent editor={editor} className="outline-none tiptap-editor" />
         </div>
       </CardContent>
     </Card>
