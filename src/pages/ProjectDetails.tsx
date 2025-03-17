@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Goal } from "@/components/GoalRow";
 import ProjectHeader from "@/components/project/ProjectHeader";
 import ZodiacMindMap from "@/components/project/ZodiacMindMap";
+import { ProjectTextEditor } from "@/components/project/ProjectTextEditor";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AnimatedContainer from "@/components/AnimatedContainer";
@@ -104,6 +105,13 @@ const ProjectDetails = () => {
         <div className="mt-12">
           <ZodiacMindMap projectId={project.id as string} />
         </div>
+        
+        {user && (
+          <ProjectTextEditor 
+            projectId={project.id as string} 
+            userId={user.id} 
+          />
+        )}
       </div>
     </AnimatedContainer>
   );
