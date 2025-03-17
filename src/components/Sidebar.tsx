@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -17,7 +16,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
-const Sidebar = () => {
+interface SidebarProps {
+  onCollapseChange?: (collapsed: boolean) => void;
+}
+
+const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -26,6 +29,14 @@ const Sidebar = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/login");
+  };
+
+  const toggleCollapse = () => {
+    const newCollapsedState = !collapsed;
+    setCollapsed(newCollapsedState);
+    if (onCollapseChange) {
+      onCollapseChange(newCollapsedState);
+    }
   };
 
   const username = user?.email?.split('@')[0] || 'Guest';
@@ -45,7 +56,7 @@ const Sidebar = () => {
       {/* Collapse button */}
       <button 
         className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-slate-800"
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={toggleCollapse}
       >
         {collapsed ? 
           <ChevronRight size={18} className="text-emerald" /> : 
