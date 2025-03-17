@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -9,12 +10,14 @@ import {
   Star, 
   LogOut, 
   ChevronLeft,
-  ChevronRight 
+  ChevronRight,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -66,10 +69,13 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
 
       <div className="flex flex-col h-full p-4">
         {/* User profile section at top */}
-        <div className="flex items-center mb-6 mt-2">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald to-emerald-light flex items-center justify-center text-white text-xl font-bold">
-            {username.charAt(0).toUpperCase()}
-          </div>
+        <div className="flex items-center mb-6 mt-2 cursor-pointer" onClick={() => navigate('/profile')}>
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback className="bg-gradient-to-r from-emerald to-emerald-light text-white text-xl font-bold">
+              {username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
               <p className="text-white font-medium truncate">{username}</p>
@@ -82,10 +88,16 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
         <div className="flex-1">
           <ul className="space-y-2">
             <MenuItem 
+              icon={<Home size={20} />} 
+              label="Home" 
+              collapsed={collapsed} 
+              onClick={() => navigate('/')} 
+            />
+            <MenuItem 
               icon={<UserRound size={20} />} 
               label="Profile" 
               collapsed={collapsed} 
-              onClick={() => {}} 
+              onClick={() => navigate('/profile')} 
             />
             <MenuItem 
               icon={<Settings size={20} />} 
