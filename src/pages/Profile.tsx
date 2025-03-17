@@ -93,7 +93,7 @@ const Profile = () => {
         .from('profiles')
         .update({
           avatar_url: data.publicUrl,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
       
@@ -146,7 +146,7 @@ const Profile = () => {
         .from('profiles')
         .update({
           display_name: displayName,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
       
@@ -327,72 +327,72 @@ const Profile = () => {
                     <label htmlFor="currentPassword" className="text-sm font-medium">
                       Current Password
                     </label>
-                    <Input
-                      id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
-                      rightElement={
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          type="button"
-                          className="h-full px-2 py-0"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        >
-                          {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </Button>
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        id="currentPassword"
+                        type={showCurrentPassword ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        type="button"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      >
+                        {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label htmlFor="newPassword" className="text-sm font-medium">
                       New Password
                     </label>
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                      rightElement={
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          type="button"
-                          className="h-full px-2 py-0"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                        >
-                          {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </Button>
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        type="button"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label htmlFor="confirmPassword" className="text-sm font-medium">
                       Confirm New Password
                     </label>
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                      rightElement={
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          type="button"
-                          className="h-full px-2 py-0"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        >
-                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </Button>
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        type="button"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </Button>
+                    </div>
                   </div>
                   
                   <Button

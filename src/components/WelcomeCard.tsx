@@ -1,9 +1,10 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Timer } from "lucide-react";
 import AnimatedContainer from "./AnimatedContainer";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WelcomeCardProps {
   onAddGoal: () => void;
@@ -13,7 +14,53 @@ interface WelcomeCardProps {
 
 const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer, showFocusTimer }) => {
   const { user } = useAuth();
-  const username = user?.email?.split('@')[0] || 'Guest';
+  const [displayName, setDisplayName] = useState<string>("");
+  
+  useEffect(() => {
+    if (user) {
+      // Initial fetch
+      const fetchProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (data && data.display_name) {
+          setDisplayName(data.display_name);
+        } else {
+          setDisplayName(user.email?.split('@')[0] || 'Guest');
+        }
+      };
+      
+      fetchProfile();
+      
+      // Subscribe to changes
+      const channel = supabase
+        .channel('welcome-profile-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new && payload.new.display_name) {
+              setDisplayName(payload.new.display_name);
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
+  
+  const username = displayName || user?.email?.split('@')[0] || 'Guest';
   
   return (
     <AnimatedContainer className="w-full mb-8">

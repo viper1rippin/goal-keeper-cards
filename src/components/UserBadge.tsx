@@ -30,6 +30,31 @@ const UserBadge = ({ level }: { level: number }) => {
       };
       
       fetchProfile();
+      
+      // Subscribe to changes in the profiles table for this user
+      const channel = supabase
+        .channel('profile-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Profile updated:', payload);
+            if (payload.new) {
+              setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
+              setAvatarUrl(payload.new.avatar_url);
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
   
