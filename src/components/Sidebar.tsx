@@ -48,13 +48,17 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   return (
     <div 
       className={cn(
-        "fixed left-0 top-0 h-screen bg-card z-40 border-r border-border transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+        "fixed left-0 top-0 h-screen z-40 border-r border-border transition-all duration-300",
+        collapsed ? "w-16" : "w-64",
+        isDarkMode ? "bg-card" : "bg-white/80 backdrop-blur-sm"
       )}
     >
       {/* Collapse button */}
       <button 
-        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-border"
+        className={cn(
+          "absolute -right-3 top-6 p-1 rounded-full border border-border",
+          isDarkMode ? "glass-card" : "bg-white/80 backdrop-blur-sm shadow-md"
+        )}
         onClick={toggleCollapse}
       >
         {collapsed ? 
@@ -155,8 +159,6 @@ interface MenuItemProps {
 }
 
 const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: MenuItemProps) => {
-  // If this item has a rightElement (like a switch), we render a div instead of a button
-  // This fixes the DOM nesting error with buttons inside buttons
   const ItemWrapper = rightElement ? 'div' : 'button';
   
   return (
