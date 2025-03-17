@@ -23,9 +23,9 @@ const Index = () => {
 
   return (
     <IndexPageProvider>
-      <div className="min-h-screen flex flex-col bg-apple-dark">
-        <Sidebar />
-        <div className={`ml-0 md:ml-16 transition-all duration-300 flex-1 flex flex-col`}>
+      <div className="min-h-screen flex bg-apple-dark">
+        <Sidebar onCollapseChange={setSidebarCollapsed} />
+        <div className={`transition-all duration-300 flex-1 flex flex-col ${sidebarCollapsed ? "ml-16" : "ml-64"}`}>
           <IndexHeader />
           <GoalsContent />
           <Footer />
