@@ -1,14 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
+import { SubGoal, SubGoalData, SubGoalFormValues } from '@/types/goal-types';
 
 // Form validation schema
 const subGoalSchema = z.object({
@@ -16,20 +15,11 @@ const subGoalSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
-
-// Define a simpler type for SubGoal data to avoid deep nesting
-export interface SubGoalData {
-  id?: string;
-  title: string;
-  description: string;
-}
-
 interface SubGoalDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (goal: SubGoalData) => void;
-  subGoalToEdit: Goal | null;
+  subGoalToEdit: SubGoal | null;
   parentGoalTitle: string;
   parentGoalId: string;
   onDelete?: (subGoalId: string) => Promise<void>;
@@ -175,3 +165,4 @@ const SubGoalDialog = ({
 };
 
 export default SubGoalDialog;
+export type { SubGoalData, SubGoalFormValues };

@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { Goal } from './GoalRow';
 import SubGoalDialog, { SubGoalData } from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -8,15 +7,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
+import { SubGoal } from '@/types/goal-types';
 
 interface SubGoalsSectionProps {
-  subGoals: Goal[];
+  subGoals: SubGoal[];
   parentTitle: string;
   parentId: string;
   rowIndex: number;
   activeGoal?: {rowIndex: number, goalIndex: number} | null;
-  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
-  onUpdateSubGoals: (updatedGoals: Goal[]) => void;
+  onGoalFocus: (goal: SubGoal, rowIndex: number, goalIndex: number) => void;
+  onUpdateSubGoals: (updatedGoals: SubGoal[]) => void;
   onDeleteSubGoal: (subGoalId: string) => Promise<void>;
   isLoading: boolean;
 }
@@ -34,11 +34,11 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 }) => {
   const { toast } = useToast();
   
-  const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
+  const [activeSubGoal, setActiveSubGoal] = useState<SubGoal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
   
   const [isSubGoalDialogOpen, setIsSubGoalDialogOpen] = useState(false);
-  const [subGoalToEdit, setSubGoalToEdit] = useState<Goal | null>(null);
+  const [subGoalToEdit, setSubGoalToEdit] = useState<SubGoal | null>(null);
   const [editingGoalIndex, setEditingGoalIndex] = useState<number | null>(null);
   
   const [subGoalToDelete, setSubGoalToDelete] = useState<string | null>(null);
@@ -50,7 +50,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     setIsSubGoalDialogOpen(true);
   };
   
-  const handleEditSubGoal = (goal: Goal, index: number) => {
+  const handleEditSubGoal = (goal: SubGoal, index: number) => {
     setSubGoalToEdit(goal);
     setEditingGoalIndex(index);
     setIsSubGoalDialogOpen(true);
@@ -104,7 +104,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     setActiveSubGoalId(null);
   };
   
-  const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
+  const saveSubGoalOrder = async (updatedSubGoals: SubGoal[]) => {
     try {
       for (let i = 0; i < updatedSubGoals.length; i++) {
         if (updatedSubGoals[i].id) {

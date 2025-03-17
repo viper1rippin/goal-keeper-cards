@@ -5,15 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
-import { Goal } from '../GoalRow';
-import { SubGoalFormValues } from '../SubGoalDialog';
+import { SubGoal, SubGoalFormValues } from '@/types/goal-types';
 import { Trash2 } from "lucide-react";
 
 interface SubGoalFormProps {
   form: UseFormReturn<SubGoalFormValues>;
   onSubmit: (values: SubGoalFormValues) => Promise<void>;
   onClose: () => void;
-  subGoalToEdit: Goal | null;
+  subGoalToEdit: SubGoal | null;
   onDelete?: () => Promise<void>;
 }
 
