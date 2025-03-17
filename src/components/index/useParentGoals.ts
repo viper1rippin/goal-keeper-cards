@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -24,13 +23,12 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
       console.log("Fetching parent goals for user:", user.id);
       
-      // Filter goals by the current user's ID
+      // Filter goals by the current user's ID - FIX: Corrected the order syntax
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
         .eq('user_id', user.id) // Filter by user_id
-        .order('position', { ascending: true })
-        .order('created_at', { ascending: false });
+        .order('position', { ascending: true });
       
       if (error) throw error;
       
