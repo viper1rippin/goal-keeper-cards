@@ -4,7 +4,7 @@ import { IndexPageProvider } from "@/components/index/IndexPageContext";
 import GoalsContent from "@/components/index/GoalsContent";
 import DialogManager from "@/components/index/DialogManager";
 import Footer from "@/components/Footer";
-import { Sidebar } from "@/components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 import { useAuth } from "@/context/AuthContext";
 
 const Index = () => {
@@ -23,7 +23,7 @@ const Index = () => {
   return (
     <IndexPageProvider>
       <div className="min-h-screen flex bg-apple-dark">
-        <Sidebar />
+        <Sidebar onCollapseChange={setSidebarCollapsed} />
         <div className={`transition-all duration-300 flex-1 flex flex-col ${sidebarCollapsed ? "ml-16" : "ml-64"}`}>
           <div className="flex-1 flex flex-col items-center">
             <GoalsContent />

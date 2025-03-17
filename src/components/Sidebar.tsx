@@ -1,148 +1,194 @@
 
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { 
+  UserRound, 
+  Settings, 
+  Palette, 
+  Moon, 
+  Sun, 
+  Star, 
+  LogOut, 
+  ChevronLeft,
+  ChevronRight,
+  Home
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { PanelLeft, X, LogOut, UserCircle } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthContext";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function Sidebar() {
+interface SidebarProps {
+  onCollapseChange?: (collapsed: boolean) => void;
+}
+
+const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { user, signOut } = useAuth();
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   
-  // Helper function to determine if a link is active
-  const isActive = (path: string) => {
-    return location.pathname === path;
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
   };
-  
+
+  const toggleCollapse = () => {
+    const newCollapsedState = !collapsed;
+    setCollapsed(newCollapsedState);
+    if (onCollapseChange) {
+      onCollapseChange(newCollapsedState);
+    }
+  };
+
+  const username = user?.email?.split('@')[0] || 'Guest';
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    // Here you would implement actual dark mode toggle logic
+  };
+
   return (
-    <aside className={cn(
-      "border-r border-slate-800 bg-slate-900 h-screen flex flex-col",
-      "transition-all duration-300 z-20",
-      isMobile ? (open ? "w-72 absolute inset-y-0 left-0" : "w-0") : "w-16 hover:w-72"
-    )}>
-      {/* Menu toggle button for mobile */}
-      {isMobile && (
-        <Button
-          onClick={() => setOpen(!open)}
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "absolute top-3 -right-12 z-20",
-            open ? "hidden" : "block"
-          )}
-        >
-          <PanelLeft className="h-5 w-5" />
-        </Button>
+    <div 
+      className={cn(
+        "fixed left-0 top-0 h-screen bg-apple-dark z-40 border-r border-slate-800/80 transition-all duration-300",
+        collapsed ? "w-16" : "w-64"
       )}
-      
-      {/* Close button for mobile sidebar */}
-      {isMobile && open && (
-        <Button
-          onClick={() => setOpen(false)}
-          variant="ghost"
-          size="icon"
-          className="absolute top-3 right-3"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-      )}
-      
-      <div className={cn(
-        "flex-1 flex flex-col px-2 pt-5 pb-4 overflow-y-auto",
-        isMobile && !open && "hidden"
-      )}>
-        <div className="flex items-center flex-shrink-0 px-4 mb-5">
-          <img 
-            className="h-8 w-auto" 
-            src="/placeholder.svg" 
-            alt="Logo" 
-          />
-          <span className={cn(
-            "ml-3 font-semibold text-xl text-white transition-opacity duration-300",
-            isMobile ? "" : "opacity-0 group-hover:opacity-100"
-          )}>
-            Zodiac
-          </span>
-        </div>
-        
-        <nav className="flex-1 space-y-1 mt-5">
-          <NavLink 
-            to="/"
-            className={({ isActive }) => cn(
-              "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition",
-              isActive 
-                ? "bg-emerald/10 text-emerald"
-                : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-          >
-            <svg className="h-5 w-5 mr-4" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>  <path d="M5 12l-2 0l9 -9l9 9l-2 0" />  <path d="M5 12c0 2.5 4 7 9 7s9 -4.5 9 -7" /></svg>
-            <span className={cn(
-              "transition-opacity duration-300",
-              isMobile ? "" : "opacity-0 group-hover:opacity-100"
-            )}>
-              Dashboard
-            </span>
-          </NavLink>
-          
-          <NavLink 
-            to="/projects/test-project"
-            className={({ isActive }) => cn(
-              "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition",
-              isActive 
-                ? "bg-emerald/10 text-emerald"
-                : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            )}
-          >
-            <svg className="h-5 w-5 mr-4" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>  <path d="M9 3l0 7l3 -3l3 3l0 -7" />  <path d="M15 13l0 7l-3 -3l-3 3l0 -7" />  <path d="M6 13l0 7l-3 -3l-3 3l0 -7" /></svg>
-            <span className={cn(
-              "transition-opacity duration-300",
-              isMobile ? "" : "opacity-0 group-hover:opacity-100"
-            )}>
-              Projects
-            </span>
-          </NavLink>
-          
-          {/* User section in sidebar */}
-          {user && (
-            <div className="mt-auto pt-4 border-t border-slate-800">
-              <NavLink 
-                to="/profile"
-                className={({ isActive }) => cn(
-                  "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition",
-                  isActive 
-                    ? "bg-emerald/10 text-emerald"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                )}
-              >
-                <UserCircle className="h-5 w-5 mr-4" />
-                <span className={cn(
-                  "transition-opacity duration-300",
-                  isMobile ? "" : "opacity-0 group-hover:opacity-100"
-                )}>
-                  Profile Settings
-                </span>
-              </NavLink>
-              
-              <button
-                onClick={signOut}
-                className="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md text-slate-400 hover:bg-slate-800 hover:text-white transition"
-              >
-                <LogOut className="h-5 w-5 mr-4" />
-                <span className={cn(
-                  "transition-opacity duration-300",
-                  isMobile ? "" : "opacity-0 group-hover:opacity-100"
-                )}>
-                  Logout
-                </span>
-              </button>
+    >
+      {/* Collapse button */}
+      <button 
+        className="absolute -right-3 top-6 glass-card z-50 p-1 rounded-full border border-slate-800"
+        onClick={toggleCollapse}
+      >
+        {collapsed ? 
+          <ChevronRight size={18} className="text-emerald" /> : 
+          <ChevronLeft size={18} className="text-emerald" />
+        }
+      </button>
+
+      <div className="flex flex-col h-full p-4">
+        {/* User profile section at top */}
+        <div className="flex items-center mb-6 mt-2 cursor-pointer" onClick={() => navigate('/profile')}>
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback className="bg-gradient-to-r from-emerald to-emerald-light text-white text-xl font-bold">
+              {username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="ml-3 overflow-hidden">
+              <p className="text-white font-medium truncate">{username}</p>
+              <p className="text-slate-400 text-sm truncate">Level 10</p>
             </div>
           )}
-        </nav>
+        </div>
+
+        {/* Menu items */}
+        <div className="flex-1">
+          <ul className="space-y-2">
+            <MenuItem 
+              icon={<Home size={20} />} 
+              label="Home" 
+              collapsed={collapsed} 
+              onClick={() => navigate('/')} 
+            />
+            <MenuItem 
+              icon={<UserRound size={20} />} 
+              label="Profile" 
+              collapsed={collapsed} 
+              onClick={() => navigate('/profile')} 
+            />
+            <MenuItem 
+              icon={<Settings size={20} />} 
+              label="Settings" 
+              collapsed={collapsed} 
+              onClick={() => {}} 
+            />
+            <MenuItem 
+              icon={<Palette size={20} />} 
+              label="Custom Themes" 
+              collapsed={collapsed} 
+              onClick={() => {}} 
+            />
+            <MenuItem 
+              icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
+              label="Night Mode" 
+              collapsed={collapsed} 
+              onClick={toggleDarkMode} 
+              rightElement={
+                <Switch 
+                  checked={darkMode} 
+                  onCheckedChange={toggleDarkMode} 
+                  className="ml-auto"
+                />
+              }
+            />
+            <MenuItem 
+              icon={<Star size={20} />} 
+              label="Upgrade" 
+              collapsed={collapsed} 
+              onClick={() => {}}
+              highlight
+            />
+          </ul>
+        </div>
+
+        {/* Logout at bottom */}
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start text-slate-300 hover:text-white hover:bg-muted p-2 rounded-lg",
+              collapsed && "justify-center"
+            )}
+            onClick={handleSignOut}
+          >
+            <LogOut size={20} className="text-slate-300" />
+            {!collapsed && <span className="ml-3">Logout</span>}
+          </Button>
+        </div>
       </div>
-    </aside>
+    </div>
   );
+};
+
+interface MenuItemProps {
+  icon: React.ReactNode;
+  label: string;
+  collapsed: boolean;
+  onClick: () => void;
+  rightElement?: React.ReactNode;
+  highlight?: boolean;
 }
+
+const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: MenuItemProps) => {
+  return (
+    <li>
+      <button
+        className={cn(
+          "flex items-center w-full p-2 rounded-lg hover:bg-muted transition-colors",
+          highlight ? "text-emerald" : "text-slate-300 hover:text-white"
+        )}
+        onClick={onClick}
+      >
+        <span className={cn(
+          "flex items-center justify-center",
+          highlight && "text-emerald"
+        )}>
+          {icon}
+        </span>
+        {!collapsed && (
+          <div className="flex items-center w-full ml-3">
+            <span className={cn(
+              highlight && "text-emerald font-medium"
+            )}>{label}</span>
+            {rightElement}
+          </div>
+        )}
+      </button>
+    </li>
+  );
+};
+
+export default Sidebar;
