@@ -1,9 +1,8 @@
 
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
-import { useAuth } from "@/context/AuthContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -18,19 +17,7 @@ const ParentGoalDialog = ({
   goalToEdit,
   onGoalSaved
 }: ParentGoalDialogProps) => {
-  const { toast } = useToast();
-  const { user } = useAuth(); // Get current user
-
   const handleSubmit = async (values: { title: string; description: string }) => {
-    if (!user) {
-      toast({ 
-        title: "Authentication error",
-        description: "You must be logged in to create goals.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     try {
       if (goalToEdit?.id) {
         // Update existing goal
@@ -41,8 +28,7 @@ const ParentGoalDialog = ({
             description: values.description,
             updated_at: new Date().toISOString()
           })
-          .eq('id', goalToEdit.id)
-          .eq('user_id', user.id); // Ensure user can only update their own goals
+          .eq('id', goalToEdit.id);
 
         if (error) throw error;
         toast({ 
@@ -55,8 +41,7 @@ const ParentGoalDialog = ({
           .from('parent_goals')
           .insert([{
             title: values.title,
-            description: values.description,
-            user_id: user.id // Associate goal with current user
+            description: values.description
           }]);
 
         if (error) throw error;
@@ -80,7 +65,7 @@ const ParentGoalDialog = ({
   };
 
   const handleDelete = async () => {
-    if (!user || !goalToEdit?.id) return;
+    if (!goalToEdit?.id) return;
     
     try {
       // First delete all sub-goals associated with this parent goal
@@ -95,8 +80,7 @@ const ParentGoalDialog = ({
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', goalToEdit.id)
-        .eq('user_id', user.id); // Ensure user can only delete their own goals
+        .eq('id', goalToEdit.id);
       
       if (error) throw error;
       
