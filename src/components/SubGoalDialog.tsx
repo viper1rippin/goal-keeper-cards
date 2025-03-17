@@ -15,11 +15,8 @@ const subGoalSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-// Explicitly define form values type to avoid deep nesting
-interface FormValues {
-  title: string;
-  description: string;
-}
+// Define form values type directly without nesting
+type FormValues = z.infer<typeof subGoalSchema>;
 
 interface SubGoalDialogProps {
   isOpen: boolean;

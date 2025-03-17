@@ -17,15 +17,12 @@ interface DeleteSubGoalDialogProps {
   onConfirm: () => Promise<void>;
 }
 
-const DeleteSubGoalDialog: React.FC<DeleteSubGoalDialogProps> = ({
-  isOpen,
-  onClose,
-  onConfirm
-}) => {
+// Remove React.FC to prevent deep type instantiation
+const DeleteSubGoalDialog = ({ isOpen, onClose, onConfirm }: DeleteSubGoalDialogProps) => {
   return (
     <AlertDialog 
       open={isOpen} 
-      onOpenChange={(open) => !open && onClose()}
+      onOpenChange={onClose}
     >
       <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
         <AlertDialogHeader>
@@ -41,7 +38,9 @@ const DeleteSubGoalDialog: React.FC<DeleteSubGoalDialogProps> = ({
           </AlertDialogCancel>
           <AlertDialogAction 
             className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={onConfirm}
+            onClick={() => { 
+              void onConfirm(); // Properly handle the promise
+            }}
           >
             Delete
           </AlertDialogAction>
