@@ -10,7 +10,8 @@ import {
   Star, 
   LogOut, 
   ChevronLeft,
-  ChevronRight 
+  ChevronRight,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -80,6 +81,12 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
         <div className="flex-1">
           <ul className="space-y-2">
             <MenuItem 
+              icon={<Home size={20} />} 
+              label="Home" 
+              collapsed={collapsed} 
+              onClick={() => navigate("/")} 
+            />
+            <MenuItem 
               icon={<UserRound size={20} />} 
               label="Profile" 
               collapsed={collapsed} 
@@ -101,7 +108,6 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
               icon={isDarkMode ? <Sun size={20} /> : <Moon size={20} />} 
               label="Night Mode" 
               collapsed={collapsed} 
-              onClick={toggleTheme} 
               rightElement={
                 <Switch 
                   checked={isDarkMode} 
@@ -143,15 +149,19 @@ interface MenuItemProps {
   icon: React.ReactNode;
   label: string;
   collapsed: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   rightElement?: React.ReactNode;
   highlight?: boolean;
 }
 
 const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: MenuItemProps) => {
+  // If this item has a rightElement (like a switch), we render a div instead of a button
+  // This fixes the DOM nesting error with buttons inside buttons
+  const ItemWrapper = rightElement ? 'div' : 'button';
+  
   return (
     <li>
-      <button
+      <ItemWrapper
         className={cn(
           "flex items-center w-full p-2 rounded-lg hover:bg-muted transition-colors",
           highlight ? "text-emerald" : "text-muted-foreground hover:text-foreground"
@@ -172,7 +182,7 @@ const MenuItem = ({ icon, label, collapsed, onClick, rightElement, highlight }: 
             {rightElement}
           </div>
         )}
-      </button>
+      </ItemWrapper>
     </li>
   );
 };
