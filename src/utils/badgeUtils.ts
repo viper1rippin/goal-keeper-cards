@@ -1,5 +1,5 @@
 
-import { Award, Shield, Sword, Trophy, Crown, Target, Flag, UserRound } from "lucide-react";
+import { Award, Shield, Sword, Trophy, Crown, Target, Flag, UserRound, Star } from "lucide-react";
 
 export interface Badge {
   name: string;
@@ -19,6 +19,14 @@ export const badges: Badge[] = [
   { name: "King", level: 120, icon: Crown, color: "from-pink-400 to-pink-600" },
   { name: "Emperor", level: 200, icon: Flag, color: "from-red-400 to-red-600" }
 ];
+
+// Special premium badge
+export const patriotBadge: Badge = {
+  name: "Patriot",
+  level: 1, // Available at any level for premium users
+  icon: Star,
+  color: "from-gold-400 to-amber-600" // Special gold gradient for premium users
+};
 
 // Get current badge based on user level
 export const getCurrentBadge = (level: number): Badge => {

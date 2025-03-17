@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Home,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import SidebarMenuItem from "./SidebarMenuItem";
+import PremiumDialog from "../premium/PremiumDialog";
 
 interface SidebarMenuProps {
   collapsed: boolean;
@@ -22,54 +23,62 @@ interface SidebarMenuProps {
 
 const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) => {
   const navigate = useNavigate();
+  const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
   
   return (
-    <ul className="space-y-2">
-      <SidebarMenuItem 
-        icon={<Home size={20} />} 
-        label="Home" 
-        collapsed={collapsed} 
-        onClick={() => navigate('/')} 
+    <>
+      <ul className="space-y-2">
+        <SidebarMenuItem 
+          icon={<Home size={20} />} 
+          label="Home" 
+          collapsed={collapsed} 
+          onClick={() => navigate('/')} 
+        />
+        <SidebarMenuItem 
+          icon={<UserRound size={20} />} 
+          label="Profile" 
+          collapsed={collapsed} 
+          onClick={() => navigate('/profile')} 
+        />
+        <SidebarMenuItem 
+          icon={<Award size={20} />} 
+          label="Progress" 
+          collapsed={collapsed} 
+          onClick={() => navigate('/progress')} 
+        />
+        <SidebarMenuItem 
+          icon={<Palette size={20} />} 
+          label="Custom Themes" 
+          collapsed={collapsed} 
+          onClick={() => {}} 
+        />
+        <SidebarMenuItem 
+          icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
+          label="Night Mode" 
+          collapsed={collapsed} 
+          onClick={toggleDarkMode} 
+          rightElement={
+            <Switch 
+              checked={darkMode} 
+              onCheckedChange={toggleDarkMode} 
+              className="ml-auto"
+            />
+          }
+        />
+        <SidebarMenuItem 
+          icon={<Star size={20} />} 
+          label="Upgrade" 
+          collapsed={collapsed} 
+          onClick={() => setIsPremiumDialogOpen(true)}
+          highlight
+        />
+      </ul>
+      
+      <PremiumDialog 
+        open={isPremiumDialogOpen} 
+        onOpenChange={setIsPremiumDialogOpen}
       />
-      <SidebarMenuItem 
-        icon={<UserRound size={20} />} 
-        label="Profile" 
-        collapsed={collapsed} 
-        onClick={() => navigate('/profile')} 
-      />
-      <SidebarMenuItem 
-        icon={<Award size={20} />} 
-        label="Progress" 
-        collapsed={collapsed} 
-        onClick={() => navigate('/progress')} 
-      />
-      <SidebarMenuItem 
-        icon={<Palette size={20} />} 
-        label="Custom Themes" 
-        collapsed={collapsed} 
-        onClick={() => {}} 
-      />
-      <SidebarMenuItem 
-        icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
-        label="Night Mode" 
-        collapsed={collapsed} 
-        onClick={toggleDarkMode} 
-        rightElement={
-          <Switch 
-            checked={darkMode} 
-            onCheckedChange={toggleDarkMode} 
-            className="ml-auto"
-          />
-        }
-      />
-      <SidebarMenuItem 
-        icon={<Star size={20} />} 
-        label="Upgrade" 
-        collapsed={collapsed} 
-        onClick={() => {}}
-        highlight
-      />
-    </ul>
+    </>
   );
 };
 
