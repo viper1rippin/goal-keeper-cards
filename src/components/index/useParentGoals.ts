@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
@@ -9,7 +9,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth(); // Get the current authenticated user
+  const { user, loading: authLoading } = useAuth(); // Get the current authenticated user and auth loading state
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
@@ -17,7 +17,10 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     try {
       // Only fetch goals if user is authenticated
       if (!user) {
-        setParentGoals([]);
+        // Don't clear goals if auth is still loading
+        if (!authLoading) {
+          setParentGoals([]);
+        }
         setIsLoading(false);
         return;
       }
@@ -52,6 +55,14 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       setIsLoading(false);
     }
   };
+  
+  // Re-fetch goals when auth state changes or is confirmed
+  useEffect(() => {
+    // Only fetch if authentication loading is complete
+    if (!authLoading) {
+      fetchParentGoals();
+    }
+  }, [user, authLoading]);
   
   // Save the updated order of parent goals to the database
   const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
