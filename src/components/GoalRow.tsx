@@ -97,7 +97,7 @@ const GoalRow = ({
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
-          user_id: user.id // Explicitly set user_id from the current user
+          user_id: goal.user_id
         }));
         
         setSubGoals(formattedData);

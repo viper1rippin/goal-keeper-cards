@@ -28,15 +28,6 @@ interface SubGoalDialogProps {
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
-// Define a simple type for the sub-goal data to avoid deep type instantiation
-interface SubGoalData {
-  parent_goal_id: string;
-  title: string;
-  description: string;
-  progress: number;
-  user_id: string;
-}
-
 // Main component
 const SubGoalDialog = ({ 
   isOpen, 
@@ -98,8 +89,8 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Create a plain object without type references to Supabase types
-    const subGoalData: SubGoalData = {
+    // Prepare sub-goal data
+    const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
@@ -109,7 +100,6 @@ const SubGoalDialog = ({
     
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
-      // Use a plain SQL-like query to avoid complex types
       const { error } = await supabase
         .from('sub_goals')
         .update(subGoalData)
