@@ -2,6 +2,7 @@
 // Constants for level calculations
 import { POINTS_FOR_LEVEL_UP } from "./badgeUtils";
 
+// Points per minute of focus time
 export const POINTS_PER_MINUTE = 1;
 
 // Export POINTS_FOR_LEVEL_UP so it can be used in other components
@@ -22,7 +23,7 @@ export const formatTime = (seconds: number): string => {
 
 // Convert points to hours
 export const pointsToHours = (points: number): number => {
-  return Math.round(points / 60);
+  return points / 60;
 };
 
 // Calculate time needed for next level (in hours)
@@ -38,11 +39,9 @@ export const calculateDaysForNextBadge = (currentLevel: number, nextBadgeLevel: 
   // Calculate how many level-ups are needed
   const levelsNeeded = nextBadgeLevel - currentLevel;
   
-  // Calculate total points needed
+  // Calculate total points needed - each level requires 24 hours (1440 minutes)
   const totalPointsNeeded = levelsNeeded * POINTS_FOR_LEVEL_UP;
   
-  // Convert to days (points per minute * 60 minutes * 24 hours = points per day)
-  const pointsPerDay = POINTS_PER_MINUTE * 60 * 24;
-  
-  return Math.ceil(totalPointsNeeded / pointsPerDay);
+  // Convert to days - 24 hours per day
+  return Math.ceil(totalPointsNeeded / (POINTS_PER_MINUTE * 60 * 24));
 };

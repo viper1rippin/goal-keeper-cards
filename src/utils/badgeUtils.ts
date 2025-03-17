@@ -44,8 +44,6 @@ export const getNextBadge = (level: number): Badge | null => {
   return null;
 };
 
-// Points needed for next level - based on 20 days focus time needed to reach Soldier (level 10)
-// Since Soldier is level 10, and Peasant is level 1, we need 9 level-ups
-// 20 days = 480 hours = 28,800 minutes
-// 28,800 / 9 = 3,200 minutes (or 3,200 points) per level
-export const POINTS_FOR_LEVEL_UP = 3200;
+// Points needed for next level - 24 hours of focus time
+// 24 hours = 1440 minutes = 1440 points
+export const POINTS_FOR_LEVEL_UP = 1440;
