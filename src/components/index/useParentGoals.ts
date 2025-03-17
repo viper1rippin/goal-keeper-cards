@@ -5,8 +5,17 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentGoal, SubGoal } from "@/types/goal-types";
 import { useAuth } from "@/context/AuthContext";
 
+// Define a type for Supabase raw data to avoid circular references
+interface RawParentGoal {
+  id: string;
+  title: string;
+  description: string;
+  position: number;
+  created_at?: string;
+  user_id?: string;
+}
+
 export function useParentGoals(goalToEdit: ParentGoal | null) {
-  // Explicitly define the type instead of relying on type inference
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -27,8 +36,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data with explicitly typed array
-      const transformedData: ParentGoal[] = data?.map(goal => ({
+      // Transform data with type casting to avoid deep instantiation
+      const transformedData: ParentGoal[] = (data || []).map((goal: RawParentGoal) => ({
         id: goal.id,
         title: goal.title,
         description: goal.description,
@@ -36,7 +45,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
-      })) || [];
+      }));
       
       setParentGoals(transformedData);
     } catch (error) {
