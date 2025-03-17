@@ -11,34 +11,21 @@ import { supabase } from "@/integrations/supabase/client";
 const UserBadge = ({ level }: { level: number }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState<string>("");
+  const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
-        setIsLoading(true);
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('display_name, avatar_url')
-            .eq('id', user.id)
-            .maybeSingle();
-            
-          if (data) {
-            if (data.display_name) {
-              setDisplayName(data.display_name);
-            } else {
-              setDisplayName(user.email?.split('@')[0] || 'User');
-            }
-            setAvatarUrl(data.avatar_url);
-          }
-        } catch (error) {
-          console.error("Error fetching profile:", error);
-          setDisplayName(user.email?.split('@')[0] || 'User');
-        } finally {
-          setIsLoading(false);
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (data) {
+          setDisplayName(data.display_name || user.email?.split('@')[0] || 'User');
+          setAvatarUrl(data.avatar_url);
         }
       };
       
@@ -46,7 +33,7 @@ const UserBadge = ({ level }: { level: number }) => {
       
       // Subscribe to changes in the profiles table for this user
       const channel = supabase
-        .channel('profile-updates-badge')
+        .channel('profile-updates')
         .on(
           'postgres_changes',
           {
@@ -56,10 +43,9 @@ const UserBadge = ({ level }: { level: number }) => {
             filter: `id=eq.${user.id}`
           },
           (payload) => {
+            console.log('Profile updated:', payload);
             if (payload.new) {
-              if (payload.new.display_name) {
-                setDisplayName(payload.new.display_name);
-              }
+              setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
               setAvatarUrl(payload.new.avatar_url);
             }
           }
@@ -80,11 +66,11 @@ const UserBadge = ({ level }: { level: number }) => {
           <Avatar className="w-5 h-5">
             <AvatarImage src={avatarUrl || undefined} />
             <AvatarFallback className="bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
-              {displayName ? displayName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
+              {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span className="text-slate-200 truncate max-w-[100px]">
-            {isLoading ? 'Loading...' : displayName}
+            {displayName}
           </span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-8 px-2">
