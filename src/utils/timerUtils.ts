@@ -9,7 +9,6 @@ export { POINTS_FOR_LEVEL_UP };
 
 // Calculate points needed for next level
 export const getPointsForNextLevel = (level: number): number => {
-  // Each level requires 24 hours (1440 minutes) of focus time
   return POINTS_FOR_LEVEL_UP;
 };
 

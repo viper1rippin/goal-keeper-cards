@@ -29,8 +29,9 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   const nextBadge = getNextBadge(userLevel);
   const CurrentBadgeIcon = currentBadge.icon;
   
-  // Calculate hours remaining for next level
+  // Calculate days remaining for next level
   const hoursNeeded = Math.ceil(pointsForNextLevel / 60);
+  const daysNeeded = Math.ceil(hoursNeeded / 24);
   
   return (
     <div className="space-y-6">
@@ -64,7 +65,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
           {formatTime(time)}
         </div>
         <div className="text-slate-400 text-sm mt-2">
-          ~{hoursNeeded} hours of focus needed for next level
+          ~{daysNeeded} days of focus needed for next level
         </div>
         
         {nextBadge && (
