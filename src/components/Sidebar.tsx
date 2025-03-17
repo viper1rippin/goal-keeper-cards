@@ -23,19 +23,21 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { darkMode, toggleDarkMode } = useDarkMode();
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userLevel, setUserLevel] = useState(1);
   
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('display_name, avatar_url')
+          .select('display_name, avatar_url, level')
           .eq('id', user.id)
           .maybeSingle();
           
         if (data) {
           setDisplayName(data.display_name || user.email?.split('@')[0] || 'User');
           setAvatarUrl(data.avatar_url);
+          setUserLevel(data.level || 1);
         }
       };
       
@@ -56,6 +58,9 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
             if (payload.new) {
               setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
               setAvatarUrl(payload.new.avatar_url);
+              if (payload.new.level) {
+                setUserLevel(payload.new.level);
+              }
             }
           }
         )
@@ -101,6 +106,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           collapsed={collapsed}
           username={username}
           avatarUrl={avatarUrl}
+          userLevel={userLevel}
         />
 
         {/* Menu items */}

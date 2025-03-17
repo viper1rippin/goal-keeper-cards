@@ -12,7 +12,7 @@ interface SidebarProfileProps {
   userLevel?: number;
 }
 
-const SidebarProfile = ({ collapsed, username, avatarUrl, userLevel = 10 }: SidebarProfileProps) => {
+const SidebarProfile = ({ collapsed, username, avatarUrl, userLevel = 1 }: SidebarProfileProps) => {
   const navigate = useNavigate();
   const currentBadge = getCurrentBadge(userLevel);
   const BadgeIcon = currentBadge.icon;

@@ -97,7 +97,7 @@ const UserBadge = ({ level }: { level: number }) => {
   // Return the default badge for non-logged in users
   return (
     <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
-      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
+      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center text-[10px] font-bold">
         {level}
       </div>
       <span className="text-slate-200">Guest</span>

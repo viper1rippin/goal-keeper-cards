@@ -1,5 +1,5 @@
 
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { Button } from "./ui/button";
@@ -8,6 +8,7 @@ import FocusTimer from "./FocusTimer";
 import { Goal } from "./GoalRow";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   activeGoal?: Goal | null;
@@ -22,10 +23,52 @@ const Header = ({
   setShowFocusTimer,
   onStopFocus
 }: HeaderProps) => {
-  const [userLevel, setUserLevel] = useState(10); // Default starting level
+  const [userLevel, setUserLevel] = useState(1); // Start at level 1 (Peasant)
   const { user } = useAuth();
   // Reference to track the last scroll position
   const lastScrollPosition = useRef(0);
+  
+  // Fetch the user's level on mount
+  useEffect(() => {
+    if (user) {
+      const fetchUserLevel = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('level')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (data && data.level) {
+          setUserLevel(data.level);
+        }
+      };
+      
+      fetchUserLevel();
+      
+      // Subscribe to level changes
+      const channel = supabase
+        .channel('header-level-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new && payload.new.level) {
+              setUserLevel(payload.new.level);
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
   
   // Handle showing/hiding focus timer without scroll jumping
   useLayoutEffect(() => {
