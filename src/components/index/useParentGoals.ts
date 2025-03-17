@@ -17,10 +17,11 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
-      // Remove the user_id filter since the column might not exist
+      // Filter goals by user_id
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
+        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
@@ -62,8 +63,12 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ position: i })
-          .eq('id', updatedGoals[i].id);
+          .update({ 
+            position: i,
+            user_id: user.id // Ensure user_id is set
+          })
+          .eq('id', updatedGoals[i].id)
+          .eq('user_id', user.id); // Only update goals owned by this user
         
         if (error) throw error;
       }
@@ -86,7 +91,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error: subGoalError } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('parent_goal_id', id);
+        .eq('parent_goal_id', id)
+        .eq('user_id', user.id); // Only delete sub-goals owned by this user
       
       if (subGoalError) throw subGoalError;
       
@@ -94,7 +100,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Only delete goals owned by this user
       
       if (error) throw error;
       
@@ -123,7 +130,8 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('sub_goals')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Only delete sub-goals owned by this user
       
       if (error) throw error;
       

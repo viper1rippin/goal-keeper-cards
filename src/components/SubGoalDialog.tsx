@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -94,17 +95,29 @@ const SubGoalDialog = ({
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
-      progress: subGoalToEdit?.progress || 0
+      progress: subGoalToEdit?.progress || 0,
+      user_id: user.id // Add user_id
     };
     
-    // No need to verify parent goal ownership since user_id column doesn't exist
+    // Verify the parent goal belongs to the current user
+    const { data: parentGoalData, error: parentGoalError } = await supabase
+      .from('parent_goals')
+      .select('id')
+      .eq('id', parentGoalId)
+      .eq('user_id', user.id)
+      .single();
+    
+    if (parentGoalError || !parentGoalData) {
+      throw new Error("You don't have permission to modify this goal");
+    }
     
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
       const { error } = await supabase
         .from('sub_goals')
         .update(subGoalData)
-        .eq('id', subGoalToEdit.id);
+        .eq('id', subGoalToEdit.id)
+        .eq('user_id', user.id); // Only update if owned by this user
       
       if (error) throw error;
     } else {
