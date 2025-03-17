@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowLeft, User, Camera, Save, Eye, EyeOff, Key } from "lucide-react";
+import { User, Camera, Save, Eye, EyeOff, Key } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +36,6 @@ const Profile = () => {
       try {
         setIsLoading(true);
         
-        // Fetch profile data
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -76,19 +74,16 @@ const Profile = () => {
       
       setSaving(true);
       
-      // Upload file to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
       
       if (uploadError) throw uploadError;
       
-      // Get the public URL
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
       
-      // Update profile with avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -214,16 +209,7 @@ const Profile = () => {
       <Sidebar onCollapseChange={setCollapsed} />
       <div className={`flex-1 transition-all duration-300 ${collapsed ? 'ml-16' : 'ml-64'}`}>
         <div className="container mx-auto py-6 px-4 md:px-6">
-          <div className="mb-6 flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate('/')}
-              className="h-8 w-8 p-0"
-            >
-              <ArrowLeft size={20} />
-              <span className="sr-only">Back</span>
-            </Button>
+          <div className="mb-6">
             <h1 className="text-3xl font-bold">Profile Settings</h1>
           </div>
           
