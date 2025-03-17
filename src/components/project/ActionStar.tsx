@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useDrag } from '@dnd-kit/core';
+import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -40,8 +40,8 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
   const containerRef = useRef<HTMLDivElement>(null);
   const colorGradient = getRandomColor(action.content);
   
-  // Set up drag functionality
-  const { attributes, listeners, setNodeRef, transform } = useDrag({
+  // Set up drag functionality with useDraggable instead of useDrag
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: action.id || 'temp-id',
     data: { action },
   });

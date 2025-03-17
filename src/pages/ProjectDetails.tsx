@@ -11,12 +11,17 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AnimatedContainer from "@/components/AnimatedContainer";
 
+// Extended Goal type that includes user_id
+interface ProjectGoal extends Goal {
+  user_id?: string;
+}
+
 const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [project, setProject] = useState<Goal | null>(null);
+  const [project, setProject] = useState<ProjectGoal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +45,7 @@ const ProjectDetails = () => {
             title: data.title,
             description: data.description,
             progress: data.progress,
-            user_id: data.user_id
+            user_id: user.id // Use the current user's ID
           });
         }
       } catch (error) {
