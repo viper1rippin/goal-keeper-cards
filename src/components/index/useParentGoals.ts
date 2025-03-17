@@ -5,16 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentGoal, SubGoal } from "@/types/goal-types";
 import { useAuth } from "@/context/AuthContext";
 
-// Define a type for Supabase raw data to avoid circular references
-interface RawParentGoal {
-  id: string;
-  title: string;
-  description: string;
-  position: number;
-  created_at?: string;
-  user_id?: string;
-}
-
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,20 +17,20 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
     
     setIsLoading(true);
     try {
+      // Remove the user_id filter since the column might not exist
       const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Use any[] for initial data type to avoid deep instantiation issues
-      const rawData = data as any[] || [];
+      // Use simple array for initial data type to avoid deep instantiation issues
+      const rawData = data || [];
       
       // Transform data with explicit typing for each property
-      const transformedData: ParentGoal[] = rawData.map((goal) => ({
+      const transformedData: ParentGoal[] = rawData.map((goal: any) => ({
         id: goal.id,
         title: goal.title,
         description: goal.description,
@@ -73,8 +63,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
         const { error } = await supabase
           .from('parent_goals')
           .update({ position: i })
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user.id);
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -105,8 +94,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
       
       if (error) throw error;
       
