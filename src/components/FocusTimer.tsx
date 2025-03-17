@@ -1,75 +1,79 @@
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { Glass } from "./Glass";
+import React from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Timer, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Goal } from "./GoalRow";
+import { useTimer } from "@/hooks/useTimer";
 import TimerDisplay from "./TimerDisplay";
 import TimerControls from "./TimerControls";
-import { useTimer } from "@/hooks/useTimer";
-import { Goal } from "./GoalRow";
+import GoalSection from "./GoalSection";
 
 interface FocusTimerProps {
+  userLevel: number;
+  onLevelUp: (newLevel: number) => void;
+  onClose: () => void;
   activeGoal?: Goal | null;
 }
 
-export default function FocusTimer({ activeGoal }: FocusTimerProps) {
-  const { user } = useAuth();
-  const [userLevel, setUserLevel] = useState(1);
-  
-  useEffect(() => {
-    if (user) {
-      const fetchUserLevel = async () => {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('level, points')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching user level:', error);
-          return;
-        }
-        
-        if (data) {
-          setUserLevel(data.level || 1);
-        }
-      };
-      
-      fetchUserLevel();
-    }
-  }, [user]);
-  
-  const { 
-    isActive, 
-    time, 
-    earnedPoints, 
+const FocusTimer: React.FC<FocusTimerProps> = ({ 
+  userLevel, 
+  onLevelUp,
+  onClose,
+  activeGoal
+}) => {
+  const {
+    isActive,
+    time,
+    earnedPoints,
     pointsForNextLevel,
-    toggleTimer, 
-    resetTimer 
-  } = useTimer({
-    userLevel,
-    onLevelUp: (newLevel) => {
-      setUserLevel(newLevel);
-    },
-    activeGoal,
-    userId: user?.id
-  });
+    toggleTimer,
+    resetTimer
+  } = useTimer({ userLevel, onLevelUp, activeGoal });
 
   return (
-    <Glass className="p-6 sm:p-8 h-full">
-      <TimerDisplay 
-        time={time}
-        isActive={isActive}
-        earnedPoints={earnedPoints}
-        pointsForNextLevel={pointsForNextLevel}
-        userLevel={userLevel}
-      />
-      <TimerControls 
-        isActive={isActive}
-        toggleTimer={toggleTimer}
-        resetTimer={resetTimer}
-        hasActiveGoal={!!activeGoal}
-      />
-    </Glass>
+    <Card className="w-full max-w-md glass-card border-emerald/20">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-xl font-bold">
+          <span className="flex items-center">
+            <Timer className="mr-2" size={18} />
+            {activeGoal ? `Focusing: ${activeGoal.title}` : "Focus Timer"}
+          </span>
+        </CardTitle>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={onClose}
+          className="h-8 w-8"
+        >
+          <X size={16} />
+        </Button>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-4">
+          <GoalSection activeGoal={activeGoal} />
+          
+          <TimerDisplay 
+            time={time}
+            isActive={isActive}
+            earnedPoints={earnedPoints}
+            pointsForNextLevel={pointsForNextLevel}
+            userLevel={userLevel}
+          />
+        </div>
+      </CardContent>
+      
+      <CardFooter>
+        <TimerControls 
+          isActive={isActive}
+          time={time}
+          toggleTimer={toggleTimer}
+          resetTimer={resetTimer}
+        />
+      </CardFooter>
+    </Card>
   );
-}
+};
+
+export default FocusTimer;

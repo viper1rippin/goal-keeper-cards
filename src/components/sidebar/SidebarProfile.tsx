@@ -1,69 +1,19 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getCurrentBadge } from "@/utils/badgeUtils";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProfileProps {
   collapsed: boolean;
   username: string;
   avatarUrl: string | null;
+  userLevel?: number;
 }
 
-const SidebarProfile = ({ collapsed, username, avatarUrl }: SidebarProfileProps) => {
+const SidebarProfile = ({ collapsed, username, avatarUrl, userLevel = 10 }: SidebarProfileProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [userLevel, setUserLevel] = useState(1);
-  
-  useEffect(() => {
-    if (user) {
-      const fetchUserLevel = async () => {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('level')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching user level:', error);
-          return;
-        }
-        
-        if (data) {
-          setUserLevel(data.level || 1);
-        }
-      };
-      
-      fetchUserLevel();
-      
-      // Subscribe to updates
-      const channel = supabase
-        .channel('profile-level-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            if (payload.new) {
-              setUserLevel(payload.new.level || 1);
-            }
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-  
   const currentBadge = getCurrentBadge(userLevel);
   const BadgeIcon = currentBadge.icon;
   

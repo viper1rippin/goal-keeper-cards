@@ -10,19 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCurrentBadge } from "@/utils/badgeUtils";
 import { Badge } from "./ui/badge";
 
-interface UserBadgeProps {
-  level?: number;
-}
-
-const UserBadge = ({ level = 1 }: UserBadgeProps) => {
+const UserBadge = ({ level }: { level: number }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [userLevel, setUserLevel] = useState(level);
   
   // Get the user's current badge based on their level
-  const currentBadge = getCurrentBadge(userLevel);
+  const currentBadge = getCurrentBadge(level);
   const BadgeIcon = currentBadge.icon;
   
   useEffect(() => {
@@ -30,14 +25,13 @@ const UserBadge = ({ level = 1 }: UserBadgeProps) => {
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('display_name, avatar_url, level')
+          .select('display_name, avatar_url')
           .eq('id', user.id)
           .maybeSingle();
           
         if (data) {
           setDisplayName(data.display_name || user.email?.split('@')[0] || 'User');
           setAvatarUrl(data.avatar_url);
-          setUserLevel(data.level || 1);
         }
       };
       
@@ -59,7 +53,6 @@ const UserBadge = ({ level = 1 }: UserBadgeProps) => {
             if (payload.new) {
               setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
               setAvatarUrl(payload.new.avatar_url);
-              setUserLevel(payload.new.level || 1);
             }
           }
         )
@@ -104,10 +97,10 @@ const UserBadge = ({ level = 1 }: UserBadgeProps) => {
   // Return the default badge for non-logged in users
   return (
     <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
-      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center text-[10px] font-bold">
+      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
         {level}
       </div>
-      <span className="text-slate-200">Peasant</span>
+      <span className="text-slate-200">Guest</span>
     </div>
   );
 };
