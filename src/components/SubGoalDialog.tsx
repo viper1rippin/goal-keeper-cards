@@ -154,7 +154,7 @@ const SubGoalDialog = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
