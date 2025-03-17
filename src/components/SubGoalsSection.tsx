@@ -138,8 +138,14 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
     
-    // Navigate to the project detail page
-    navigate(`/projects/${goal.id}`);
+    // For now, we'll just show a toast indicating we would navigate
+    toast({
+      title: "Coming Soon",
+      description: `Project detail page for ${goal.title} will be implemented soon!`,
+    });
+    
+    // When the project detail page is implemented, uncomment this:
+    // navigate(`/projects/${goal.id}`);
   };
 
   if (isLoading) {
