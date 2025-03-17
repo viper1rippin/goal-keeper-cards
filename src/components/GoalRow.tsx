@@ -15,7 +15,7 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
-  user_id?: string; // Add user_id field
+  user_id?: string;
 }
 
 interface GoalRowProps {
@@ -116,7 +116,7 @@ const GoalRow = ({
     }
   };
   
-  // Fetch sub-goals when the component mounts
+  // Fetch sub-goals when the component mounts or when user changes
   useEffect(() => {
     fetchSubGoals();
   }, [id, user]);

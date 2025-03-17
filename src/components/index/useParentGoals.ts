@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
@@ -10,6 +10,13 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth(); // Get the current authenticated user
+  
+  // Ensure state is cleared when user logs out
+  useEffect(() => {
+    if (!user) {
+      setParentGoals([]);
+    }
+  }, [user]);
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
@@ -32,9 +39,15 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data to include empty goals array if no data
+      // Transform data to include empty goals array
       const transformedData = data?.map(goal => ({
-        ...goal,
+        id: goal.id,
+        title: goal.title,
+        description: goal.description,
+        position: goal.position,
+        created_at: goal.created_at,
+        updated_at: goal.updated_at,
+        user_id: goal.user_id,
         goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
           ? goalToEdit.goals
           : []
@@ -60,9 +73,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ 
-            position: i 
-          } as any)
+          .update({ position: i })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
