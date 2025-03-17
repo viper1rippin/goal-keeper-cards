@@ -1,15 +1,16 @@
+
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PanelLeft, X, LogOut, UserCircle } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthContext";
 
 export function Sidebar() {
   const { user, signOut } = useAuth();
   const location = useLocation();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   
   // Helper function to determine if a link is active
