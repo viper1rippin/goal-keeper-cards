@@ -28,6 +28,15 @@ interface SubGoalDialogProps {
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
+// Define a simple type for the sub-goal data to avoid deep type instantiation
+interface SubGoalData {
+  parent_goal_id: string;
+  title: string;
+  description: string;
+  progress: number;
+  user_id: string;
+}
+
 // Main component
 const SubGoalDialog = ({ 
   isOpen, 
@@ -90,7 +99,7 @@ const SubGoalDialog = ({
     if (!user) return;
 
     // Prepare sub-goal data as a simple object to avoid deep type instantiation
-    const subGoalData = {
+    const subGoalData: SubGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,

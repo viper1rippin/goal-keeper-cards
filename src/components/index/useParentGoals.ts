@@ -5,6 +5,17 @@ import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
 import { useAuth } from "@/context/AuthContext";
 
+// Define a simple interface for database row to avoid type recursion
+interface ParentGoalRow {
+  id: string;
+  title: string;
+  description: string;
+  position: number | null;
+  created_at: string;
+  updated_at: string;
+  user_id?: string;
+}
+
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,9 +47,13 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       if (data) {
         const transformedData: ParentGoal[] = [];
         
-        for (const goal of data) {
+        for (const goal of data as ParentGoalRow[]) {
           transformedData.push({
-            ...goal,
+            id: goal.id,
+            title: goal.title,
+            description: goal.description,
+            position: goal.position,
+            user_id: goal.user_id || user.id,
             goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
               ? goalToEdit.goals
               : []
@@ -70,7 +85,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .from('parent_goals')
           .update({ 
             position: i 
-          } as any)
+          })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
