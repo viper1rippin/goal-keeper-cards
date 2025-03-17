@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -69,7 +68,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
   
-  const handleSaveSubGoal = () => {
+  const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
     setIsSubGoalDialogOpen(false);
     onUpdateSubGoals(subGoals);
   };
@@ -164,14 +163,11 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
           setSubGoalToEdit(null);
           setEditingGoalIndex(null);
         }}
+        onSave={handleSaveSubGoal}
+        subGoalToEdit={subGoalToEdit}
+        parentGoalTitle={parentTitle}
         parentGoalId={parentId}
-        subGoalToEdit={subGoalToEdit && subGoalToEdit.id ? {
-          id: subGoalToEdit.id,
-          title: subGoalToEdit.title,
-          description: subGoalToEdit.description,
-          progress: subGoalToEdit.progress
-        } : null}
-        onSubGoalSaved={handleSaveSubGoal}
+        onDelete={onDeleteSubGoal}
       />
       
       <DeleteSubGoalDialog

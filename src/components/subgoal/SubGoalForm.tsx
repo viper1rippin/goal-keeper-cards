@@ -6,18 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { Goal } from '../GoalRow';
+import { SubGoalFormValues } from '../SubGoalDialog';
 import { Trash2 } from "lucide-react";
 
-// Define the form values interface
-export interface SubGoalFormData {
-  title: string;
-  description: string;
-  progress?: number;
-}
-
 interface SubGoalFormProps {
-  form: UseFormReturn<SubGoalFormData>;
-  onSubmit: (values: SubGoalFormData) => Promise<void>;
+  form: UseFormReturn<SubGoalFormValues>;
+  onSubmit: (values: SubGoalFormValues) => Promise<void>;
   onClose: () => void;
   subGoalToEdit: Goal | null;
   onDelete?: () => Promise<void>;

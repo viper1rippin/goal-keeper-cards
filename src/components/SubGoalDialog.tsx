@@ -1,180 +1,146 @@
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { SubGoalForm, SubGoalFormData } from "./subgoal/SubGoalForm";
-import { useAuth } from "@/context/AuthContext";
-import { z } from "zod";
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+import * as z from "zod";
+import { Goal } from './GoalRow';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { SubGoalForm } from './subgoal/SubGoalForm';
+
+// Form validation schema
+const subGoalSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+});
+
+export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
 
 interface SubGoalDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onSave: (goal: Omit<Goal, 'progress'>) => void;
+  subGoalToEdit: Goal | null;
+  parentGoalTitle: string;
   parentGoalId: string;
-  subGoalToEdit?: {
-    id: string;
-    title: string;
-    description: string;
-    progress: number;
-  } | null;
-  onSubGoalSaved: () => void;
+  onDelete?: (subGoalId: string) => Promise<void>;
 }
 
-// Form validation schema
-const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  progress: z.number().min(0).max(100).optional().default(0)
-});
-
-const SubGoalDialog = ({
-  isOpen,
-  onClose,
-  parentGoalId,
+// Main component
+const SubGoalDialog = ({ 
+  isOpen, 
+  onClose, 
+  onSave, 
   subGoalToEdit,
-  onSubGoalSaved,
+  parentGoalTitle,
+  parentGoalId,
+  onDelete
 }: SubGoalDialogProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
   
-  // Initialize form with React Hook Form
-  const form = useForm<SubGoalFormData>({
-    resolver: zodResolver(formSchema),
+  // Initialize form with default values or editing values
+  const form = useForm<SubGoalFormValues>({
+    resolver: zodResolver(subGoalSchema),
     defaultValues: {
       title: subGoalToEdit?.title || "",
       description: subGoalToEdit?.description || "",
-      progress: subGoalToEdit?.progress || 0
-    }
+    },
   });
-  
-  // Reset form when dialog opens/closes or subGoalToEdit changes
-  useState(() => {
+
+  // Reset form when dialog opens/closes or when editing a different goal
+  useEffect(() => {
     if (isOpen) {
       form.reset({
         title: subGoalToEdit?.title || "",
         description: subGoalToEdit?.description || "",
-        progress: subGoalToEdit?.progress || 0
       });
     }
-  });
+  }, [isOpen, subGoalToEdit, form]);
 
-  const handleSave = async (formData: SubGoalFormData) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save sub-goals.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
+  // Handle form submission
+  const onSubmit = async (values: SubGoalFormValues) => {
     try {
-      if (subGoalToEdit?.id) {
-        // Update existing sub-goal
-        const { error } = await supabase
-          .from('sub_goals')
-          .update({
-            title: formData.title,
-            description: formData.description,
-            progress: formData.progress || 0,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', subGoalToEdit.id);
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Sub-goal updated",
-          description: "Your sub-goal has been updated successfully."
-        });
-      } else {
-        // Create new sub-goal
-        const { error } = await supabase
-          .from('sub_goals')
-          .insert([{
-            title: formData.title,
-            description: formData.description,
-            progress: formData.progress || 0,
-            parent_goal_id: parentGoalId
-          }]);
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Sub-goal created",
-          description: "Your new sub-goal has been created successfully."
-        });
-      }
-      
-      // Close dialog and refresh goals
-      onClose();
-      onSubGoalSaved();
+      await saveSubGoal(values);
+      form.reset();
     } catch (error) {
       console.error("Error saving sub-goal:", error);
       toast({
-        title: "Error",
-        description: "Failed to save the sub-goal. Please try again.",
+        title: "Error saving sub-goal",
+        description: "There was an error saving your sub-goal. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!user || !subGoalToEdit?.id) return;
+  const saveSubGoal = async (values: SubGoalFormValues) => {
+    // Prepare sub-goal data
+    const subGoalData = {
+      parent_goal_id: parentGoalId,
+      title: values.title,
+      description: values.description,
+      progress: subGoalToEdit?.progress || 0
+    };
     
-    try {
+    // If editing, update the existing sub-goal
+    if (subGoalToEdit && subGoalToEdit.id) {
       const { error } = await supabase
         .from('sub_goals')
-        .delete()
+        .update(subGoalData)
         .eq('id', subGoalToEdit.id);
       
       if (error) throw error;
+    } else {
+      // Otherwise, create a new sub-goal
+      const { error } = await supabase
+        .from('sub_goals')
+        .insert(subGoalData);
       
-      toast({
-        title: "Sub-goal deleted",
-        description: "Your sub-goal has been deleted successfully."
-      });
-      
-      // Close dialog and refresh goals
-      onClose();
-      onSubGoalSaved();
-    } catch (error) {
-      console.error("Error deleting sub-goal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the sub-goal. Please try again.",
-        variant: "destructive",
-      });
+      if (error) throw error;
+    }
+    
+    // Call the onSave callback to update UI
+    onSave({
+      title: values.title,
+      description: values.description,
+    });
+  };
+
+  // Handle delete sub-goal
+  const handleDeleteSubGoal = async () => {
+    if (subGoalToEdit?.id && onDelete) {
+      try {
+        await onDelete(subGoalToEdit.id);
+        onClose(); // Close the dialog after deletion
+      } catch (error) {
+        console.error("Error deleting sub-goal:", error);
+        toast({
+          title: "Error deleting sub-goal",
+          description: "There was an error deleting your sub-goal. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-slate-900 border-slate-800 text-white">
+      <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white">
-            {subGoalToEdit ? 'Edit Sub-Goal' : 'Create New Sub-Goal'}
+          <DialogTitle className="text-xl font-semibold">
+            {subGoalToEdit ? "Edit Sub-Goal" : "Add New Sub-Goal"}
           </DialogTitle>
+          <p className="text-slate-400 mt-1">
+            {parentGoalTitle ? `For parent goal: ${parentGoalTitle}` : ''}
+          </p>
         </DialogHeader>
-        
-        <SubGoalForm
-          form={form}
-          onSubmit={handleSave}
-          onClose={onClose}
+
+        <SubGoalForm 
+          form={form} 
+          onSubmit={onSubmit} 
           subGoalToEdit={subGoalToEdit}
-          onDelete={subGoalToEdit ? handleDelete : undefined}
+          onClose={onClose}
+          onDelete={subGoalToEdit?.id && onDelete ? handleDeleteSubGoal : undefined}
         />
       </DialogContent>
     </Dialog>

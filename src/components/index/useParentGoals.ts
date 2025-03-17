@@ -3,46 +3,33 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ParentGoal } from "./IndexPageTypes";
-import { useAuth } from "@/context/AuthContext";
-import { Goal } from "../GoalRow";
 
 export function useParentGoals(goalToEdit: ParentGoal | null) {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { user } = useAuth();
   
   // Fetch parent goals from Supabase
   const fetchParentGoals = async () => {
-    if (!user) return;
-    
     setIsLoading(true);
     try {
-      // First get all parent goals
-      const { data: parentData, error: parentError } = await supabase
+      const { data, error } = await supabase
         .from('parent_goals')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true })
         .order('created_at', { ascending: false });
       
-      if (parentError) throw parentError;
+      if (error) throw error;
       
-      // Initialize the results array with empty goals arrays
-      const results: ParentGoal[] = (parentData || []).map(goal => ({
+      // Transform data to include empty goals array if no data
+      const transformedData = data?.map(goal => ({
         ...goal,
-        goals: []
-      }));
+        goals: goal.id === goalToEdit?.id && goalToEdit?.goals 
+          ? goalToEdit.goals
+          : []
+      })) || [];
       
-      // If there's a specific goal being edited with goals already loaded, use those
-      if (goalToEdit?.id && goalToEdit?.goals) {
-        const editIndex = results.findIndex(g => g.id === goalToEdit.id);
-        if (editIndex >= 0) {
-          results[editIndex].goals = [...goalToEdit.goals];
-        }
-      }
-      
-      setParentGoals(results);
+      setParentGoals(transformedData);
     } catch (error) {
       console.error("Error fetching parent goals:", error);
       toast({
@@ -57,16 +44,15 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   
   // Save the updated order of parent goals to the database
   const saveParentGoalOrder = async (updatedGoals: ParentGoal[]) => {
-    if (!user) return;
-    
     try {
       // Update each goal with its new position
       for (let i = 0; i < updatedGoals.length; i++) {
         const { error } = await supabase
           .from('parent_goals')
-          .update({ position: i })
-          .eq('id', updatedGoals[i].id)
-          .eq('user_id', user.id);
+          .update({ 
+            position: i 
+          } as any)
+          .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
       }
@@ -82,8 +68,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
 
   // Delete a parent goal
   const deleteParentGoal = async (id: string) => {
-    if (!user) return;
-    
     try {
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
@@ -97,8 +81,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       const { error } = await supabase
         .from('parent_goals')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
       
       if (error) throw error;
       
@@ -121,8 +104,6 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
   
   // Delete a sub-goal
   const deleteSubGoal = async (id: string) => {
-    if (!user) return;
-    
     try {
       const { error } = await supabase
         .from('sub_goals')
