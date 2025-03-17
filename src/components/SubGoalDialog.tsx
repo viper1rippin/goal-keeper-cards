@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -8,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
-import { SubGoal, SubGoalData, SubGoalFormValues } from '@/types/goal-types';
+import { SubGoal, SubGoalData } from '@/types/goal-types';
 
 // Form validation schema - kept separate from type definitions
 const subGoalSchema = z.object({
@@ -169,4 +168,4 @@ const SubGoalDialog = ({
 };
 
 export default SubGoalDialog;
-export type { SubGoalData, SubGoalFormValues };
+export type { SubGoalData };

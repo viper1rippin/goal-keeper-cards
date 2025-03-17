@@ -37,14 +37,6 @@ export interface SubGoalData {
 }
 
 /**
- * Type for form values - keeps form submission simple
- */
-export interface SubGoalFormValues {
-  title: string;
-  description: string;
-}
-
-/**
  * Parent goal data for forms and dialogs
  */
 export interface ParentGoalData {
