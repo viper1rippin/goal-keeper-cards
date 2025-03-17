@@ -39,6 +39,7 @@ interface SubGoalDialogProps {
   onDelete?: (subGoalId: string) => Promise<void>;
 }
 
+// Removed React.FC type to avoid deep type instantiation
 const SubGoalDialog = ({ 
   isOpen, 
   onClose, 
@@ -153,8 +154,11 @@ const SubGoalDialog = ({
     }
   };
 
+  // Simplified onOpenChange handler to avoid deep nesting
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
       <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
