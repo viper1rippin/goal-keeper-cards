@@ -64,10 +64,10 @@ const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer
   
   return (
     <AnimatedContainer className="w-full mb-8">
-      <div className="glass-card p-5 rounded-lg border border-border">
+      <div className="glass-card p-5 rounded-lg border border-slate-800/80">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <p className="text-muted-foreground text-sm">Welcome back, {username}. Set a goal and stay focused.</p>
+            <p className="text-slate-400 text-sm">Welcome back, {username}. Set a goal and stay focused.</p>
           </div>
           <div className="flex items-center space-x-3 self-end md:self-auto">
             {user && (
