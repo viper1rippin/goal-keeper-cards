@@ -6,7 +6,6 @@ import ActionStar from './ActionStar';
 import AddActionButton from './AddActionButton';
 import ActionEditDialog from './ActionEditDialog';
 import { Card } from '@/components/ui/card';
-import { DndContext, DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { Action, actionsService } from '@/utils/actionsUtils';
 
 interface ZodiacMindMapProps {
@@ -23,15 +22,6 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
   const [tableExists, setTableExists] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
   
-  // Set up DnD sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
   useEffect(() => {
     if (!projectId || !user) return;
     
@@ -246,10 +236,6 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    // Handle drag end if needed
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -275,62 +261,61 @@ const ZodiacMindMap: React.FC<ZodiacMindMapProps> = ({ projectId }) => {
       )}
       
       <Card className="bg-slate-900/50 border-slate-800 overflow-hidden relative">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div 
-            className="relative min-h-[500px] w-full p-8 rounded-lg"
-            style={{
-              background: 'radial-gradient(circle at center, #1a2036 0%, #131625 100%)',
-              boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.4)'
-            }}
-          >
-            {/* Starry background */}
-            <div className="absolute inset-0 overflow-hidden opacity-30">
-              {[...Array(100)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full bg-white"
-                  style={{
-                    width: `${Math.random() * 2 + 1}px`,
-                    height: `${Math.random() * 2 + 1}px`,
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                    opacity: Math.random() * 0.8 + 0.2,
-                    animation: `pulse ${Math.random() * 4 + 2}s infinite alternate`
-                  }}
-                />
-              ))}
-            </div>
-            
-            {/* Center point */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/80 shadow-lg shadow-emerald-500/40 z-10">
-              <div className="absolute inset-0 rounded-full animate-pulse bg-emerald-400/40"></div>
-            </div>
-            
-            {/* Action stars */}
-            {actions.map((action) => (
-              <ActionStar
-                key={action.id}
-                action={action}
-                onEdit={() => handleEditAction(action)}
-                onDelete={() => action.id && handleDeleteAction(action.id)}
-                onUpdatePosition={handleUpdatePosition}
+        <div 
+          className="relative min-h-[500px] w-full p-8 rounded-lg"
+          style={{
+            background: 'radial-gradient(circle at center, #1a2036 0%, #131625 100%)',
+            boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.4)'
+          }}
+          onContextMenu={(e) => e.preventDefault()} // Prevent context menu for the container
+        >
+          {/* Starry background */}
+          <div className="absolute inset-0 overflow-hidden opacity-30">
+            {[...Array(100)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full bg-white"
+                style={{
+                  width: `${Math.random() * 2 + 1}px`,
+                  height: `${Math.random() * 2 + 1}px`,
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  opacity: Math.random() * 0.8 + 0.2,
+                  animation: `pulse ${Math.random() * 4 + 2}s infinite alternate`
+                }}
               />
             ))}
-            
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">
-                <p className="text-slate-400">Loading actions...</p>
-              </div>
-            )}
-            
-            {!isLoading && actions.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                <p className="text-slate-400 mb-4">No actions added yet. Create your first action by clicking the + button.</p>
-                <AddActionButton onClick={handleAddAction} />
-              </div>
-            )}
           </div>
-        </DndContext>
+          
+          {/* Center point */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/80 shadow-lg shadow-emerald-500/40 z-10">
+            <div className="absolute inset-0 rounded-full animate-pulse bg-emerald-400/40"></div>
+          </div>
+          
+          {/* Action stars */}
+          {actions.map((action) => (
+            <ActionStar
+              key={action.id}
+              action={action}
+              onEdit={() => handleEditAction(action)}
+              onDelete={() => action.id && handleDeleteAction(action.id)}
+              onUpdatePosition={handleUpdatePosition}
+            />
+          ))}
+          
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50">
+              <p className="text-slate-400">Loading actions...</p>
+            </div>
+          )}
+          
+          {!isLoading && actions.length === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+              <p className="text-slate-400 mb-4">No actions added yet. Create your first action by clicking the + button.</p>
+              <AddActionButton onClick={handleAddAction} />
+            </div>
+          )}
+        </div>
       </Card>
       
       <ActionEditDialog
