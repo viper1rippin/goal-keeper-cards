@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -89,15 +88,6 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
-    // Prepare sub-goal data with explicit type
-    const subGoalData = {
-      parent_goal_id: parentGoalId,
-      title: values.title,
-      description: values.description,
-      progress: subGoalToEdit?.progress || 0,
-      user_id: user.id // Associate sub-goal with user
-    };
-    
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
       const { error } = await supabase
@@ -116,7 +106,13 @@ const SubGoalDialog = ({
       // Otherwise, create a new sub-goal
       const { error } = await supabase
         .from('sub_goals')
-        .insert(subGoalData);
+        .insert({
+          parent_goal_id: parentGoalId,
+          title: values.title,
+          description: values.description,
+          progress: 0,
+          user_id: user.id // Associate sub-goal with user
+        });
       
       if (error) throw error;
     }

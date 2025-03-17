@@ -32,15 +32,23 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
       
       if (error) throw error;
       
-      // Transform data with proper typing
+      // Transform data with proper typing - explicitly map each field
       const transformedData: ParentGoal[] = data ? data.map(goal => ({
         id: goal.id,
         title: goal.title,
         description: goal.description,
         position: goal.position ?? undefined,
         user_id: user.id,
-        goals: goal.id === goalToEdit?.id && goalToEdit?.goals ? goalToEdit.goals : []
+        goals: []
       })) : [];
+      
+      // Add goals from goalToEdit if available
+      if (goalToEdit) {
+        const index = transformedData.findIndex(g => g.id === goalToEdit.id);
+        if (index !== -1) {
+          transformedData[index].goals = goalToEdit.goals;
+        }
+      }
       
       setParentGoals(transformedData);
     } catch (error) {
@@ -64,7 +72,7 @@ export function useParentGoals(goalToEdit: ParentGoal | null) {
           .from('parent_goals')
           .update({ 
             position: i 
-          } as any)
+          })
           .eq('id', updatedGoals[i].id);
         
         if (error) throw error;
