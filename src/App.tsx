@@ -44,7 +44,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/progress" element={
-              <ProtectedRoute allowGuest={true}>
+              <ProtectedRoute>
                 <ProgressTracker />
               </ProtectedRoute>
             } />

@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 import { useAuth } from "@/context/AuthContext";
-import { addGuestParentGoal, updateGuestParentGoal, deleteGuestParentGoal } from "@/utils/guestStorage";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -23,45 +22,16 @@ const ParentGoalDialog = ({
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
-      // Handle guest mode
+      // Check if user is authenticated
       if (!user) {
-        if (goalToEdit?.id) {
-          // Update existing goal for guest
-          const updated = updateGuestParentGoal({
-            id: goalToEdit.id,
-            title: values.title, 
-            description: values.description,
-            goals: [],
-          });
-          
-          if (updated) {
-            toast({ 
-              title: "Goal updated",
-              description: "Your goal has been updated successfully."
-            });
-          } else {
-            throw new Error("Failed to update goal");
-          }
-        } else {
-          // Create new goal for guest
-          addGuestParentGoal({
-            title: values.title,
-            description: values.description,
-            goals: [],
-          });
-          
-          toast({ 
-            title: "Goal created",
-            description: "Your new goal has been created successfully."
-          });
-        }
-        
-        onClose();
-        onGoalSaved();
+        toast({ 
+          title: "Authentication Error",
+          description: "You must be logged in to save goals.",
+          variant: "destructive"
+        });
         return;
       }
 
-      // Handle authenticated user
       if (goalToEdit?.id) {
         // Update existing goal
         const { error } = await supabase
@@ -113,25 +83,16 @@ const ParentGoalDialog = ({
     if (!goalToEdit?.id) return;
     
     try {
-      // Handle guest mode
+      // Check if user is authenticated
       if (!user) {
-        const deleted = deleteGuestParentGoal(goalToEdit.id);
-        
-        if (deleted) {
-          toast({
-            title: "Goal Deleted",
-            description: "The goal and all its sub-goals have been deleted.",
-          });
-          
-          onClose();
-          onGoalSaved();
-        } else {
-          throw new Error("Failed to delete goal");
-        }
+        toast({ 
+          title: "Authentication Error",
+          description: "You must be logged in to delete goals.",
+          variant: "destructive"
+        });
         return;
       }
 
-      // Handle authenticated user
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')
