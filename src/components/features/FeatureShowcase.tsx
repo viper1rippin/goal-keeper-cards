@@ -38,6 +38,16 @@ const features = [
 
 const FeatureShowcase = () => {
   const [activeFeature, setActiveFeature] = useState(features[0].id);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % features.length);
+      setActiveFeature(features[currentImageIndex].id);
+    }, 2000); // Change image every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [currentImageIndex]);
 
   const currentFeature = features.find(f => f.id === activeFeature) || features[0];
 
@@ -63,11 +73,17 @@ const FeatureShowcase = () => {
         <Card className="overflow-hidden bg-apple-dark border-emerald/10 aspect-video">
           <div className="relative w-full h-full">
             <div className="absolute inset-8 rounded-lg overflow-hidden shadow-2xl">
-              <img
-                src={currentFeature.image}
-                alt={currentFeature.title}
-                className="w-full h-full object-cover rounded-lg"
-              />
+              {features.map((feature, index) => (
+                <img
+                  key={feature.id}
+                  src={feature.image}
+                  alt={feature.title}
+                  className={cn(
+                    "absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300",
+                    currentImageIndex === index ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              ))}
             </div>
           </div>
         </Card>
@@ -78,7 +94,10 @@ const FeatureShowcase = () => {
             <FeatureButton
               key={feature.id}
               active={activeFeature === feature.id}
-              onClick={() => setActiveFeature(feature.id)}
+              onClick={() => {
+                setActiveFeature(feature.id);
+                setCurrentImageIndex(features.findIndex(f => f.id === feature.id));
+              }}
             >
               <div className="flex items-center gap-2">
                 {feature.icon}
