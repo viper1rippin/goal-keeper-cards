@@ -1,14 +1,13 @@
-
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from "@/context/AuthContext";
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -33,8 +32,8 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   onDeleteSubGoal,
   isLoading
 }) => {
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
@@ -72,32 +71,8 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   };
   
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
-    let updatedSubGoals: Goal[];
-    
-    if (editingGoalIndex !== null && subGoalToEdit) {
-      // Update existing subgoal
-      updatedSubGoals = [...subGoals];
-      updatedSubGoals[editingGoalIndex] = {
-        ...subGoalToEdit,
-        title: subGoal.title,
-        description: subGoal.description
-      };
-    } else {
-      // Add new subgoal
-      const newSubGoal: Goal = {
-        id: subGoal.id || `temp-${Date.now()}`,
-        title: subGoal.title,
-        description: subGoal.description,
-        progress: 0
-      };
-      updatedSubGoals = [...subGoals, newSubGoal];
-    }
-    
-    // Update the parent component with the new sub-goals
-    onUpdateSubGoals(updatedSubGoals);
     setIsSubGoalDialogOpen(false);
-    setSubGoalToEdit(null);
-    setEditingGoalIndex(null);
+    onUpdateSubGoals(subGoals);
   };
   
   const handleDragStart = (event: DragStartEvent) => {
@@ -120,15 +95,18 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
       
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedGoals = arrayMove(subGoals, oldIndex, newIndex);
+        
         onUpdateSubGoals(reorderedGoals);
         
-        // Only update the database if the user is authenticated
-        if (user) {
-          try {
-            await updateSubGoalOrder(reorderedGoals);
-          } catch (error) {
-            console.error("Error updating sub-goal order:", error);
-          }
+        try {
+          await updateSubGoalOrder(reorderedGoals);
+        } catch (error) {
+          console.error("Error updating sub-goal order:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update sub-goal order. Please try again.",
+            variant: "destructive",
+          });
         }
       }
     }
@@ -158,6 +136,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
+    
     navigate(`/projects/${goal.id}`);
   };
 

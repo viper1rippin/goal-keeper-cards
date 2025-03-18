@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Goal } from './GoalRow';
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
 
@@ -37,6 +38,7 @@ const SubGoalDialog = ({
   parentGoalId,
   onDelete
 }: SubGoalDialogProps) => {
+  const { toast } = useToast();
   const { user } = useAuth(); // Get the current authenticated user
   
   // Initialize form with default values or editing values
@@ -63,11 +65,16 @@ const SubGoalDialog = ({
     try {
       // Check if user is authenticated
       if (!user) {
-        // For guest mode, just call onSave with the form values directly
+        // For guest mode, just call onSave with the form values
         onSave({
           id: subGoalToEdit?.id || `temp-${Date.now()}`,
           title: values.title,
           description: values.description,
+        });
+        
+        toast({
+          title: "Sub-goal saved",
+          description: "Your sub-goal has been saved to your browser.",
         });
         
         form.reset();
@@ -80,6 +87,11 @@ const SubGoalDialog = ({
       onClose();
     } catch (error) {
       console.error("Error saving sub-goal:", error);
+      toast({
+        title: "Error saving sub-goal",
+        description: "There was an error saving your sub-goal. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -129,6 +141,11 @@ const SubGoalDialog = ({
         onClose(); // Close the dialog after deletion
       } catch (error) {
         console.error("Error deleting sub-goal:", error);
+        toast({
+          title: "Error deleting sub-goal",
+          description: "There was an error deleting your sub-goal. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
