@@ -33,7 +33,7 @@ const Landing = () => {
                 size="lg"
                 className="bg-emerald hover:bg-emerald-600"
               >
-                Start Planning
+                Get Started
                 <ArrowRight className="ml-2" size={20} />
               </Button>
               <Button 

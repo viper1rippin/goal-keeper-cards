@@ -7,7 +7,6 @@ import NavigationBar from '@/components/layout/NavigationBar';
 import { useToast } from "@/hooks/use-toast";
 import AnimatedContainer from '@/components/AnimatedContainer';
 import GridBackground from '@/components/effects/GridBackground';
-import { cn } from "@/lib/utils";
 
 type PricingPeriod = 'monthly' | 'yearly' | 'lifetime';
 
@@ -76,7 +75,7 @@ const Pricing = () => {
                 "Basic progress tracking",
                 "7-day goal history"
               ]}
-              buttonText="Start Planning"
+              buttonText="Get Started"
               buttonVariant="outline"
               onSubscribe={() => handleSubscribe("Free")}
             />
