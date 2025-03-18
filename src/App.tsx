@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import Index from "./pages/Index";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
@@ -24,12 +25,14 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Auth routes without sidebar */}
+            {/* Landing page route */}
+            <Route path="/" element={<Landing />} />
+            
+            {/* Main app routes */}
+            <Route path="/app" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             
-            {/* Main app routes with sidebar handled within their components */}
-            <Route path="/" element={<Index />} />
             <Route path="/projects/:id" element={
               <ProtectedRoute>
                 <ProjectDetails />
@@ -46,7 +49,6 @@ const App = () => (
               </ProtectedRoute>
             } />
             
-            {/* Catch-all for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
