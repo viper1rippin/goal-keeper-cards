@@ -24,7 +24,7 @@ export const badges: Badge[] = [
 export const patriotBadge: Badge = {
   name: "Patriot",
   level: 1, // Available at any level for premium users
-  icon: Star,
+  icon: Shield,
   color: "from-gold-400 to-amber-600" // Special gold gradient for premium users
 };
 

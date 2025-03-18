@@ -2,7 +2,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Infinity, Star, Sparkles, Users } from "lucide-react";
+import { Infinity, Shield, Sparkles, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "../AnimatedContainer";
@@ -30,7 +30,7 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ open, onOpenChange }) => 
     {
       title: "Patriot Badge",
       description: "Stand out with an exclusive Patriot badge on your profile",
-      icon: <Star className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
+      icon: <Shield className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
     },
     {
       title: "AI Companion",
