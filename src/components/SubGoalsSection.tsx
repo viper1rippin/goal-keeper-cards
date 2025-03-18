@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -143,13 +142,10 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     navigate(`/projects/${goal.id}`);
   };
 
-  const handleDeleteSelectedGoals = async (goalIds: string[]) => {
+  const handleDeleteSelectedGoals = async (goalIds: string[]): Promise<void> => {
     try {
-      // Call the delete function for each selected goal
       const deletePromises = goalIds.map(id => onDeleteSubGoal(id));
       await Promise.all(deletePromises);
-      
-      return true;
     } catch (error) {
       console.error("Error deleting multiple goals:", error);
       throw error;
