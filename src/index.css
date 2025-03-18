@@ -1,11 +1,9 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Dark mode colors (default) */
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
 
@@ -36,37 +34,6 @@
 
     --radius: 8px;
   }
-
-  .light-mode {
-    /* Light mode colors */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 5%;
-
-    --card: 0 0% 96%;
-    --card-foreground: 0 0% 5%;
-
-    --popover: 0 0% 98%;
-    --popover-foreground: 0 0% 5%;
-
-    --primary: 151 93% 30%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 92%;
-    --secondary-foreground: 0 0% 5%;
-
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 40%;
-
-    --accent: 151 93% 30%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 85%;
-    --input: 0 0% 85%;
-    --ring: 151 93% 30%;
-  }
 }
 
 @layer base {
@@ -75,15 +42,7 @@
   }
 
   body {
-    @apply transition-colors duration-300 bg-background text-foreground antialiased;
-  }
-
-  .dark-mode {
-    @apply bg-apple-dark text-slate-100;
-  }
-
-  .light-mode {
-    @apply bg-background text-foreground;
+    @apply bg-apple-dark text-slate-100 antialiased;
   }
 
   #root {
@@ -122,23 +81,6 @@
   
   .sidebar-menu-item.active {
     @apply bg-muted text-white;
-  }
-
-  /* Card Selection styles */
-  .card-selected {
-    @apply border-emerald/40 shadow-md shadow-emerald/15;
-  }
-  
-  .selection-indicator {
-    @apply absolute top-2 left-2 w-5 h-5 rounded-full transition-all duration-200;
-  }
-  
-  .selection-indicator-checked {
-    @apply bg-emerald text-white flex items-center justify-center;
-  }
-  
-  .selection-indicator-unchecked {
-    @apply border-2 border-slate-600 bg-transparent hover:border-emerald/80;
   }
 
   /* TipTap editor styles */
