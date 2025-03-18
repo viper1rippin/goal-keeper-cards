@@ -7,18 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import { getCurrentBadge } from "@/utils/badgeUtils";
-import { Badge } from "./ui/badge";
 
 const UserBadge = ({ level }: { level: number }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  
-  // Get the user's current badge based on their level
-  const currentBadge = getCurrentBadge(level);
-  const BadgeIcon = currentBadge.icon;
   
   useEffect(() => {
     if (user) {
@@ -71,21 +65,13 @@ const UserBadge = ({ level }: { level: number }) => {
         <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
           <Avatar className="w-5 h-5">
             <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className={`bg-gradient-to-r ${currentBadge.color} flex items-center justify-center text-[10px] font-bold`}>
+            <AvatarFallback className="bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
               {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span className="text-slate-200 truncate max-w-[100px]">
             {displayName}
           </span>
-          <Badge 
-            variant="outline" 
-            className="ml-1 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600 cursor-pointer hover:border-emerald/40 transition-colors"
-            onClick={() => navigate('/progress')}
-          >
-            <BadgeIcon className="h-2.5 w-2.5 mr-0.5" />
-            {currentBadge.name}
-          </Badge>
         </div>
         <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-8 px-2">
           <LogOut size={16} />
@@ -97,7 +83,7 @@ const UserBadge = ({ level }: { level: number }) => {
   // Return the default badge for non-logged in users
   return (
     <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
-      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center text-[10px] font-bold">
+      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-emerald to-blue-400 flex items-center justify-center text-[10px] font-bold">
         {level}
       </div>
       <span className="text-slate-200">Guest</span>

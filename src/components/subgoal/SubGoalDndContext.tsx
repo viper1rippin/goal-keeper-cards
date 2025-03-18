@@ -50,17 +50,14 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   onAddSubGoal,
   onViewDetail
 }) => {
-  // Setup sensors for drag and drop with lower activation constraint
+  // Setup sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Reduced from 8 to make drag activation easier
+        distance: 8, // Minimum drag distance before activation
       },
     })
   );
-
-  // Create an array of valid IDs for the sortable context
-  const sortableIds = subGoals.map(goal => goal.id || '').filter(id => id !== '');
 
   return (
     <DndContext 
@@ -70,7 +67,7 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
       onDragEnd={onDragEnd}
     >
       <SortableContext 
-        items={sortableIds}
+        items={subGoals.map(goal => goal.id || '')}
         strategy={horizontalListSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

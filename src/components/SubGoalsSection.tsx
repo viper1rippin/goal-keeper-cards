@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -90,50 +91,50 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     if (!over) return;
     
     if (active.id !== over.id) {
-      const oldIndex = subGoals.findIndex(item => item.id === active.id);
-      const newIndex = subGoals.findIndex(item => item.id === over.id);
+      const reorderedGoals = [...subGoals];
+      const oldIndex = reorderedGoals.findIndex(item => item.id === active.id);
+      const newIndex = reorderedGoals.findIndex(item => item.id === over.id);
       
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedGoals = arrayMove(subGoals, oldIndex, newIndex);
-        
-        onUpdateSubGoals(reorderedGoals);
-        
-        try {
-          await updateSubGoalOrder(reorderedGoals);
-        } catch (error) {
-          console.error("Error updating sub-goal order:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update sub-goal order. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
+      const newItems = arrayMove(reorderedGoals, oldIndex, newIndex);
+      
+      await saveSubGoalOrder(newItems);
+      
+      onUpdateSubGoals(newItems);
     }
     
     setActiveSubGoal(null);
     setActiveSubGoalId(null);
   };
   
-  const updateSubGoalOrder = async (updatedSubGoals: Goal[]) => {
+  const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      const updatePromises = updatedSubGoals.map((goal, index) => {
-        if (goal.id) {
-          return supabase
-            .from('sub_goals')
-            .update({ display_order: index })
-            .eq('id', goal.id);
+      for (let i = 0; i < updatedSubGoals.length; i++) {
+        if (updatedSubGoals[i].id) {
+          const delayOffset = i * 50;
+          
+          setTimeout(async () => {
+            const { error } = await supabase
+              .from('sub_goals')
+              .update({ 
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', updatedSubGoals[i].id);
+            
+            if (error) throw error;
+          }, delayOffset);
         }
-        return Promise.resolve();
-      });
-      
-      await Promise.all(updatePromises);
+      }
     } catch (error) {
-      console.error("Error updating sub-goal order:", error);
-      throw error;
+      console.error("Error saving sub-goal order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save sub-goal order. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
+  // Handle navigation to detail page
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
     

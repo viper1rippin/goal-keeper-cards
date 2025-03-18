@@ -77,52 +77,19 @@ export type Database = {
           avatar_url: string | null
           display_name: string | null
           id: string
-          level: number
-          points: number
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           display_name?: string | null
           id: string
-          level?: number
-          points?: number
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           display_name?: string | null
           id?: string
-          level?: number
-          points?: number
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      project_notes: {
-        Row: {
-          content: string | null
-          created_at: string | null
-          id: string
-          project_id: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string | null
-          id?: string
-          project_id: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          content?: string | null
-          created_at?: string | null
-          id?: string
-          project_id?: string
-          updated_at?: string | null
-          user_id?: string
         }
         Relationships: []
       }
@@ -130,7 +97,6 @@ export type Database = {
         Row: {
           created_at: string
           description: string
-          display_order: number | null
           id: string
           parent_goal_id: string
           progress: number
@@ -141,7 +107,6 @@ export type Database = {
         Insert: {
           created_at?: string
           description: string
-          display_order?: number | null
           id?: string
           parent_goal_id: string
           progress?: number
@@ -152,7 +117,6 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string
-          display_order?: number | null
           id?: string
           parent_goal_id?: string
           progress?: number
