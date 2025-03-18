@@ -34,18 +34,17 @@ const SortableSubGoalCard = ({
     transition,
   } = useSortable({ id: goal.id || index.toString() });
 
-  // Apply dnd-kit styles without animation transitions
+  // Apply dnd-kit styles
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition, // Disable transition animation during dragging
-    zIndex: isDragging ? 50 : 'auto' // Ensure dragged item stays on top
+    transition
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group select-none"
+      className="relative group"
       {...attributes}
       {...listeners}
     >

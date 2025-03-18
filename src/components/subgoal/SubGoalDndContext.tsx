@@ -11,8 +11,7 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverlay,
-  defaultDropAnimationSideEffects
+  DragOverlay
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -63,17 +62,6 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   // Create an array of valid IDs for the sortable context
   const sortableIds = subGoals.map(goal => goal.id || '').filter(id => id !== '');
 
-  // Custom drop animation that's minimal and doesn't cause a flash
-  const customDropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: {
-        active: {
-          opacity: '0.5',
-        },
-      },
-    }),
-  };
-
   return (
     <DndContext 
       sensors={sensors}
@@ -112,8 +100,8 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
         </div>
       </SortableContext>
       
-      {/* Drag overlay for dragged cards - no animation on this */}
-      <DragOverlay adjustScale={false} dropAnimation={customDropAnimation}>
+      {/* Drag overlay for dragged cards */}
+      <DragOverlay adjustScale={true}>
         {activeSubGoal ? (
           <GoalCard
             title={activeSubGoal.title}
