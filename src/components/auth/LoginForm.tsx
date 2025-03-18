@@ -52,7 +52,7 @@ export default function LoginForm() {
           title: "Login successful",
           description: "Welcome back!",
         });
-        navigate("/");
+        navigate("/projects"); // Changed from "/" to "/projects"
       }
     } catch (error) {
       toast({
