@@ -25,15 +25,14 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Landing page route - accessible to all */}
+            {/* Landing page route */}
             <Route path="/" element={<Landing />} />
             
-            {/* Auth routes - accessible to all */}
+            {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/pricing" element={<Pricing />} />
             
-            {/* Protected routes - accessible but with different behavior for authenticated vs guest users */}
             <Route path="/projects/:id" element={
               <ProtectedRoute>
                 <ProjectDetails />

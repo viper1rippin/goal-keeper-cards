@@ -14,7 +14,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import SidebarMenuItem from "./SidebarMenuItem";
 import PremiumDialog from "../premium/PremiumDialog";
-import { useAuth } from "@/context/AuthContext";
 
 interface SidebarMenuProps {
   collapsed: boolean;
@@ -25,19 +24,6 @@ interface SidebarMenuProps {
 const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) => {
   const navigate = useNavigate();
   const [isPremiumDialogOpen, setIsPremiumDialogOpen] = useState(false);
-  const { user } = useAuth();
-  
-  // Determine if the user is a guest (no authenticated user)
-  const isGuest = !user;
-  
-  // Handle the home navigation differently based on whether the user is guest or authenticated
-  const handleHomeClick = () => {
-    if (isGuest) {
-      navigate('/'); // Navigate to landing page for guests
-    } else {
-      navigate('/'); // Navigate to home/planning section for authenticated users
-    }
-  };
   
   return (
     <>
@@ -46,7 +32,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           icon={<Home size={20} />} 
           label="Home" 
           collapsed={collapsed} 
-          onClick={handleHomeClick} 
+          onClick={() => navigate('/')} 
         />
         <SidebarMenuItem 
           icon={<UserRound size={20} />} 
