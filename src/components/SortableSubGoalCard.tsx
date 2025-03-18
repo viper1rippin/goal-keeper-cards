@@ -44,9 +44,9 @@ const SortableSubGoalCard = ({
     <div
       ref={setNodeRef}
       style={style}
+      className="relative group"
       {...attributes}
       {...listeners}
-      className="relative"
     >
       <GoalCard
         title={goal.title}

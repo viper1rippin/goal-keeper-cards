@@ -6,6 +6,8 @@ import GoalsList from "@/components/GoalsList";
 import LoadingGoals from "@/components/LoadingGoals";
 import { useIndexPage } from "./IndexPageContext";
 import FocusTimer from "@/components/FocusTimer";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 
 const GoalsContent: React.FC = () => {
   const { 
@@ -24,7 +26,49 @@ const GoalsContent: React.FC = () => {
     handleStopFocus
   } = useIndexPage();
 
-  const [userLevel, setUserLevel] = React.useState(10);
+  const [userLevel, setUserLevel] = React.useState(1);
+  const { user } = useAuth();
+  
+  React.useEffect(() => {
+    if (user) {
+      const fetchUserLevel = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('level')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        if (data && data.level) {
+          setUserLevel(data.level);
+        }
+      };
+      
+      fetchUserLevel();
+      
+      // Subscribe to level changes
+      const channel = supabase
+        .channel('goals-level-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new && payload.new.level) {
+              setUserLevel(payload.new.level);
+            }
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
   
   const handleLevelUp = (newLevel: number) => {
     setUserLevel(newLevel);

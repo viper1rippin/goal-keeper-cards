@@ -1,4 +1,5 @@
 
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -79,6 +80,31 @@
   .sidebar-menu-item.active {
     @apply bg-muted text-white;
   }
+
+  /* TipTap editor styles */
+  .tiptap-editor {
+    @apply w-full outline-none;
+  }
+
+  .tiptap-editor ul {
+    @apply list-disc pl-6 my-4;
+  }
+
+  .tiptap-editor ol {
+    @apply list-decimal pl-6 my-4;
+  }
+
+  .tiptap-editor p {
+    @apply my-2;
+  }
+
+  .tiptap-editor li {
+    @apply my-1;
+  }
+
+  .tiptap-editor li p {
+    @apply my-0;
+  }
 }
 
 /* Animations for our components */
@@ -139,3 +165,4 @@
 .animate-green-lantern {
   animation: green-lantern-pulse 4s infinite;
 }
+
