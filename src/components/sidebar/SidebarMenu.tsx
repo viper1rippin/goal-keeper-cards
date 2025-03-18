@@ -32,7 +32,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           icon={<Home size={20} />} 
           label="Home" 
           collapsed={collapsed} 
-          onClick={() => navigate('/')} 
+          onClick={() => navigate('/projects')} 
         />
         <SidebarMenuItem 
           icon={<UserRound size={20} />} 
@@ -53,7 +53,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           onClick={() => {}} 
         />
         <SidebarMenuItem 
-          icon={darkMode ? <Moon size={20} /> : <Sun size={20} />} 
+          icon={darkMode ? <Moon size={20} />: <Sun size={20} />} 
           label={darkMode ? "Night Mode" : "Day Mode"} 
           collapsed={collapsed} 
           onClick={toggleDarkMode} 
