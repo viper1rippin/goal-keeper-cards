@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import AnimatedContainer from "@/components/AnimatedContainer";
@@ -69,23 +70,16 @@ const GuestGoals = () => {
           };
           
           setParentGoals(prev => [...prev, newGoal]);
-          
-          toast({
-            title: "Goal saved",
-            description: "Your goal has been saved to your browser.",
-          });
         }
       }
     } else {
       // Edit existing goal
       setParentGoals(prev => 
-        prev.map(p => p.id === goalToEdit.id ? goalToEdit : p)
+        prev.map(p => p.id === goalToEdit.id ? {
+          ...goalToEdit,
+          goals: p.goals // Make sure to preserve existing sub-goals
+        } : p)
       );
-      
-      toast({
-        title: "Goal updated",
-        description: "Your goal has been updated in your browser.",
-      });
     }
     
     setIsDialogOpen(false);
@@ -99,11 +93,6 @@ const GuestGoals = () => {
       setActiveGoalIndices(null);
       setActiveGoal(null);
     }
-    
-    toast({
-      title: "Goal deleted",
-      description: "Your goal has been removed.",
-    });
   };
   
   // Handle deleting a sub-goal
@@ -120,19 +109,18 @@ const GuestGoals = () => {
         setActiveGoal(null);
       }
     }
-    
-    toast({
-      title: "Sub-goal deleted",
-      description: "Your sub-goal has been removed.",
-    });
   };
   
   // Handle updating sub-goals
   const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
+    console.log("Updating sub-goals for parent index:", parentIndex, "with goals:", updatedGoals);
     const updatedParentGoals = [...parentGoals];
     if (updatedParentGoals[parentIndex]) {
       updatedParentGoals[parentIndex].goals = updatedGoals;
       setParentGoals(updatedParentGoals);
+      
+      // Save to localStorage right away
+      localStorage.setItem(GUEST_GOALS_STORAGE_KEY, JSON.stringify(updatedParentGoals));
     }
   };
   
@@ -163,11 +151,6 @@ const GuestGoals = () => {
       const [movedItem] = updatedGoals.splice(oldIndex, 1);
       updatedGoals.splice(newIndex, 0, movedItem);
       setParentGoals(updatedGoals);
-      
-      toast({
-        title: "Goal order updated",
-        description: "Your goal order has been saved to your browser.",
-      });
     }
   };
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/context/AuthContext";
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -34,6 +36,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
@@ -70,9 +73,27 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
   
-  const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
+  const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'> & { id?: string, progress?: number }) => {
+    const newSubGoal = {
+      id: subGoal.id || `temp-${Date.now()}`,
+      title: subGoal.title,
+      description: subGoal.description,
+      progress: subGoal.progress !== undefined ? subGoal.progress : 0
+    };
+    
+    // If editing an existing goal
+    if (subGoalToEdit && editingGoalIndex !== null) {
+      const updatedGoals = [...subGoals];
+      updatedGoals[editingGoalIndex] = newSubGoal;
+      onUpdateSubGoals(updatedGoals);
+    } else {
+      // Adding a new goal
+      onUpdateSubGoals([...subGoals, newSubGoal]);
+    }
+    
     setIsSubGoalDialogOpen(false);
-    onUpdateSubGoals(subGoals);
+    setSubGoalToEdit(null);
+    setEditingGoalIndex(null);
   };
   
   const handleDragStart = (event: DragStartEvent) => {
@@ -98,15 +119,13 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         
         onUpdateSubGoals(reorderedGoals);
         
-        try {
-          await updateSubGoalOrder(reorderedGoals);
-        } catch (error) {
-          console.error("Error updating sub-goal order:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update sub-goal order. Please try again.",
-            variant: "destructive",
-          });
+        // Only attempt to update server if user is authenticated
+        if (user) {
+          try {
+            await updateSubGoalOrder(reorderedGoals);
+          } catch (error) {
+            console.error("Error updating sub-goal order:", error);
+          }
         }
       }
     }
@@ -116,6 +135,8 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   };
   
   const updateSubGoalOrder = async (updatedSubGoals: Goal[]) => {
+    if (!user) return;
+    
     try {
       const updatePromises = updatedSubGoals.map((goal, index) => {
         if (goal.id) {
@@ -137,7 +158,15 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
     
-    navigate(`/projects/${goal.id}`);
+    if (user) {
+      navigate(`/projects/${goal.id}`);
+    } else {
+      // For guest users, show premium dialog if available
+      const dialogTrigger = document.querySelector('[data-premium-trigger]') as HTMLButtonElement;
+      if (dialogTrigger) {
+        dialogTrigger.click();
+      }
+    }
   };
 
   if (isLoading) {
