@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { User } from 'lucide-react';
 import {
@@ -15,14 +16,25 @@ import { useAuth } from "@/context/AuthContext";
 
 const NavigationBar = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Handle logo click based on user authentication status
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user) {
+      navigate('/'); // For authenticated users, go to the home/planning page
+    } else {
+      navigate('/'); // For guests, stay on the landing page
+    }
+  };
 
   return (
     <div className="w-full bg-black py-4 px-6 sticky top-0 z-50 border-b border-slate-800/50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center">
+        <a href="/" onClick={handleLogoClick} className="flex items-center">
           <span className="text-emerald text-2xl font-bold">Loyde</span>
-        </Link>
+        </a>
 
         {/* Navigation Menu */}
         <NavigationMenu className="hidden md:flex">
@@ -113,7 +125,7 @@ const NavigationBar = () => {
                   size="sm"
                   className="bg-emerald hover:bg-emerald-dark"
                 >
-                  Download
+                  Sign Up
                 </Button>
               </Link>
             </>
