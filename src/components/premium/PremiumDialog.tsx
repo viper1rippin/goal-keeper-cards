@@ -2,7 +2,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Infinity, Shield, Sparkles, Users } from "lucide-react";
+import { Infinity, Shield, Wand2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "../AnimatedContainer";
@@ -24,23 +24,23 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ open, onOpenChange }) => 
   const features: PremiumFeature[] = [
     {
       title: "Unlimited Goals",
-      description: "Set and track as many goals and sub-goals as you need without limits",
-      icon: <Infinity className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
+      description: "Track unlimited goals without restrictions",
+      icon: <Infinity className="w-5 h-5 text-emerald-light" strokeWidth={1.2} />
     },
     {
       title: "Patriot Badge",
-      description: "Stand out with an exclusive Patriot badge on your profile",
-      icon: <Shield className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
+      description: "Exclusive badge for your profile",
+      icon: <Shield className="w-5 h-5 text-emerald-light" strokeWidth={1.2} />
     },
     {
       title: "AI Companion",
-      description: "Get AI-powered suggestions and advice for your goals and projects",
-      icon: <Sparkles className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
+      description: "Smart AI suggestions for your goals",
+      icon: <Wand2 className="w-5 h-5 text-emerald-light" strokeWidth={1.2} />
     },
     {
       title: "Team Collaboration",
-      description: "Work together with your team members on shared goals and projects",
-      icon: <Users className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
+      description: "Work with teammates on shared goals",
+      icon: <Users className="w-5 h-5 text-emerald-light" strokeWidth={1.2} />
     }
   ];
 
