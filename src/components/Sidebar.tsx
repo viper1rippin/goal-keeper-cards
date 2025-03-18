@@ -1,17 +1,22 @@
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { useSidebar } from "@/context/SidebarContext";
 
 // Import refactored components
 import SidebarCollapseButton from "./sidebar/SidebarCollapseButton";
 import SidebarProfile from "./sidebar/SidebarProfile";
 import SidebarMenu from "./sidebar/SidebarMenu";
 import SidebarLogout from "./sidebar/SidebarLogout";
+
+export const SidebarContext = React.createContext<{
+  collapsed: boolean;
+}>({
+  collapsed: false,
+});
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -20,11 +25,11 @@ interface SidebarProps {
 const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { collapsed, setCollapsed } = useSidebar();
+  const [collapsed, setCollapsed] = useState(false);
   const { darkMode, toggleDarkMode } = useDarkMode();
-  const [displayName, setDisplayName] = React.useState("");
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
-  const [userLevel, setUserLevel] = React.useState(1);
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userLevel, setUserLevel] = useState(1);
   
   useEffect(() => {
     if (user) {
@@ -88,46 +93,52 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
 
   const username = displayName || user?.email?.split('@')[0] || 'Guest';
 
-  return (
-    <div 
-      className={cn(
-        "fixed left-0 top-0 h-screen bg-apple-dark z-40 border-r border-slate-800/80 transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
-      {/* Collapse button */}
-      <SidebarCollapseButton 
-        collapsed={collapsed} 
-        toggleCollapse={toggleCollapse} 
-      />
+  const sidebarContextValue = {
+    collapsed
+  };
 
-      <div className="flex flex-col h-full p-4">
-        {/* User profile section at top */}
-        <SidebarProfile 
-          collapsed={collapsed}
-          username={username}
-          avatarUrl={avatarUrl}
-          userLevel={userLevel}
+  return (
+    <SidebarContext.Provider value={sidebarContextValue}>
+      <div 
+        className={cn(
+          "fixed left-0 top-0 h-screen bg-apple-dark z-40 border-r border-slate-800/80 transition-all duration-300",
+          collapsed ? "w-16" : "w-64"
+        )}
+      >
+        {/* Collapse button */}
+        <SidebarCollapseButton 
+          collapsed={collapsed} 
+          toggleCollapse={toggleCollapse} 
         />
 
-        {/* Menu items */}
-        <div className="flex-1">
-          <SidebarMenu 
+        <div className="flex flex-col h-full p-4">
+          {/* User profile section at top */}
+          <SidebarProfile 
             collapsed={collapsed}
-            darkMode={darkMode}
-            toggleDarkMode={toggleDarkMode}
+            username={username}
+            avatarUrl={avatarUrl}
+            userLevel={userLevel}
           />
-        </div>
 
-        {/* Logout at bottom */}
-        <div className="mb-6">
-          <SidebarLogout 
-            collapsed={collapsed}
-            onLogout={handleSignOut}
-          />
+          {/* Menu items */}
+          <div className="flex-1">
+            <SidebarMenu 
+              collapsed={collapsed}
+              darkMode={darkMode}
+              toggleDarkMode={toggleDarkMode}
+            />
+          </div>
+
+          {/* Logout at bottom */}
+          <div className="mb-6">
+            <SidebarLogout 
+              collapsed={collapsed}
+              onLogout={handleSignOut}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </SidebarContext.Provider>
   );
 };
 

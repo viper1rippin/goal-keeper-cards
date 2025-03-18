@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,12 +13,9 @@ import { Award, Timer, Target, Flag } from "lucide-react";
 import { formatTime, calculateTimeForNextLevel, calculateDaysForNextBadge, pointsToHours } from "@/utils/timerUtils";
 import { Badge } from "@/components/ui/badge";
 import Sidebar from "@/components/Sidebar";
-import { useSidebar } from "@/context/SidebarContext";
-import { cn } from "@/lib/utils";
 
 const ProgressTracker = () => {
   const { user } = useAuth();
-  const { collapsed } = useSidebar();
   const [level, setLevel] = useState(1);
   const [points, setPoints] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -89,10 +85,7 @@ const ProgressTracker = () => {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <div className={cn(
-        "flex-1 p-8 transition-all duration-300",
-        collapsed ? "ml-16" : "ml-64"
-      )}>
+      <div className="flex-1 ml-64 p-8">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Progress Tracker</h1>
           

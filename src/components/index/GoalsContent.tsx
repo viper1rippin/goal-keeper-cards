@@ -8,8 +8,6 @@ import { useIndexPage } from "./IndexPageContext";
 import FocusTimer from "@/components/FocusTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { useSidebar } from "@/context/SidebarContext";
-import { cn } from "@/lib/utils";
 
 const GoalsContent: React.FC = () => {
   const { 
@@ -30,7 +28,6 @@ const GoalsContent: React.FC = () => {
 
   const [userLevel, setUserLevel] = React.useState(1);
   const { user } = useAuth();
-  const { collapsed } = useSidebar();
   
   React.useEffect(() => {
     if (user) {
@@ -78,10 +75,7 @@ const GoalsContent: React.FC = () => {
   };
 
   return (
-    <main className={cn(
-      "w-full max-w-5xl pt-8 px-4 sm:px-6 md:px-8 transition-all duration-300",
-      collapsed ? "ml-16" : "ml-64"
-    )}>
+    <main className="w-full max-w-5xl pt-8 px-4 sm:px-6 md:px-8">
       <WelcomeCard 
         onAddGoal={() => handleCreateOrEditGoal(null)} 
         onToggleFocusTimer={() => setShowFocusTimer(!showFocusTimer)}
