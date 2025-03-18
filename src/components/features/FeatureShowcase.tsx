@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ListChecks, Network, FileText, Goal } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -36,26 +36,11 @@ const features = [
 ];
 
 const FeatureShowcase = () => {
-  const [activeFeature, setActiveFeature] = useState(features[0].id);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => {
-        const newIndex = (prevIndex + 1) % features.length;
-        setActiveFeature(features[newIndex].id);
-        return newIndex;
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const currentFeature = features.find(f => f.id === activeFeature) || features[0];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentFeature = features[currentIndex];
 
   return (
     <div className="relative py-20">
-      {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -69,9 +54,7 @@ const FeatureShowcase = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-6xl mx-auto px-4 space-y-8">
-        {/* Feature Image */}
         <Card className="overflow-hidden bg-apple-dark border-emerald/10 aspect-video">
           <div className="relative w-full h-full">
             <div className="absolute inset-8 rounded-lg overflow-hidden shadow-2xl">
@@ -81,8 +64,8 @@ const FeatureShowcase = () => {
                   src={feature.image}
                   alt={feature.title}
                   className={cn(
-                    "absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-500",
-                    currentImageIndex === index ? "opacity-100" : "opacity-0"
+                    "absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-200",
+                    currentIndex === index ? "opacity-100" : "opacity-0"
                   )}
                 />
               ))}
@@ -90,16 +73,12 @@ const FeatureShowcase = () => {
           </div>
         </Card>
 
-        {/* Feature Selection */}
         <div className="flex flex-wrap justify-center gap-4">
-          {features.map((feature) => (
+          {features.map((feature, index) => (
             <FeatureButton
               key={feature.id}
-              active={activeFeature === feature.id}
-              onClick={() => {
-                setActiveFeature(feature.id);
-                setCurrentImageIndex(features.findIndex(f => f.id === feature.id));
-              }}
+              active={currentIndex === index}
+              onClick={() => setCurrentIndex(index)}
             >
               <div className="flex items-center gap-2">
                 {feature.icon}
@@ -109,7 +88,6 @@ const FeatureShowcase = () => {
           ))}
         </div>
 
-        {/* Feature Description */}
         <div className="text-center">
           <p className="text-lg text-slate-300">{currentFeature.description}</p>
         </div>
