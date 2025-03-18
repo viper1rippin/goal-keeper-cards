@@ -1,5 +1,3 @@
-
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -40,7 +38,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border select-none;
   }
 
   body {
@@ -52,6 +50,10 @@
     width: 100%;
     margin: 0;
     padding: 0;
+  }
+  
+  input, textarea, [contenteditable="true"] {
+    @apply select-text;
   }
 }
 
@@ -165,4 +167,3 @@
 .animate-green-lantern {
   animation: green-lantern-pulse 4s infinite;
 }
-

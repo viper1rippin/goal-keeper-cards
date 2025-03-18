@@ -189,7 +189,7 @@ const ActionStar: React.FC<ActionStarProps> = ({ action, onEdit, onDelete, onUpd
         <div className="absolute inset-0 rounded-md filter blur-md opacity-70 -z-10 bg-inherit"></div>
         
         {/* Content */}
-        <div className="relative">
+        <div className="relative select-text">
           <p className="text-white font-medium text-center">{action.content}</p>
           
           {/* Action buttons */}
