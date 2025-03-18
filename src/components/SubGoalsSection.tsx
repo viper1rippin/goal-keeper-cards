@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/context/AuthContext";
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -34,6 +36,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
@@ -71,8 +74,30 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   };
   
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
+    // Create a new sub-goal object with all required fields
+    const newSubGoal: Goal = {
+      id: subGoal.id,
+      title: subGoal.title,
+      description: subGoal.description,
+      progress: 0 // Default progress
+    };
+    
+    // If we're editing an existing sub-goal
+    if (subGoalToEdit && editingGoalIndex !== null) {
+      const updatedSubGoals = [...subGoals];
+      updatedSubGoals[editingGoalIndex] = {
+        ...updatedSubGoals[editingGoalIndex],
+        ...newSubGoal
+      };
+      onUpdateSubGoals(updatedSubGoals);
+    } else {
+      // Adding a new sub-goal
+      onUpdateSubGoals([...subGoals, newSubGoal]);
+    }
+    
     setIsSubGoalDialogOpen(false);
-    onUpdateSubGoals(subGoals);
+    setSubGoalToEdit(null);
+    setEditingGoalIndex(null);
   };
   
   const handleDragStart = (event: DragStartEvent) => {
@@ -98,15 +123,13 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         
         onUpdateSubGoals(reorderedGoals);
         
-        try {
-          await updateSubGoalOrder(reorderedGoals);
-        } catch (error) {
-          console.error("Error updating sub-goal order:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update sub-goal order. Please try again.",
-            variant: "destructive",
-          });
+        // Only attempt to update database if user is authenticated
+        if (user) {
+          try {
+            await updateSubGoalOrder(reorderedGoals);
+          } catch (error) {
+            console.error("Error updating sub-goal order:", error);
+          }
         }
       }
     }
