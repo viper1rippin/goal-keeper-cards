@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Goal, SubGoal, Network, FileText, Circle, Star } from 'lucide-react';
+import { Goal, ListChecks, Network, FileText, Circle, Star } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const FeatureShowcase = () => {
   const features = [
     { icon: <Goal />, title: 'Goal Tracking', color: 'emerald' },
-    { icon: <SubGoal />, title: 'Sub-Goals', color: 'blue' },
+    { icon: <ListChecks />, title: 'Sub-Goals', color: 'blue' },
     { icon: <Network />, title: 'Mind Map', color: 'purple' },
     { icon: <FileText />, title: 'Project Details', color: 'orange' }
   ];
