@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ChevronDown, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -30,7 +30,7 @@ const NavigationBar = () => {
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuTrigger className="bg-transparent hover:bg-slate-800 text-slate-200">
-                Features <ChevronDown className="h-4 w-4 ml-1" />
+                Features
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid gap-3 p-6 w-[400px] bg-apple-dark border border-slate-800">
@@ -60,7 +60,7 @@ const NavigationBar = () => {
             
             <NavigationMenuItem>
               <NavigationMenuTrigger className="bg-transparent hover:bg-slate-800 text-slate-200">
-                Resources <ChevronDown className="h-4 w-4 ml-1" />
+                Resources
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[300px] gap-3 p-4 bg-apple-dark border border-slate-800">
