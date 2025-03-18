@@ -14,6 +14,7 @@ import ProjectDetails from "./pages/ProjectDetails";
 import Profile from "./pages/Profile";
 import ProgressTracker from "./pages/ProgressTracker";
 import Pricing from "./pages/Pricing";
+import IndexPage from "./pages/IndexPage";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,12 @@ const App = () => (
             <Route path="/signup" element={<SignUp />} />
             <Route path="/pricing" element={<Pricing />} />
             
+            {/* Protected routes */}
+            <Route path="/projects" element={
+              <ProtectedRoute>
+                <IndexPage />
+              </ProtectedRoute>
+            } />
             <Route path="/projects/:id" element={
               <ProtectedRoute>
                 <ProjectDetails />
