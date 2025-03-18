@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import Profile from "./pages/Profile";
 import ProgressTracker from "./pages/ProgressTracker";
 import Pricing from "./pages/Pricing";
 import IndexPage from "./pages/IndexPage";
+import GuestGoals from "./pages/GuestGoals";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +28,9 @@ const App = () => (
           <Routes>
             {/* Landing page route */}
             <Route path="/" element={<Landing />} />
+            
+            {/* Guest route */}
+            <Route path="/guest" element={<GuestGoals />} />
             
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />

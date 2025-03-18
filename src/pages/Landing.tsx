@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Code2, BadgeCheck } from "lucide-react";
@@ -7,6 +6,7 @@ import GridBackground from '@/components/effects/GridBackground';
 import GlowingCursor from '@/components/effects/GlowingCursor';
 import FeatureShowcase from '@/components/features/FeatureShowcase';
 import NavigationBar from '@/components/layout/NavigationBar';
+import { Link } from 'react-router-dom';
 
 const Landing = () => {
   return (
@@ -29,13 +29,15 @@ const Landing = () => {
               Experience the future of goal tracking with our AI-powered platform. Set, track, and achieve your goals with unparalleled efficiency.
             </p>
             <div className="flex justify-center gap-4">
-              <Button 
-                size="lg"
-                className="bg-emerald hover:bg-emerald-600"
-              >
-                Start Planning
-                <ArrowRight className="ml-2" size={20} />
-              </Button>
+              <Link to="/guest">
+                <Button 
+                  size="lg"
+                  className="bg-emerald hover:bg-emerald-600"
+                >
+                  Start Planning
+                  <ArrowRight className="ml-2" size={20} />
+                </Button>
+              </Link>
               <Button 
                 size="lg"
                 variant="outline"

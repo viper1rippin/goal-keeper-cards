@@ -95,10 +95,12 @@ const NavigationBar = () => {
         {/* Auth buttons */}
         <div className="flex items-center space-x-4">
           {user ? (
-            <Link to="/profile">
-              <Button variant="ghost" size="sm" className="text-slate-200 hover:bg-slate-800">
-                <User className="mr-2 h-4 w-4" />
-                Profile
+            <Link to="/projects">
+              <Button 
+                size="sm"
+                className="bg-emerald hover:bg-emerald-dark"
+              >
+                Dashboard
               </Button>
             </Link>
           ) : (
@@ -113,7 +115,7 @@ const NavigationBar = () => {
                   size="sm"
                   className="bg-emerald hover:bg-emerald-dark"
                 >
-                  Download
+                  Sign Up
                 </Button>
               </Link>
             </>
