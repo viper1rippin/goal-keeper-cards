@@ -1,33 +1,54 @@
 
-import React from 'react';
-import { Goal, ListChecks, Network, FileText, Circle, Star } from 'lucide-react';
+import React, { useState } from 'react';
+import { Code, MessageCircle, Command, Sparkles } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import FeatureButton from './FeatureButton';
+
+const features = [
+  {
+    id: 'autocomplete',
+    title: 'Autocomplete',
+    icon: <Code className="w-4 h-4" />,
+    image: 'public/lovable-uploads/02764281-cdd9-48da-a994-9bca94be5682.png',
+    description: 'Generate new code faster than the speed of thought.'
+  },
+  {
+    id: 'chat',
+    title: 'Chat',
+    icon: <MessageCircle className="w-4 h-4" />,
+    image: 'public/lovable-uploads/242401c8-a442-4126-8972-17f0d7f2b411.png',
+    description: 'Talk to our AI that knows your entire codebase, not just your current file.'
+  },
+  {
+    id: 'command',
+    title: 'Command',
+    icon: <Command className="w-4 h-4" />,
+    image: 'public/lovable-uploads/ac7d0b1d-6ef0-4cda-8c84-1305f7f81682.png',
+    description: 'Press Ctrl+I or ⌘+I to give natural language instructions in your editor to write and edit code.'
+  },
+  {
+    id: 'supercomplete',
+    title: 'Supercomplete',
+    icon: <Sparkles className="w-4 h-4" />,
+    image: 'public/lovable-uploads/2df78d3a-211c-495d-af0e-90a1045c827e.png',
+    description: 'Intent driven suggestions independent of your cursor position.'
+  }
+];
 
 const FeatureShowcase = () => {
-  const features = [
-    { icon: <Goal />, title: 'Goal Tracking', color: 'emerald' },
-    { icon: <ListChecks />, title: 'Sub-Goals', color: 'blue' },
-    { icon: <Network />, title: 'Mind Map', color: 'purple' },
-    { icon: <FileText />, title: 'Project Details', color: 'orange' }
-  ];
+  const [activeFeature, setActiveFeature] = useState(features[0].id);
+
+  const currentFeature = features.find(f => f.id === activeFeature) || features[0];
 
   return (
     <div className="relative py-20">
-      {/* Zodiac-style decoration */}
+      {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Central star */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <Star className="w-12 h-12 text-emerald/20" />
-        </div>
-        
-        {/* Connection lines */}
         <div className="absolute inset-0">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {/* Diagonal lines */}
             <line x1="20" y1="20" x2="80" y2="80" className="stroke-emerald/10 stroke-2" />
             <line x1="20" y1="80" x2="80" y2="20" className="stroke-emerald/10 stroke-2" />
-            {/* Connection circles */}
             <circle cx="20" cy="20" r="2" className="fill-emerald/20" />
             <circle cx="80" cy="80" r="2" className="fill-emerald/20" />
             <circle cx="20" cy="80" r="2" className="fill-emerald/20" />
@@ -36,28 +57,37 @@ const FeatureShowcase = () => {
         </div>
       </div>
 
-      {/* Features grid */}
-      <div className="relative grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto px-4">
-        {features.map((feature, index) => (
-          <Card
-            key={feature.title}
-            className={cn(
-              "group relative overflow-hidden p-6 hover-scale glass-card-dark cursor-pointer transition-all",
-              "hover:border-emerald/30 hover:shadow-emerald/20 hover:shadow-lg"
-            )}
-          >
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Circle className="absolute -right-4 -top-4 w-16 h-16 text-emerald/10" />
-              <Star className="absolute -left-4 -bottom-4 w-12 h-12 text-emerald/5" />
-            </div>
-            <div className="relative z-10 flex flex-col items-center text-center gap-3">
-              <div className="p-3 rounded-full bg-emerald/10 text-emerald">
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-4 space-y-8">
+        {/* Feature Image */}
+        <Card className="overflow-hidden bg-apple-dark border-emerald/10">
+          <img
+            src={currentFeature.image}
+            alt={currentFeature.title}
+            className="w-full aspect-video object-cover"
+          />
+        </Card>
+
+        {/* Feature Selection */}
+        <div className="flex flex-wrap justify-center gap-4">
+          {features.map((feature) => (
+            <FeatureButton
+              key={feature.id}
+              active={activeFeature === feature.id}
+              onClick={() => setActiveFeature(feature.id)}
+            >
+              <div className="flex items-center gap-2">
                 {feature.icon}
+                <span>{feature.title}</span>
               </div>
-              <h3 className="font-semibold text-lg">{feature.title}</h3>
-            </div>
-          </Card>
-        ))}
+            </FeatureButton>
+          ))}
+        </div>
+
+        {/* Feature Description */}
+        <div className="text-center">
+          <p className="text-lg text-slate-300">{currentFeature.description}</p>
+        </div>
       </div>
     </div>
   );
