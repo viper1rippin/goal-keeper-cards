@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import NavigationBar from '@/components/layout/NavigationBar';
 import { useToast } from "@/hooks/use-toast";
 import AnimatedContainer from '@/components/AnimatedContainer';
 import GridBackground from '@/components/effects/GridBackground';
+import { cn } from "@/lib/utils";
 
 type PricingPeriod = 'monthly' | 'yearly' | 'lifetime';
 
