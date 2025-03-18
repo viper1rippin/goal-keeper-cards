@@ -5,10 +5,10 @@ import {
   Home,
   UserRound, 
   Settings, 
-  Palette, 
+  Diamond, 
   Moon, 
   Sun, 
-  Star,
+  Crown,
   Award
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -47,7 +47,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           onClick={() => navigate('/progress')} 
         />
         <SidebarMenuItem 
-          icon={<Palette size={20} />} 
+          icon={<Diamond size={20} />} 
           label="Custom Themes" 
           collapsed={collapsed} 
           onClick={() => {}} 
@@ -66,7 +66,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           }
         />
         <SidebarMenuItem 
-          icon={<Star size={20} />} 
+          icon={<Crown size={20} />} 
           label="Upgrade" 
           collapsed={collapsed} 
           onClick={() => setIsPremiumDialogOpen(true)}
