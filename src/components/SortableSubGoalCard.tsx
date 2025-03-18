@@ -34,10 +34,11 @@ const SortableSubGoalCard = ({
     transition,
   } = useSortable({ id: goal.id || index.toString() });
 
-  // Apply dnd-kit styles
+  // Apply dnd-kit styles without animation transitions
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition
+    transition: isDragging ? 'none' : transition, // Disable transition animation during dragging
+    zIndex: isDragging ? 50 : 'auto' // Ensure dragged item stays on top
   };
 
   return (

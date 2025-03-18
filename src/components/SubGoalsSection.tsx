@@ -4,7 +4,6 @@ import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
@@ -33,7 +32,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   onDeleteSubGoal,
   isLoading
 }) => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
@@ -103,11 +101,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
           await updateSubGoalOrder(reorderedGoals);
         } catch (error) {
           console.error("Error updating sub-goal order:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update sub-goal order. Please try again.",
-            variant: "destructive",
-          });
+          // Toast notification removed
         }
       }
     }
@@ -140,6 +134,14 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     
     navigate(`/projects/${goal.id}`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-4 text-center text-slate-400">
+        Loading sub-goals...
+      </div>
+    );
+  }
 
   return (
     <>

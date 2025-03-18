@@ -42,8 +42,8 @@ const GoalCard = ({
   isDragging = false,
   onViewDetail
 }: GoalCardProps) => {
-  // Calculate delay based on index for staggered animation
-  const delay = 150 + index * 50;
+  // Calculate delay based on index for staggered animation - disable for dragging items
+  const delay = isDragging ? 0 : 150 + index * 50;
   
   // State to track hover status
   const [isHovered, setIsHovered] = useState(false);
@@ -115,9 +115,38 @@ const GoalCard = ({
     }
   };
   
+  // Use a regular div instead of AnimatedContainer when dragging to avoid animation artifacts
+  if (isDragging) {
+    return (
+      <div className="w-full group">
+        <div 
+          ref={cardRef}
+          className={cn(
+            "glass-card rounded-lg p-4 h-full transition-none relative overflow-hidden select-none",
+            `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20 ring-2 ring-emerald/50 shadow-xl`
+          )}
+        >
+          {/* Drag handle indicator */}
+          <GoalCardDragHandle />
+          
+          {/* Content area with title, description and progress */}
+          <GoalCardContent
+            title={title}
+            description={description}
+            progress={progress}
+            progressGradient={progressGradient}
+            isActiveFocus={isActiveFocus}
+            isFocused={isFocused}
+            isHovered={isHovered}
+          />
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <AnimatedContainer 
-      animation="scale-in"
+      animation={isDragging ? undefined : "scale-in"}
       delay={delay}
       className="w-full group"
     >
