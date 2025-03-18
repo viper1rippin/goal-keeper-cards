@@ -3,10 +3,14 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Code2, BadgeCheck } from "lucide-react";
 import AnimatedContainer from '@/components/AnimatedContainer';
+import GridBackground from '@/components/effects/GridBackground';
+import GlowingCursor from '@/components/effects/GlowingCursor';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-apple-dark text-white">
+    <div className="min-h-screen bg-apple-dark text-white relative overflow-hidden">
+      <GlowingCursor />
+      <GridBackground />
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-600/10 via-transparent to-transparent" />
