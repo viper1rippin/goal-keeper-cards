@@ -17,12 +17,12 @@ const GoalCardProgress = ({
   isHovered 
 }: GoalCardProgressProps) => {
   return (
-    <div className="mt-auto select-none transition-all duration-300 ease-in-out">
+    <div className="mt-auto select-none">
       <div className="flex justify-between text-xs text-slate-400 mb-1.5">
         <span>Progress</span>
         <span>{progress}%</span>
       </div>
-      <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
         <div 
           className={cn(
             "h-full bg-gradient-to-r transition-all duration-700 ease-out",
