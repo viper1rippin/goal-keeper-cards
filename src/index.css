@@ -107,6 +107,13 @@
   .tiptap-editor li p {
     @apply my-0;
   }
+
+  .glass-card-dark {
+    @apply bg-gradient-to-br from-apple-light/10 to-apple-dark/95 border border-emerald/10;
+    box-shadow: 
+      0 0 20px rgba(16, 185, 129, 0.05),
+      inset 0 0 20px rgba(16, 185, 129, 0.025);
+  }
 }
 
 /* Animations for our components */
@@ -139,9 +146,9 @@
 }
 
 @keyframes green-lantern-pulse {
-  0% { opacity: 0.5; filter: blur(10px); }
-  50% { opacity: 0.6; filter: blur(8px); }
-  100% { opacity: 0.5; filter: blur(10px); }
+  0% { opacity: 0.3; filter: blur(10px); }
+  50% { opacity: 0.4; filter: blur(8px); }
+  100% { opacity: 0.3; filter: blur(10px); }
 }
 
 .animate-fade-in {
