@@ -11,11 +11,15 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverlay
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  MeasuringStrategy
 } from '@dnd-kit/core';
 import {
   SortableContext,
   horizontalListSortingStrategy,
+  rectSortingStrategy
 } from '@dnd-kit/sortable';
 import GoalCard from '../GoalCard';
 
@@ -50,11 +54,19 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   onAddSubGoal,
   onViewDetail
 }) => {
-  // Setup sensors for drag and drop
+  // Setup sensors for drag and drop with better touch handling
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
+      // Require the mouse to move by 10 pixels before activating
       activationConstraint: {
-        distance: 8, // Minimum drag distance before activation
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      // Press delay in milliseconds, to differentiate from tap
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
       },
     })
   );
@@ -65,10 +77,15 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
       collisionDetection={closestCenter}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      measuring={{
+        droppable: {
+          strategy: MeasuringStrategy.Always
+        },
+      }}
     >
       <SortableContext 
-        items={subGoals.map(goal => goal.id || '')}
-        strategy={horizontalListSortingStrategy}
+        items={subGoals.map(goal => goal.id || `goal-${subGoals.indexOf(goal)}`)}
+        strategy={rectSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {subGoals.map((goal, goalIndex) => {
@@ -76,7 +93,7 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
             
             return (
               <SortableSubGoalCard 
-                key={goal.id || goalIndex}
+                key={goal.id || `goal-${goalIndex}`}
                 goal={goal}
                 index={goalIndex}
                 isActiveGoal={isActiveGoal}
