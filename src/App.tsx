@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ProjectDetails from "./pages/ProjectDetails";
 import Profile from "./pages/Profile";
 import ProgressTracker from "./pages/ProgressTracker";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
             {/* Auth routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/pricing" element={<Pricing />} />
             
             <Route path="/projects/:id" element={
               <ProtectedRoute>

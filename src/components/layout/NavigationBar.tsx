@@ -39,6 +39,7 @@ const NavigationBar = () => {
                     { title: 'Sub-Goals', description: 'Break down complex goals into manageable sub-tasks' },
                     { title: 'Mind Map', description: 'Visualize your goals and their relationships' },
                     { title: 'Project Notes', description: 'Keep detailed notes for each project' },
+                    { title: 'AI Companion', description: 'Get smart suggestions and insights from our AI assistant' },
                   ].map((item) => (
                     <li key={item.title} className="hover:bg-slate-800/50 p-3 rounded-md">
                       <NavigationMenuLink asChild>
