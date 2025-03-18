@@ -70,7 +70,7 @@ const ProgressTracker = () => {
     }
   }, [user]);
   
-  // Data for badges chart
+  // Data for badges chart - use actual level requirements from badges array
   const badgesChartData = badges.map(badge => ({
     name: badge.name,
     level: badge.level,
@@ -154,7 +154,7 @@ const ProgressTracker = () => {
               {/* Tabs for different views */}
               <Tabs defaultValue="badges">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="badges">Badge Progress</TabsTrigger>
+                  <TabsTrigger value="badges">Badge Progression</TabsTrigger>
                   <TabsTrigger value="levels">Level Details</TabsTrigger>
                 </TabsList>
                 
@@ -168,68 +168,97 @@ const ProgressTracker = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
-                        <ChartContainer 
-                          config={{
-                            points: { theme: { light: '#10b981', dark: '#10b981' } },
-                          }}
-                        >
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={badgesChartData}
-                              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                              <XAxis 
-                                dataKey="name" 
-                                angle={-45} 
-                                textAnchor="end" 
-                                height={60} 
-                              />
-                              <YAxis label={{ value: 'Level Required', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip 
-                                content={({ active, payload }) => {
-                                  if (active && payload && payload.length) {
-                                    const data = payload[0].payload;
-                                    const isUnlocked = level >= data.level;
-                                    return (
-                                      <div className="rounded-lg border bg-background p-2 shadow-md">
-                                        <p className="font-semibold">{data.name} Badge</p>
-                                        <p>Required Level: {data.level}</p>
-                                        <p className={isUnlocked ? 'text-emerald' : 'text-muted-foreground'}>
-                                          Status: {isUnlocked ? 'Unlocked' : 'Locked'}
-                                        </p>
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                }}
-                              />
-                              <Bar 
-                                dataKey="level" 
-                                fill="#10b981" 
-                                radius={[4, 4, 0, 0]}
-                                className="cursor-pointer"
-                              />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </ChartContainer>
+                      {/* Visual Badge Progression Chart */}
+                      <div className="relative h-96 mb-6">
+                        <h3 className="text-xl font-bold mb-1">Badge Progression</h3>
+                        <p className="text-sm text-muted-foreground mb-6">Your journey through the badge levels</p>
+                        
+                        <div className="h-64">
+                          <ChartContainer 
+                            config={{
+                              level: { theme: { light: '#10b981', dark: '#10b981' } },
+                            }}
+                          >
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={badgesChartData}
+                                margin={{ top: 20, right: 30, left: 30, bottom: 60 }}
+                              >
+                                <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
+                                <XAxis 
+                                  dataKey="name" 
+                                  angle={0} 
+                                  textAnchor="middle"
+                                  height={50}
+                                  tick={{ fontSize: 10 }}
+                                  tickLine={false}
+                                />
+                                <YAxis 
+                                  label={{ value: 'Level Required', angle: -90, position: 'insideLeft', offset: -15 }} 
+                                  domain={[0, 210]}
+                                  ticks={[0, 50, 100, 150, 200]}
+                                />
+                                <Tooltip 
+                                  cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+                                  content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                      const data = payload[0].payload;
+                                      const isUnlocked = level >= data.level;
+                                      return (
+                                        <div className="rounded-lg border bg-background p-2 shadow-md">
+                                          <p className="font-semibold">{data.name} Badge</p>
+                                          <p>Required Level: {data.level}</p>
+                                          <p className={isUnlocked ? 'text-emerald' : 'text-muted-foreground'}>
+                                            Status: {isUnlocked ? 'Unlocked' : 'Locked'}
+                                          </p>
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  }}
+                                />
+                                <Bar 
+                                  dataKey="level" 
+                                  fill="#10b981" 
+                                  radius={[4, 4, 0, 0]}
+                                  className="cursor-pointer"
+                                />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </ChartContainer>
+                        </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-                        {badges.map((badge) => (
-                          <Card key={badge.name} className={`border ${level >= badge.level ? 'border-emerald/40' : 'border-slate-800'}`}>
-                            <CardContent className="flex items-center p-4">
-                              <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${badge.color} flex items-center justify-center mr-3`}>
-                                <badge.icon className="h-5 w-5 text-white" />
-                              </div>
-                              <div>
-                                <p className="font-medium">{badge.name}</p>
-                                <p className="text-xs text-muted-foreground">Level {badge.level}</p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                      {/* Badge Cards */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+                        {badges.map((badge) => {
+                          const isUnlocked = level >= badge.level;
+                          const BadgeIcon = badge.icon;
+                          
+                          return (
+                            <Card 
+                              key={badge.name} 
+                              className={`border ${isUnlocked ? 'border-emerald/40' : 'border-slate-800'} overflow-hidden`}
+                            >
+                              <CardContent className="p-0">
+                                <div className="flex flex-col h-full">
+                                  {/* Badge icon and level */}
+                                  <div className={`flex items-center justify-between p-3 ${isUnlocked ? `bg-gradient-to-r ${badge.color} bg-opacity-10` : 'bg-slate-900'}`}>
+                                    <div className="flex items-center">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${isUnlocked ? `bg-gradient-to-r ${badge.color}` : 'bg-slate-800'}`}>
+                                        <BadgeIcon className="h-4 w-4 text-white" />
+                                      </div>
+                                      <span className="font-medium text-sm">{badge.name}</span>
+                                    </div>
+                                    <Badge variant="compact" className={isUnlocked ? 'bg-emerald/20 text-emerald' : 'bg-slate-800'}>
+                                      Level {badge.level}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
