@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { LockKeyhole, BrainCircuit, FileText } from "lucide-react";
+import { BrainCircuit, FileText } from "lucide-react";
 import EmptyGoalsList from "@/components/EmptyGoalsList";
 import WelcomeCard from "@/components/WelcomeCard";
 import { useState } from "react";
@@ -132,12 +131,12 @@ const GuestGoals = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Premium Features Banner */}
-      <div className="bg-gradient-to-r from-emerald-600/20 via-emerald-600/10 to-transparent border-b border-emerald-600/20">
+      {/* Simple Header */}
+      <div className="border-b border-slate-800">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-          <p className="text-sm text-slate-300">
-            You're in guest mode. Sign up to unlock all features.
-          </p>
+          <div className="flex items-center">
+            <Link to="/" className="font-bold text-xl text-gradient">Loyde</Link>
+          </div>
           <div className="flex items-center gap-2">
             <Link to="/login">
               <Button variant="ghost" size="sm">Log in</Button>
@@ -178,18 +177,13 @@ const GuestGoals = () => {
         )}
       </AnimatedContainer>
 
-      {/* Premium Features Dialog */}
+      {/* Premium Features Dialog - Hidden but still accessible via triggers */}
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="fixed bottom-6 right-6 bg-black/50 backdrop-blur-sm border-emerald-600/20"
+          <button 
+            className="hidden"
             data-premium-trigger
-          >
-            <LockKeyhole className="mr-2 h-4 w-4" />
-            Premium Features
-          </Button>
+          />
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
