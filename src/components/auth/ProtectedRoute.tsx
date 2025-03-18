@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children, allowGuest = false }: Protect
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
 
-  // For progress tracker, direct guest users to login
+  // For progress tracker, allow guests
   if (!user && !allowGuest && location.pathname === "/progress") {
     return <Navigate to="/login" replace />;
   }
