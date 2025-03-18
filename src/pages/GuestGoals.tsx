@@ -5,20 +5,129 @@ import AnimatedContainer from "@/components/AnimatedContainer";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole, BrainCircuit, FileText } from "lucide-react";
 import EmptyGoalsList from "@/components/EmptyGoalsList";
 import WelcomeCard from "@/components/WelcomeCard";
 import { useState } from "react";
+import ParentGoalDialog from "@/components/ParentGoalDialog";
+import GoalsList from "@/components/GoalsList";
+import { Goal } from "@/components/GoalRow";
+import { ParentGoal } from "@/components/index/IndexPageTypes";
+import { toast } from "@/hooks/use-toast";
 
 const GuestGoals = () => {
   const [showFocusTimer, setShowFocusTimer] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [goalToEdit, setGoalToEdit] = useState<ParentGoal | null>(null);
+  const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
+  const [activeGoalIndices, setActiveGoalIndices] = useState<{rowIndex: number, goalIndex: number} | null>(null);
+  const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
   
-  const handleAddGoal = () => {
-    // Open premium features dialog
+  // Handle creating or editing a goal
+  const handleCreateOrEditGoal = (goal: ParentGoal | null = null) => {
+    setGoalToEdit(goal);
+    setIsDialogOpen(true);
+  };
+  
+  // Handle goal saved from dialog
+  const handleGoalSaved = async () => {
+    if (goalToEdit) {
+      // Edit existing goal
+      setParentGoals(prev => 
+        prev.map(p => p.id === goalToEdit.id ? goalToEdit : p)
+      );
+    } else {
+      // Add new goal with temporary ID
+      const newGoal: ParentGoal = {
+        id: `temp-${Date.now()}`,
+        title: goalToEdit?.title || "New Goal",
+        description: goalToEdit?.description || "Description",
+        goals: [],
+      };
+      setParentGoals(prev => [...prev, newGoal]);
+    }
+    
+    setIsDialogOpen(false);
+    setGoalToEdit(null);
+  };
+  
+  // Handle deleting a parent goal
+  const handleDeleteParentGoal = async (id: string) => {
+    setParentGoals(prev => prev.filter(p => p.id !== id));
+    if (activeGoalIndices && parentGoals[activeGoalIndices.rowIndex]?.id === id) {
+      setActiveGoalIndices(null);
+      setActiveGoal(null);
+    }
+    
+    toast({
+      title: "Premium Feature",
+      description: "Sign up to save your goals permanently.",
+    });
+  };
+  
+  // Handle deleting a sub-goal
+  const handleDeleteSubGoal = async (id: string, parentIndex: number) => {
+    const updatedParentGoals = [...parentGoals];
+    if (updatedParentGoals[parentIndex]) {
+      updatedParentGoals[parentIndex].goals = updatedParentGoals[parentIndex].goals.filter(g => g.id !== id);
+      setParentGoals(updatedParentGoals);
+      
+      if (activeGoalIndices?.rowIndex === parentIndex && 
+          activeGoalIndices?.goalIndex !== null && 
+          parentGoals[parentIndex]?.goals[activeGoalIndices.goalIndex]?.id === id) {
+        setActiveGoalIndices(null);
+        setActiveGoal(null);
+      }
+    }
+    
+    toast({
+      title: "Premium Feature",
+      description: "Sign up to save your goals permanently.",
+    });
+  };
+  
+  // Handle updating sub-goals
+  const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
+    const updatedParentGoals = [...parentGoals];
+    if (updatedParentGoals[parentIndex]) {
+      updatedParentGoals[parentIndex].goals = updatedGoals;
+      setParentGoals(updatedParentGoals);
+    }
+  };
+  
+  // Handle goal focus
+  const handleGoalFocus = (goal: Goal, rowIndex: number, goalIndex: number) => {
+    setActiveGoal(goal);
+    setActiveGoalIndices({rowIndex, goalIndex});
+    
+    // Show premium dialog for focus timer
     const dialogTrigger = document.querySelector('[data-premium-trigger]') as HTMLButtonElement;
     if (dialogTrigger) {
       dialogTrigger.click();
     }
+  };
+  
+  // Handle drag end (simplified for guest mode)
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+    
+    // Move element (simplified)
+    const oldIndex = parentGoals.findIndex(item => item.id === active.id);
+    const newIndex = parentGoals.findIndex(item => item.id === over.id);
+    
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const updatedGoals = [...parentGoals];
+      const [movedItem] = updatedGoals.splice(oldIndex, 1);
+      updatedGoals.splice(newIndex, 0, movedItem);
+      setParentGoals(updatedGoals);
+    }
+    
+    toast({
+      title: "Premium Feature",
+      description: "Sign up to save your goal order permanently.",
+    });
   };
 
   return (
@@ -42,12 +151,31 @@ const GuestGoals = () => {
 
       <AnimatedContainer className="flex-1 container mx-auto px-4 py-8">
         <WelcomeCard 
-          onAddGoal={handleAddGoal} 
-          onToggleFocusTimer={() => {}} 
+          onAddGoal={() => handleCreateOrEditGoal(null)} 
+          onToggleFocusTimer={() => {
+            // Open premium features dialog
+            const dialogTrigger = document.querySelector('[data-premium-trigger]') as HTMLButtonElement;
+            if (dialogTrigger) {
+              dialogTrigger.click();
+            }
+          }} 
           showFocusTimer={false}
         />
         
-        <EmptyGoalsList onCreateGoal={handleAddGoal} />
+        {parentGoals.length === 0 ? (
+          <EmptyGoalsList onCreateGoal={() => handleCreateOrEditGoal(null)} />
+        ) : (
+          <GoalsList 
+            parentGoals={parentGoals}
+            activeGoalIndices={activeGoalIndices}
+            onGoalFocus={handleGoalFocus}
+            onUpdateSubGoals={handleUpdateSubGoals}
+            onEditGoal={handleCreateOrEditGoal}
+            onDragEnd={handleDragEnd}
+            onDeleteParentGoal={handleDeleteParentGoal}
+            onDeleteSubGoal={handleDeleteSubGoal}
+          />
+        )}
       </AnimatedContainer>
 
       {/* Premium Features Dialog */}
@@ -70,11 +198,26 @@ const GuestGoals = () => {
               <div>
                 Sign up to unlock premium features:
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Progress tracking</li>
-                  <li>Focus timer</li>
-                  <li>Mind mapping</li>
-                  <li>Project notes</li>
-                  <li>AI suggestions</li>
+                  <li className="flex items-center gap-2">
+                    <span>Progress tracking</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span>Focus timer</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <BrainCircuit size={16} className="text-emerald-400" />
+                    <span>Mind mapping</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <FileText size={16} className="text-emerald-400" />
+                    <span>Project notes</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span>AI suggestions</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span>Cloud sync & backup</span>
+                  </li>
                 </ul>
               </div>
             </AlertDialogDescription>
@@ -91,6 +234,14 @@ const GuestGoals = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Goal Dialog */}
+      <ParentGoalDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        goalToEdit={goalToEdit}
+        onGoalSaved={handleGoalSaved}
+      />
 
       <Footer />
     </div>
