@@ -65,16 +65,26 @@ const SubGoalDialog = ({
     try {
       // Check if user is authenticated
       if (!user) {
-        toast({
-          title: "Authentication Error",
-          description: "You must be logged in to save sub-goals.",
-          variant: "destructive",
+        // For guest mode, just call onSave with the form values
+        onSave({
+          id: subGoalToEdit?.id || `temp-${Date.now()}`,
+          title: values.title,
+          description: values.description,
         });
+        
+        toast({
+          title: "Sub-goal saved",
+          description: "Your sub-goal has been saved to your browser.",
+        });
+        
+        form.reset();
+        onClose();
         return;
       }
 
       await saveSubGoal(values);
       form.reset();
+      onClose();
     } catch (error) {
       console.error("Error saving sub-goal:", error);
       toast({

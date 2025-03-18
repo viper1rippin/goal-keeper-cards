@@ -54,7 +54,7 @@ const SortableSubGoalCard = ({
       // If user is authenticated, navigate to project details
       navigate(`/projects/${goal.id}`);
     } else if (!user) {
-      // Show toast for guests
+      // Show premium features toast for guests
       toast({
         title: "Premium Feature",
         description: "Sign up to access mind maps and project notes.",

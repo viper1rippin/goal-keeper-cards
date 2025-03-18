@@ -1,9 +1,8 @@
 
-import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
-import { useAuth } from "@/context/AuthContext";
 
 interface ParentGoalDialogProps {
   isOpen: boolean;
@@ -22,16 +21,21 @@ const ParentGoalDialog = ({
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
-      // Check if user is authenticated
+      // If user is not authenticated, just use the callback
       if (!user) {
-        toast({ 
-          title: "Authentication Error",
-          description: "You must be logged in to save goals.",
-          variant: "destructive"
-        });
+        // Update goal to edit with new values
+        if (goalToEdit) {
+          goalToEdit.title = values.title;
+          goalToEdit.description = values.description;
+        }
+        
+        // Close dialog and call the callback
+        onClose();
+        onGoalSaved();
         return;
       }
 
+      // For authenticated users, use Supabase
       if (goalToEdit?.id) {
         // Update existing goal
         const { error } = await supabase
@@ -83,16 +87,14 @@ const ParentGoalDialog = ({
     if (!goalToEdit?.id) return;
     
     try {
-      // Check if user is authenticated
+      // If user is not authenticated, just use the callback
       if (!user) {
-        toast({ 
-          title: "Authentication Error",
-          description: "You must be logged in to delete goals.",
-          variant: "destructive"
-        });
+        onClose();
+        onGoalSaved();
         return;
       }
 
+      // For authenticated users, use Supabase
       // First delete all sub-goals associated with this parent goal
       const { error: subGoalError } = await supabase
         .from('sub_goals')

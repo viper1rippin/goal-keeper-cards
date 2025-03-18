@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import AnimatedContainer from "@/components/AnimatedContainer";
@@ -7,12 +8,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { BrainCircuit, FileText } from "lucide-react";
 import EmptyGoalsList from "@/components/EmptyGoalsList";
 import WelcomeCard from "@/components/WelcomeCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ParentGoalDialog from "@/components/ParentGoalDialog";
 import GoalsList from "@/components/GoalsList";
 import { Goal } from "@/components/GoalRow";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { toast } from "@/hooks/use-toast";
+
+// Local storage key for guest goals
+const GUEST_GOALS_STORAGE_KEY = "loyde_guest_goals";
 
 const GuestGoals = () => {
   const [showFocusTimer, setShowFocusTimer] = useState(false);
@@ -22,6 +26,23 @@ const GuestGoals = () => {
   const [activeGoalIndices, setActiveGoalIndices] = useState<{rowIndex: number, goalIndex: number} | null>(null);
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
   
+  // Load goals from localStorage on component mount
+  useEffect(() => {
+    const savedGoals = localStorage.getItem(GUEST_GOALS_STORAGE_KEY);
+    if (savedGoals) {
+      try {
+        setParentGoals(JSON.parse(savedGoals));
+      } catch (error) {
+        console.error("Error parsing saved goals:", error);
+      }
+    }
+  }, []);
+  
+  // Save goals to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(GUEST_GOALS_STORAGE_KEY, JSON.stringify(parentGoals));
+  }, [parentGoals]);
+  
   // Handle creating or editing a goal
   const handleCreateOrEditGoal = (goal: ParentGoal | null = null) => {
     setGoalToEdit(goal);
@@ -29,7 +50,7 @@ const GuestGoals = () => {
   };
   
   // Handle goal saved from dialog
-  const handleGoalSaved = async () => {
+  const handleGoalSaved = () => {
     if (goalToEdit) {
       // Edit existing goal
       setParentGoals(prev => 
@@ -48,6 +69,11 @@ const GuestGoals = () => {
     
     setIsDialogOpen(false);
     setGoalToEdit(null);
+    
+    toast({
+      title: "Goal saved",
+      description: "Your goal has been saved to your browser.",
+    });
   };
   
   // Handle deleting a parent goal
@@ -59,8 +85,8 @@ const GuestGoals = () => {
     }
     
     toast({
-      title: "Premium Feature",
-      description: "Sign up to save your goals permanently.",
+      title: "Goal deleted",
+      description: "Your goal has been removed.",
     });
   };
   
@@ -80,8 +106,8 @@ const GuestGoals = () => {
     }
     
     toast({
-      title: "Premium Feature",
-      description: "Sign up to save your goals permanently.",
+      title: "Sub-goal deleted",
+      description: "Your sub-goal has been removed.",
     });
   };
   
@@ -106,13 +132,13 @@ const GuestGoals = () => {
     }
   };
   
-  // Handle drag end (simplified for guest mode)
+  // Handle drag end
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
     
     if (!over || active.id === over.id) return;
     
-    // Move element (simplified)
+    // Move element
     const oldIndex = parentGoals.findIndex(item => item.id === active.id);
     const newIndex = parentGoals.findIndex(item => item.id === over.id);
     
@@ -121,12 +147,12 @@ const GuestGoals = () => {
       const [movedItem] = updatedGoals.splice(oldIndex, 1);
       updatedGoals.splice(newIndex, 0, movedItem);
       setParentGoals(updatedGoals);
+      
+      toast({
+        title: "Goal order updated",
+        description: "Your goal order has been saved to your browser.",
+      });
     }
-    
-    toast({
-      title: "Premium Feature",
-      description: "Sign up to save your goal order permanently.",
-    });
   };
 
   return (
@@ -229,7 +255,7 @@ const GuestGoals = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Goal Dialog */}
+      {/* Goal Dialog - Modified to work in guest mode */}
       <ParentGoalDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
