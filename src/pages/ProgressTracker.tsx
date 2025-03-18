@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,7 +167,7 @@ const ProgressTracker = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[400px] mb-8">
                         <ChartContainer 
                           config={{
                             points: { theme: { light: '#10b981', dark: '#10b981' } },
@@ -177,16 +176,27 @@ const ProgressTracker = () => {
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                               data={badgesChartData}
-                              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                              margin={{ top: 20, right: 30, left: 30, bottom: 100 }}
                             >
                               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                               <XAxis 
                                 dataKey="name" 
                                 angle={-45} 
                                 textAnchor="end" 
-                                height={60} 
+                                height={80} 
+                                tickMargin={10}
+                                tick={{ fontSize: 12 }} 
                               />
-                              <YAxis label={{ value: 'Level Required', angle: -90, position: 'insideLeft' }} />
+                              <YAxis 
+                                label={{ 
+                                  value: 'Level Required', 
+                                  angle: -90, 
+                                  position: 'insideLeft',
+                                  style: { textAnchor: 'middle' },
+                                  dy: -10
+                                }}
+                                tick={{ fontSize: 12 }} 
+                              />
                               <Tooltip 
                                 content={({ active, payload }) => {
                                   if (active && payload && payload.length) {
@@ -245,7 +255,7 @@ const ProgressTracker = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-60">
+                      <div className="h-[300px]">
                         <ChartContainer 
                           config={{
                             current: { theme: { light: '#10b981', dark: '#10b981' } },
@@ -256,11 +266,20 @@ const ProgressTracker = () => {
                             <BarChart
                               data={levelProgressData}
                               layout="vertical"
-                              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                              margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
                             >
                               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                              <XAxis type="number" domain={[0, hoursNeededForLevel]} />
-                              <YAxis dataKey="name" type="category" width={120} />
+                              <XAxis 
+                                type="number" 
+                                domain={[0, hoursNeededForLevel]} 
+                                tick={{ fontSize: 12 }}
+                              />
+                              <YAxis 
+                                dataKey="name" 
+                                type="category" 
+                                width={120} 
+                                tick={{ fontSize: 12 }}
+                              />
                               <Tooltip 
                                 content={({ active, payload }) => {
                                   if (active && payload && payload.length) {
