@@ -50,13 +50,13 @@ const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-sm border-b border-slate-800 animate-fade-in">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 dark:bg-slate-900/90 light:bg-slate-100/90 backdrop-blur-sm border-b border-slate-800 dark:border-slate-800 light:border-slate-300 animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald text-white">
             {selectedCount}
           </div>
-          <span className="text-slate-200">
+          <span className="text-slate-200 dark:text-slate-200 light:text-slate-800">
             {selectedCount} {selectedCount === 1 ? 'goal' : 'goals'} selected
           </span>
         </div>
@@ -66,7 +66,7 @@ const SelectionToolbar: React.FC<SelectionToolbarProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleClearSelection}
-            className="text-slate-400 hover:text-white"
+            className="text-slate-400 hover:text-slate-100 dark:hover:text-white light:hover:text-slate-900"
           >
             <X size={18} className="mr-1" />
             Cancel

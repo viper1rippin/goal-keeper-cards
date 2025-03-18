@@ -5,6 +5,7 @@
 
 @layer base {
   :root {
+    /* Dark mode colors (default) */
     --background: 0 0% 6%;
     --foreground: 0 0% 98%;
 
@@ -35,6 +36,37 @@
 
     --radius: 8px;
   }
+
+  .light-mode {
+    /* Light mode colors */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 5%;
+
+    --card: 0 0% 96%;
+    --card-foreground: 0 0% 5%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 5%;
+
+    --primary: 151 93% 30%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 5%;
+
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 151 93% 30%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 151 93% 30%;
+  }
 }
 
 @layer base {
@@ -43,7 +75,15 @@
   }
 
   body {
-    @apply bg-apple-dark text-slate-100 antialiased;
+    @apply transition-colors duration-300 bg-background text-foreground antialiased;
+  }
+
+  .dark-mode {
+    @apply bg-apple-dark text-slate-100;
+  }
+
+  .light-mode {
+    @apply bg-background text-foreground;
   }
 
   #root {
