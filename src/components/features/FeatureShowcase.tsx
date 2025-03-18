@@ -1,38 +1,38 @@
 
 import React, { useState } from 'react';
-import { Code, MessageCircle, Command, Sparkles } from 'lucide-react';
+import { ListChecks, Network, FileText, Goal } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import FeatureButton from './FeatureButton';
 
 const features = [
   {
-    id: 'autocomplete',
-    title: 'Autocomplete',
-    icon: <Code className="w-4 h-4" />,
-    image: 'public/lovable-uploads/02764281-cdd9-48da-a994-9bca94be5682.png',
-    description: 'Generate new code faster than the speed of thought.'
+    id: 'parent-goals',
+    title: 'Parent Goals',
+    icon: <Goal className="w-4 h-4" />,
+    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&h=800&fit=crop',
+    description: 'Set and track your main objectives with our intuitive parent goal system.'
   },
   {
-    id: 'chat',
-    title: 'Chat',
-    icon: <MessageCircle className="w-4 h-4" />,
-    image: 'public/lovable-uploads/242401c8-a442-4126-8972-17f0d7f2b411.png',
-    description: 'Talk to our AI that knows your entire codebase, not just your current file.'
+    id: 'sub-goals',
+    title: 'Sub-Goals',
+    icon: <ListChecks className="w-4 h-4" />,
+    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=800&fit=crop',
+    description: 'Break down complex goals into manageable sub-tasks for better tracking.'
   },
   {
-    id: 'command',
-    title: 'Command',
-    icon: <Command className="w-4 h-4" />,
-    image: 'public/lovable-uploads/ac7d0b1d-6ef0-4cda-8c84-1305f7f81682.png',
-    description: 'Press Ctrl+I or ⌘+I to give natural language instructions in your editor to write and edit code.'
+    id: 'mind-map',
+    title: 'Mind Map',
+    icon: <Network className="w-4 h-4" />,
+    image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=1200&h=800&fit=crop',
+    description: 'Visualize your goals and their relationships with our interactive mind mapping tool.'
   },
   {
-    id: 'supercomplete',
-    title: 'Supercomplete',
-    icon: <Sparkles className="w-4 h-4" />,
-    image: 'public/lovable-uploads/2df78d3a-211c-495d-af0e-90a1045c827e.png',
-    description: 'Intent driven suggestions independent of your cursor position.'
+    id: 'project-notes',
+    title: 'Project Notes',
+    icon: <FileText className="w-4 h-4" />,
+    image: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=1200&h=800&fit=crop',
+    description: 'Keep detailed notes and documentation for each project and goal.'
   }
 ];
 
@@ -60,12 +60,16 @@ const FeatureShowcase = () => {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 space-y-8">
         {/* Feature Image */}
-        <Card className="overflow-hidden bg-apple-dark border-emerald/10">
-          <img
-            src={currentFeature.image}
-            alt={currentFeature.title}
-            className="w-full aspect-video object-cover"
-          />
+        <Card className="overflow-hidden bg-apple-dark border-emerald/10 aspect-video">
+          <div className="relative w-full h-full">
+            <div className="absolute inset-8 rounded-lg overflow-hidden shadow-2xl">
+              <img
+                src={currentFeature.image}
+                alt={currentFeature.title}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+          </div>
         </Card>
 
         {/* Feature Selection */}
