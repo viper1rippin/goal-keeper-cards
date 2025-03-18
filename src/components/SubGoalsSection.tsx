@@ -96,16 +96,10 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedGoals = arrayMove(subGoals, oldIndex, newIndex);
         
-        // Update the UI immediately for better UX
         onUpdateSubGoals(reorderedGoals);
         
         try {
           await updateSubGoalOrder(reorderedGoals);
-          
-          toast({
-            title: "Success",
-            description: "Sub-goal order updated",
-          });
         } catch (error) {
           console.error("Error updating sub-goal order:", error);
           toast({
@@ -123,7 +117,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const updateSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      // Update display_order for each sub goal
       const updatePromises = updatedSubGoals.map((goal, index) => {
         if (goal.id) {
           return supabase
@@ -141,7 +134,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
 
-  // Handle navigation to detail page
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
     
