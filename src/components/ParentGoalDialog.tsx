@@ -20,16 +20,11 @@ const ParentGoalDialog = ({
 
   const handleSubmit = async (values: { title: string; description: string }) => {
     try {
+      console.log("Saving goal with values:", values);
+      
       // If user is not authenticated, just use the callback
       if (!user) {
-        // Create a new goal object with the form values
-        const newGoal = {
-          id: goalToEdit?.id || `temp-${Date.now()}`,
-          title: values.title,
-          description: values.description
-        };
-        
-        // Close dialog and call the callback with the new goal
+        // Close dialog and call the callback
         onClose();
         onGoalSaved();
         return;

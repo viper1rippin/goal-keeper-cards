@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -62,7 +63,7 @@ const SubGoalDialog = ({
     try {
       // Check if user is authenticated
       if (!user) {
-        // For guest mode, just call onSave with the form values
+        // For guest mode, just call onSave with the form values directly
         onSave({
           id: subGoalToEdit?.id || `temp-${Date.now()}`,
           title: values.title,

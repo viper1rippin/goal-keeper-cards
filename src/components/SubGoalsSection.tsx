@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/context/AuthContext";
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -33,6 +34,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   isLoading
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
@@ -91,6 +93,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
       updatedSubGoals = [...subGoals, newSubGoal];
     }
     
+    // Update the parent component with the new sub-goals
     onUpdateSubGoals(updatedSubGoals);
     setIsSubGoalDialogOpen(false);
     setSubGoalToEdit(null);
@@ -119,10 +122,13 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         const reorderedGoals = arrayMove(subGoals, oldIndex, newIndex);
         onUpdateSubGoals(reorderedGoals);
         
-        try {
-          await updateSubGoalOrder(reorderedGoals);
-        } catch (error) {
-          console.error("Error updating sub-goal order:", error);
+        // Only update the database if the user is authenticated
+        if (user) {
+          try {
+            await updateSubGoalOrder(reorderedGoals);
+          } catch (error) {
+            console.error("Error updating sub-goal order:", error);
+          }
         }
       }
     }
