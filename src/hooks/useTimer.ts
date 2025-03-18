@@ -1,11 +1,8 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { POINTS_PER_MINUTE, getPointsForNextLevel } from "@/utils/timerUtils";
 import { Goal } from "@/components/GoalRow";
-
-// Define timer states for better state management
-type TimerState = "IDLE" | "RUNNING" | "PAUSED";
 
 interface UseTimerProps {
   userLevel: number;
@@ -14,75 +11,45 @@ interface UseTimerProps {
 }
 
 export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
-  // Replace boolean isActive with a state machine
-  const [timerState, setTimerState] = useState<TimerState>("IDLE");
+  const [isActive, setIsActive] = useState(false);
   const [time, setTime] = useState(0);
   const [earnedPoints, setEarnedPoints] = useState(0);
   const { toast } = useToast();
   
-  // Use a ref to track interval ID to prevent issues with stale closures
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  // Use a ref to track if a toggle is in progress to prevent rapid clicks
-  const isTogglingRef = useRef(false);
-  
-  // Compute derived state for backward compatibility
-  const isActive = timerState === "RUNNING";
-  
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
 
-  // Auto-start timer when activeGoal changes to non-null, but only if in IDLE state
+  // Auto-start timer when activeGoal changes to non-null
   useEffect(() => {
-    if (activeGoal && timerState === "IDLE" && time === 0) {
-      // Only auto-start if the timer is in IDLE state and at zero
-      setTimerState("RUNNING");
+    if (activeGoal && !isActive) {
+      setIsActive(true);
+      toast({
+        title: `Focusing on: ${activeGoal.title}`,
+        description: "Timer started automatically. Stay focused!",
+      });
     }
-  }, [activeGoal, timerState, time]);
+  }, [activeGoal, isActive, toast]);
 
-  // Remove toast notifications for timer state changes
-  // useEffect for timer state changes removed
-
-  // Toggle timer with debouncing to prevent rapid state changes
+  // Toggle timer
   const toggleTimer = () => {
-    // Prevent rapid toggles that can cause glitches
-    if (isTogglingRef.current) {
-      return;
+    setIsActive(!isActive);
+    
+    if (!isActive) {
+      toast({
+        title: activeGoal 
+          ? `Focusing on: ${activeGoal.title}` 
+          : "Focus mode activated",
+        description: "Stay focused and earn points to level up",
+      });
     }
-    
-    // Set toggling flag
-    isTogglingRef.current = true;
-    
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    
-    // Update state based on current state (state machine transition)
-    setTimerState(prevState => {
-      if (prevState === "RUNNING") return "PAUSED";
-      return "RUNNING";
-    });
-    
-    // Reset toggling flag after a short delay to prevent rapid clicks
-    setTimeout(() => {
-      isTogglingRef.current = false;
-    }, 300);
   };
 
   // Reset timer
   const resetTimer = () => {
-    // First ensure timer is stopped
-    setTimerState("IDLE");
-    
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    setIsActive(false);
     
     // Only add points if there was some time spent
     if (time > 0) {
-      const newPoints = Math.floor((time / 60) * POINTS_PER_MINUTE);
+      const newPoints = (time / 60) * POINTS_PER_MINUTE;
       setEarnedPoints(prev => prev + newPoints);
       
       // Check if user leveled up
@@ -90,7 +57,6 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
       if (totalPoints >= pointsForNextLevel) {
         onLevelUp(userLevel + 1);
         
-        // Level up notification still shown but can be removed if needed
         toast({
           title: "Level Up!",
           description: `Congratulations! You've reached level ${userLevel + 1}`,
@@ -99,37 +65,28 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
       }
     }
     
-    // Reset the timer
     setTime(0);
   };
 
-  // Timer effect, now using the ref to track the interval
+  // Timer effect
   useEffect(() => {
-    // Clean up existing interval before setting a new one
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    let interval: NodeJS.Timeout | null = null;
     
-    if (timerState === "RUNNING") {
-      // Set up a new interval if timer is active
-      intervalRef.current = setInterval(() => {
-        setTime(prevTime => prevTime + 1);
+    if (isActive) {
+      interval = setInterval(() => {
+        setTime(time => time + 1);
       }, 1000);
+    } else if (!isActive && time !== 0) {
+      interval && clearInterval(interval);
     }
     
-    // Cleanup function
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      interval && clearInterval(interval);
     };
-  }, [timerState]); // Only depend on timerState
+  }, [isActive, time]);
 
   return {
-    isActive, // Keep for backward compatibility
-    timerState,
+    isActive,
     time,
     earnedPoints,
     pointsForNextLevel,

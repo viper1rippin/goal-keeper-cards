@@ -2,12 +2,7 @@
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { getCardGradient, getProgressGradient } from "./GoalCardGradients";
-import GoalCardContent from "./GoalCardContent";
-import GoalCardGlow from "./GoalCardGlow";
-import GoalCardEditButton from "./GoalCardEditButton";
-import GoalCardDragHandle from "./GoalCardDragHandle";
-import { Trash2 } from "lucide-react";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 export interface GoalCardProps {
   title: string;
@@ -19,13 +14,27 @@ export interface GoalCardProps {
   // Add new props for focus timer
   isActiveFocus?: boolean;
   onStartFocus?: () => void;
-  // Add edit functionality
-  onEdit?: () => void;
-  // Add delete functionality
-  onDelete?: () => void;
-  // Add drag state
-  isDragging?: boolean;
 }
+
+// Collection of emerald-toned gradients for cards
+const gradientVariations = [
+  "from-emerald-dark/20 to-apple-dark",
+  "from-emerald-dark/30 to-emerald/5",
+  "from-emerald/10 to-apple-dark",
+  "from-emerald-light/10 to-apple-dark",
+  "from-emerald/5 to-emerald-dark/20",
+  "from-emerald-dark/25 to-emerald/10",
+];
+
+// Collection of progress bar gradients
+const progressGradientVariations = [
+  "from-emerald to-emerald-light",
+  "from-emerald-light to-emerald",
+  "from-emerald-dark to-emerald",
+  "from-emerald to-emerald-dark",
+  "from-emerald-light/90 to-emerald",
+  "from-emerald/90 to-emerald-light",
+];
 
 const GoalCard = ({ 
   title, 
@@ -35,10 +44,7 @@ const GoalCard = ({
   isFocused, 
   onFocus, 
   isActiveFocus = false,
-  onStartFocus,
-  onEdit,
-  onDelete,
-  isDragging = false
+  onStartFocus 
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
@@ -52,17 +58,26 @@ const GoalCard = ({
   const [isMouseInCard, setIsMouseInCard] = useState(false);
   
   // Generate a consistent gradient for each card based on the title
-  const cardGradient = useMemo(() => getCardGradient(title), [title]);
+  const cardGradient = useMemo(() => {
+    // Use the title to create a deterministic but seemingly random index
+    const charSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const gradientIndex = charSum % gradientVariations.length;
+    return gradientVariations[gradientIndex];
+  }, [title]);
   
   // Generate a consistent gradient for each progress bar based on the title
-  const progressGradient = useMemo(() => getProgressGradient(title), [title]);
+  const progressGradient = useMemo(() => {
+    const charSum = title.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const gradientIndex = charSum % progressGradientVariations.length;
+    return progressGradientVariations[gradientIndex];
+  }, [title]);
   
-  // Handle mouse move for refined glow effect
+  // Handle mouse move for glow effect
   useEffect(() => {
     if (!cardRef.current) return;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!cardRef.current || !isActiveFocus) return;
+      if (!cardRef.current) return;
       
       // Get card dimensions and position
       const rect = cardRef.current.getBoundingClientRect();
@@ -76,7 +91,7 @@ const GoalCard = ({
     
     const handleMouseEnter = () => {
       setIsHovered(true);
-      setIsMouseInCard(isActiveFocus); // Only set mouse in card if this card has active focus
+      setIsMouseInCard(true);
     };
     
     const handleMouseLeave = () => {
@@ -94,14 +109,7 @@ const GoalCard = ({
       card.removeEventListener('mouseenter', handleMouseEnter);
       card.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [isActiveFocus]);
-
-  // Reset mouse state when active focus changes
-  useEffect(() => {
-    if (!isActiveFocus) {
-      setIsMouseInCard(false);
-    }
-  }, [isActiveFocus]);
+  }, []);
 
   // Handle card click to start focus timer
   const handleClick = () => {
@@ -115,71 +123,73 @@ const GoalCard = ({
     <AnimatedContainer 
       animation="scale-in"
       delay={delay}
-      className="w-full group"
+      className="w-full"
     >
       <div 
         ref={cardRef}
         className={cn(
           "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
-          // Only use the active gradients when this card is the active focused card
           isActiveFocus
             ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
             : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/20 shadow-lg shadow-emerald/10` 
               : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
-                : "bg-slate-900/80 border-slate-800/60 opacity-75",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
-          isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/10 shadow-md shadow-emerald/5 opacity-90`
+                : "bg-slate-900/70 border-slate-800/50 opacity-70",
+          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/10"
         )}
         onClick={handleClick}
       >
-        {/* Drag handle indicator */}
-        <GoalCardDragHandle />
-        
-        {/* Subtle, focused glow effect that follows the mouse - only shown when card has active focus */}
-        <GoalCardGlow 
-          isMouseInCard={isMouseInCard} 
-          isActiveFocus={isActiveFocus} 
-          mousePos={mousePos} 
-        />
-        
-        {/* Subtle depth-enhancing gradient overlay */}
-        <div 
-          className="absolute inset-0 opacity-15 pointer-events-none"
-          style={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(0,0,0,0.1) 100%)',
-            zIndex: 0,
-          }}
-        />
-        
-        {/* Edit button - only visible on hover */}
-        <GoalCardEditButton isHovered={isHovered} onEdit={onEdit} />
-        
-        {/* Delete button - only visible on hover */}
-        {onDelete && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
+        {/* Green lantern-like glow effect */}
+        {isMouseInCard && (
+          <div 
+            className="absolute pointer-events-none"
+            style={{
+              left: `${mousePos.x}px`,
+              top: `${mousePos.y}px`,
+              width: '120px',
+              height: '120px',
+              transform: 'translate(-50%, -50%)',
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.07) 40%, transparent 70%)',
+              borderRadius: '50%',
+              zIndex: 1,
+              mixBlendMode: 'screen',
             }}
-            className="absolute bottom-2 right-2 p-1.5 rounded-full bg-red-800/60 text-red-300 hover:bg-red-800/90 transition-colors z-10 opacity-0 group-hover:opacity-100"
-            aria-label="Delete sub-goal"
-          >
-            <Trash2 size={14} />
-          </button>
+          />
         )}
         
-        {/* Content area with title, description and progress */}
-        <GoalCardContent
-          title={title}
-          description={description}
-          progress={progress}
-          progressGradient={progressGradient}
-          isActiveFocus={isActiveFocus}
-          isFocused={isFocused}
-          isHovered={isHovered}
-        />
+        <div className="flex flex-col h-full relative z-2">
+          <h3 className={cn(
+            "font-medium text-lg mb-2",
+            isActiveFocus 
+              ? "text-white" 
+              : (isFocused || isHovered ? "text-slate-100" : "text-slate-400")
+          )}>{title}</h3>
+          <p className={cn(
+            "text-sm flex-1 mb-4",
+            isActiveFocus 
+              ? "text-slate-200" 
+              : (isFocused || isHovered ? "text-slate-300" : "text-slate-500")
+          )}>{description}</p>
+          
+          <div className="mt-auto">
+            <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+              <span>Progress</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div 
+                className={cn(
+                  "h-full bg-gradient-to-r transition-all duration-700 ease-out",
+                  isActiveFocus 
+                    ? `${progressGradient} animate-pulse` 
+                    : (isFocused || isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40")
+                )}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </AnimatedContainer>
   );
