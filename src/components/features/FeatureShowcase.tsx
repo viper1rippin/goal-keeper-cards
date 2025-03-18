@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ListChecks, Network, FileText, Goal } from 'lucide-react';
 import { Card } from "@/components/ui/card";
@@ -42,19 +41,6 @@ const FeatureShowcase = () => {
 
   return (
     <div className="relative py-20">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line x1="20" y1="20" x2="80" y2="80" className="stroke-emerald/10 stroke-2" />
-            <line x1="20" y1="80" x2="80" y2="20" className="stroke-emerald/10 stroke-2" />
-            <circle cx="20" cy="20" r="2" className="fill-emerald/20" />
-            <circle cx="80" cy="80" r="2" className="fill-emerald/20" />
-            <circle cx="20" cy="80" r="2" className="fill-emerald/20" />
-            <circle cx="80" cy="20" r="2" className="fill-emerald/20" />
-          </svg>
-        </div>
-      </div>
-
       <div className="max-w-6xl mx-auto px-4 space-y-8">
         <Card className="overflow-hidden bg-apple-dark border-emerald/10 aspect-video">
           <div className="relative w-full h-full">
