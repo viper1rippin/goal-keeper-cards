@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
