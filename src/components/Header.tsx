@@ -85,8 +85,11 @@ const Header = ({
     }
   }, [showFocusTimer]);
   
+  // Only update level if user is authenticated
   const handleLevelUp = (newLevel: number) => {
-    setUserLevel(newLevel);
+    if (user) {
+      setUserLevel(newLevel);
+    }
   };
   
   // Handle timer toggle button click
@@ -114,46 +117,44 @@ const Header = ({
               </div>
             </div>
             
-            {user ? (
-              <Button 
-                variant={showFocusTimer ? "default" : "outline"}
-                size="sm"
-                onClick={handleTimerToggle}
-                className={cn(
-                  showFocusTimer 
-                    ? "bg-emerald hover:bg-emerald-dark" 
-                    : "border-emerald/20 hover:border-emerald/40"
-                )}
-              >
-                <Timer className="mr-2" size={16} />
-                {showFocusTimer ? "Focusing" : "Focus"}
-              </Button>
-            ) : (
-              !hideAuthButtons && (
-                <div className="flex items-center space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                  >
-                    <Link to="/login">
-                      <LogIn className="mr-2" size={16} />
-                      Log In
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="bg-emerald hover:bg-emerald-dark"
-                    asChild
-                  >
-                    <Link to="/signup">
-                      <UserPlus className="mr-2" size={16} />
-                      Sign Up
-                    </Link>
-                  </Button>
-                </div>
-              )
+            <Button 
+              variant={showFocusTimer ? "default" : "outline"}
+              size="sm"
+              onClick={handleTimerToggle}
+              className={cn(
+                showFocusTimer 
+                  ? "bg-emerald hover:bg-emerald-dark" 
+                  : "border-emerald/20 hover:border-emerald/40"
+              )}
+            >
+              <Timer className="mr-2" size={16} />
+              {showFocusTimer ? "Focusing" : "Focus"}
+            </Button>
+            
+            {!user && !hideAuthButtons && (
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                >
+                  <Link to="/login">
+                    <LogIn className="mr-2" size={16} />
+                    Log In
+                  </Link>
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-emerald hover:bg-emerald-dark"
+                  asChild
+                >
+                  <Link to="/signup">
+                    <UserPlus className="mr-2" size={16} />
+                    Sign Up
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -178,6 +179,7 @@ const Header = ({
                 }, 0);
               }}
               activeGoal={activeGoal}
+              isGuestMode={!user}
             />
           </div>
         )}

@@ -1,47 +1,70 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { getCurrentBadge } from "@/utils/badgeUtils";
-import { Badge } from "@/components/ui/badge";
+import { LogIn } from "lucide-react";
 
 interface SidebarProfileProps {
   collapsed: boolean;
   username: string;
   avatarUrl: string | null;
-  userLevel?: number;
+  userLevel: number;
+  isGuest?: boolean;
 }
 
-const SidebarProfile = ({ collapsed, username, avatarUrl, userLevel = 1 }: SidebarProfileProps) => {
-  const navigate = useNavigate();
+const SidebarProfile = ({ 
+  collapsed, 
+  username, 
+  avatarUrl, 
+  userLevel,
+  isGuest = false
+}: SidebarProfileProps) => {
   const currentBadge = getCurrentBadge(userLevel);
   const BadgeIcon = currentBadge.icon;
   
   return (
-    <div className="flex items-center mb-6 mt-2 cursor-pointer" onClick={() => navigate('/profile')}>
-      <Avatar className="w-10 h-10">
-        <AvatarImage src={avatarUrl || undefined} />
-        <AvatarFallback className={`bg-gradient-to-r ${currentBadge.color} text-white text-xl font-bold`}>
-          {username.charAt(0).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      {!collapsed && (
-        <div className="ml-3 overflow-hidden">
-          <p className="text-white font-medium truncate">{username}</p>
-          <div className="flex items-center">
-            <p className="text-slate-400 text-sm truncate">Level {userLevel}</p>
-            <Badge 
-              variant="outline" 
-              className="ml-2 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600 cursor-pointer hover:border-emerald/40 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate('/progress');
-              }}
-            >
-              <BadgeIcon className="h-2.5 w-2.5 mr-0.5" />
-              {currentBadge.name}
-            </Badge>
+    <div className={cn(
+      "py-4 mb-6",
+      collapsed ? "flex flex-col items-center" : ""
+    )}>
+      <div className={cn(
+        "flex",
+        collapsed ? "flex-col items-center" : "items-center"
+      )}>
+        <Avatar className={cn(
+          "border-2 border-slate-700",
+          collapsed ? "h-10 w-10 mb-2" : "h-12 w-12 mr-3"
+        )}>
+          <AvatarImage src={avatarUrl || undefined} />
+          <AvatarFallback className={`bg-gradient-to-r ${currentBadge.color}`}>
+            {username.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        
+        {!collapsed && (
+          <div className="flex flex-col">
+            <span className="font-medium text-slate-200">
+              {username}
+            </span>
+            <div className="flex items-center text-xs text-slate-400 gap-1">
+              <BadgeIcon className="h-3 w-3" />
+              <span>{currentBadge.name}</span>
+            </div>
           </div>
+        )}
+      </div>
+      
+      {!collapsed && isGuest && (
+        <div className="mt-4">
+          <Button variant="outline" size="sm" className="w-full" asChild>
+            <Link to="/login">
+              <LogIn className="w-4 h-4 mr-2" />
+              Login to Save Progress
+            </Link>
+          </Button>
         </div>
       )}
     </div>
