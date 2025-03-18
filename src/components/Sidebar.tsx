@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { useSidebar } from "@/context/SidebarContext";
 
 // Import refactored components
 import SidebarCollapseButton from "./sidebar/SidebarCollapseButton";
@@ -19,11 +20,11 @@ interface SidebarProps {
 const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useSidebar();
   const { darkMode, toggleDarkMode } = useDarkMode();
-  const [displayName, setDisplayName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [userLevel, setUserLevel] = useState(1);
+  const [displayName, setDisplayName] = React.useState("");
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+  const [userLevel, setUserLevel] = React.useState(1);
   
   useEffect(() => {
     if (user) {
