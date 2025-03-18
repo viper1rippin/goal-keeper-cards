@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ListChecks, Network, FileText, Goal } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -40,14 +39,17 @@ const FeatureShowcase = () => {
   const [activeFeature, setActiveFeature] = useState(features[0].id);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % features.length);
-      setActiveFeature(features[currentImageIndex].id);
-    }, 2000); // Change image every 2 seconds
+      setCurrentImageIndex((prevIndex) => {
+        const newIndex = (prevIndex + 1) % features.length;
+        setActiveFeature(features[newIndex].id);
+        return newIndex;
+      });
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentImageIndex]);
+  }, []);
 
   const currentFeature = features.find(f => f.id === activeFeature) || features[0];
 
@@ -79,7 +81,7 @@ const FeatureShowcase = () => {
                   src={feature.image}
                   alt={feature.title}
                   className={cn(
-                    "absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300",
+                    "absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-500",
                     currentImageIndex === index ? "opacity-100" : "opacity-0"
                   )}
                 />
