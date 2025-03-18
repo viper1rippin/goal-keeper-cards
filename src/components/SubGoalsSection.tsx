@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -44,12 +44,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const [subGoalToDelete, setSubGoalToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  
-  const [localSubGoals, setLocalSubGoals] = useState<Goal[]>(subGoals);
-  
-  useEffect(() => {
-    setLocalSubGoals(subGoals);
-  }, [subGoals]);
 
   const handleAddSubGoal = () => {
     setSubGoalToEdit(null);
@@ -78,17 +72,22 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
     setIsSubGoalDialogOpen(false);
-    onUpdateSubGoals(localSubGoals);
+    onUpdateSubGoals(subGoals);
   };
   
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveSubGoalId(active.id as string);
     
-    const draggedGoal = active.data.current?.goal as Goal;
+    const goalId = active.id.toString();
+    const draggedGoal = subGoals.find(goal => 
+      goal.id === goalId || 
+      (goalId.startsWith('goal-') && subGoals[parseInt(goalId.split('-')[1])] === goal)
+    );
+    
     if (draggedGoal) {
       setActiveSubGoal(draggedGoal);
-      console.log("Drag started:", draggedGoal);
+      console.log('Drag started:', draggedGoal);
     }
   };
 
@@ -101,30 +100,43 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
       return;
     }
     
-    console.log("Drag ended:", event);
+    console.log('Drag ended:', { active, over });
     
     if (active.id !== over.id) {
-      const oldIndex = localSubGoals.findIndex(item => 
-        item.id === active.id || 
-        (active.id as string).startsWith('goal-') && localSubGoals.indexOf(item) === parseInt((active.id as string).split('-')[1])
-      );
+      const reorderedGoals = [...subGoals];
       
-      const newIndex = localSubGoals.findIndex(item => 
-        item.id === over.id || 
-        (over.id as string).startsWith('goal-') && localSubGoals.indexOf(item) === parseInt((over.id as string).split('-')[1])
-      );
+      let oldIndex = reorderedGoals.findIndex(item => item.id === active.id);
+      let newIndex = reorderedGoals.findIndex(item => item.id === over.id);
       
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedGoals = arrayMove(localSubGoals, oldIndex, newIndex);
-        setLocalSubGoals(reorderedGoals);
+      if (oldIndex === -1 && typeof active.id === 'string' && active.id.startsWith('goal-')) {
+        oldIndex = parseInt(active.id.split('-')[1]);
+      }
+      
+      if (newIndex === -1 && typeof over.id === 'string' && over.id.startsWith('goal-')) {
+        newIndex = parseInt(over.id.split('-')[1]);
+      }
+      
+      if (oldIndex >= 0 && newIndex >= 0 && oldIndex < reorderedGoals.length && newIndex < reorderedGoals.length) {
+        const newItems = arrayMove(reorderedGoals, oldIndex, newIndex);
         
-        await saveSubGoalOrder(reorderedGoals);
-        onUpdateSubGoals(reorderedGoals);
+        console.log('New order:', newItems.map(i => i.title));
         
-        toast({
-          title: "Success",
-          description: "Sub-goal order updated",
-        });
+        try {
+          await saveSubGoalOrder(newItems);
+          onUpdateSubGoals(newItems);
+          
+          toast({
+            title: "Success",
+            description: "Sub-goal order updated",
+          });
+        } catch (error) {
+          console.error('Error saving sub-goal order:', error);
+          toast({
+            title: "Error",
+            description: "Failed to update sub-goal order",
+            variant: "destructive"
+          });
+        }
       }
     }
     
@@ -134,19 +146,24 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      const promises = updatedSubGoals.map((goal, index) => {
-        if (!goal.id) return Promise.resolve();
+      const goalsWithIds = updatedSubGoals.filter(goal => goal.id);
+      
+      for (let i = 0; i < goalsWithIds.length; i++) {
+        const goal = goalsWithIds[i];
+        if (!goal.id) continue;
         
-        return supabase
+        const { error } = await supabase
           .from('sub_goals')
           .update({ 
-            updated_at: new Date().toISOString(),
-            display_order: index
+            position: i,
+            updated_at: new Date().toISOString()
           })
           .eq('id', goal.id);
-      });
+        
+        if (error) throw error;
+      }
       
-      await Promise.all(promises);
+      return true;
     } catch (error) {
       console.error("Error saving sub-goal order:", error);
       toast({
@@ -154,6 +171,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         description: "Failed to save sub-goal order. Please try again.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -174,7 +192,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   return (
     <>
       <SubGoalDndContext
-        subGoals={localSubGoals}
+        subGoals={subGoals}
         parentTitle={parentTitle}
         rowIndex={rowIndex}
         activeGoal={activeGoal}

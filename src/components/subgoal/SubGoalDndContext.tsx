@@ -18,7 +18,8 @@ import {
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  rectSortingStrategy,
+  horizontalListSortingStrategy,
+  rectSortingStrategy
 } from '@dnd-kit/sortable';
 import GoalCard from '../GoalCard';
 
@@ -53,31 +54,22 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   onAddSubGoal,
   onViewDetail
 }) => {
-  // Setup sensors for drag and drop with improved configuration
+  // Setup sensors for drag and drop with better touch handling
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      // Require the mouse to move by 8 pixels before activating
+      // Require the mouse to move by 10 pixels before activating
       activationConstraint: {
-        distance: 8,
+        distance: 10,
       },
     }),
     useSensor(TouchSensor, {
-      // Press delay of 100ms, with tolerance of 5px of movement
+      // Press delay in milliseconds, to differentiate from tap
       activationConstraint: {
         delay: 100,
         tolerance: 5,
       },
-    }),
-    useSensor(PointerSensor, {
-      // Require the pointer to move by 8 pixels before activating
-      activationConstraint: {
-        distance: 8,
-      },
     })
   );
-
-  // Use unique IDs for goals, fallback to index if no ID
-  const itemIds = subGoals.map(goal => goal.id || `goal-${subGoals.indexOf(goal)}`);
 
   return (
     <DndContext 
@@ -92,7 +84,7 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
       }}
     >
       <SortableContext 
-        items={itemIds}
+        items={subGoals.map(goal => goal.id || `goal-${subGoals.indexOf(goal)}`)}
         strategy={rectSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

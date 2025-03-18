@@ -26,33 +26,36 @@ const SortableSubGoalCard = ({
   isDragging,
   onViewDetail
 }: SortableSubGoalCardProps) => {
-  // Setup sortable hook
+  // Setup sortable hook with improved configuration
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
+    isDragging: isSortableDragging
   } = useSortable({ 
     id: goal.id || `goal-${index}`,
-    data: { goal, index }
+    data: {
+      goal,
+      index
+    }
   });
 
   // Apply dnd-kit styles
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    position: 'relative' as const,
+    opacity: isSortableDragging ? 0.5 : 1,
+    zIndex: isSortableDragging ? 10 : 'auto'
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="relative touch-manipulation"
+      className="touch-manipulation relative"
     >
-      <GoalCardDragHandle {...attributes} {...listeners} />
       <GoalCard
         title={goal.title}
         description={goal.description}
@@ -62,9 +65,14 @@ const SortableSubGoalCard = ({
         onFocus={onGoalFocus}
         isActiveFocus={isActiveGoal}
         onEdit={onEdit}
-        isDragging={isDragging}
+        isDragging={isDragging || isSortableDragging}
         onDelete={onDelete}
         onViewDetail={onViewDetail}
+      />
+      <div 
+        className="absolute top-0 left-0 w-full h-10 cursor-grab"
+        {...attributes}
+        {...listeners}
       />
     </div>
   );
