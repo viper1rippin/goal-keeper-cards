@@ -1,16 +1,17 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Code2, BadgeCheck } from "lucide-react";
 import AnimatedContainer from '@/components/AnimatedContainer';
 import GridBackground from '@/components/effects/GridBackground';
 import GlowingCursor from '@/components/effects/GlowingCursor';
+import FeatureShowcase from '@/components/features/FeatureShowcase';
 
 const Landing = () => {
   return (
     <div className="min-h-screen bg-apple-dark text-white relative overflow-hidden">
       <GlowingCursor />
       <GridBackground />
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-600/10 via-transparent to-transparent" />
@@ -49,6 +50,11 @@ const Landing = () => {
             <StatsCard icon={<BadgeCheck />} title="99.9%" subtitle="Success Rate" />
           </AnimatedContainer>
         </div>
+
+        {/* Feature Showcase */}
+        <AnimatedContainer delay={600}>
+          <FeatureShowcase />
+        </AnimatedContainer>
 
         {/* Features Section */}
         <div className="container mx-auto px-4 py-16">
