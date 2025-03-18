@@ -1,4 +1,5 @@
 
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,7 +61,7 @@
   }
   
   .glass-card-emerald {
-    @apply bg-gradient-to-br from-emerald-dark/20 to-apple-dark border border-emerald/20 shadow-lg shadow-emerald/5;
+    @apply bg-gradient-to-br from-emerald-dark/15 to-apple-dark border border-emerald/10 shadow-md shadow-emerald/5;
   }
 
   .text-gradient {
@@ -69,6 +70,40 @@
 
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  /* Sidebar specific styles */
+  .sidebar-menu-item {
+    @apply flex items-center w-full p-2 rounded-lg text-slate-300 hover:text-white hover:bg-muted transition-colors;
+  }
+  
+  .sidebar-menu-item.active {
+    @apply bg-muted text-white;
+  }
+
+  /* TipTap editor styles */
+  .tiptap-editor {
+    @apply w-full outline-none;
+  }
+
+  .tiptap-editor ul {
+    @apply list-disc pl-6 my-4;
+  }
+
+  .tiptap-editor ol {
+    @apply list-decimal pl-6 my-4;
+  }
+
+  .tiptap-editor p {
+    @apply my-2;
+  }
+
+  .tiptap-editor li {
+    @apply my-1;
+  }
+
+  .tiptap-editor li p {
+    @apply my-0;
   }
 }
 
@@ -90,8 +125,21 @@
 
 @keyframes badge-glow {
   0% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.6); }
   100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
+}
+
+/* Enhanced glow effects - toned down for better eye comfort */
+@keyframes emerald-pulse {
+  0% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
+  50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+  100% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
+}
+
+@keyframes green-lantern-pulse {
+  0% { opacity: 0.5; filter: blur(10px); }
+  50% { opacity: 0.6; filter: blur(8px); }
+  100% { opacity: 0.5; filter: blur(10px); }
 }
 
 .animate-fade-in {
@@ -108,5 +156,13 @@
 
 .animate-badge-glow {
   animation: badge-glow 2s infinite;
+}
+
+.animate-emerald-pulse {
+  animation: emerald-pulse 2.5s infinite;
+}
+
+.animate-green-lantern {
+  animation: green-lantern-pulse 4s infinite;
 }
 
