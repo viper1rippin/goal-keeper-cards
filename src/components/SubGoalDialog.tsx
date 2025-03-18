@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -71,6 +72,11 @@ const SubGoalDialog = ({
           description: values.description,
         });
         
+        toast({
+          title: "Sub-goal saved",
+          description: "Your sub-goal has been saved to your browser.",
+        });
+        
         form.reset();
         onClose();
         return;
@@ -81,6 +87,11 @@ const SubGoalDialog = ({
       onClose();
     } catch (error) {
       console.error("Error saving sub-goal:", error);
+      toast({
+        title: "Error saving sub-goal",
+        description: "There was an error saving your sub-goal. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -130,6 +141,11 @@ const SubGoalDialog = ({
         onClose(); // Close the dialog after deletion
       } catch (error) {
         console.error("Error deleting sub-goal:", error);
+        toast({
+          title: "Error deleting sub-goal",
+          description: "There was an error deleting your sub-goal. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
