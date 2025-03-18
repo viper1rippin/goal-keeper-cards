@@ -11,11 +11,14 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverlay
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  MeasuringStrategy
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  horizontalListSortingStrategy,
+  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import GoalCard from '../GoalCard';
 
@@ -50,14 +53,31 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   onAddSubGoal,
   onViewDetail
 }) => {
-  // Setup sensors for drag and drop
+  // Setup sensors for drag and drop with improved configuration
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
+      // Require the mouse to move by 8 pixels before activating
       activationConstraint: {
-        distance: 8, // Minimum drag distance before activation
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      // Press delay of 100ms, with tolerance of 5px of movement
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+    }),
+    useSensor(PointerSensor, {
+      // Require the pointer to move by 8 pixels before activating
+      activationConstraint: {
+        distance: 8,
       },
     })
   );
+
+  // Use unique IDs for goals, fallback to index if no ID
+  const itemIds = subGoals.map(goal => goal.id || `goal-${subGoals.indexOf(goal)}`);
 
   return (
     <DndContext 
@@ -65,10 +85,15 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
       collisionDetection={closestCenter}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      measuring={{
+        droppable: {
+          strategy: MeasuringStrategy.Always
+        },
+      }}
     >
       <SortableContext 
-        items={subGoals.map(goal => goal.id || '')}
-        strategy={horizontalListSortingStrategy}
+        items={itemIds}
+        strategy={rectSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {subGoals.map((goal, goalIndex) => {
@@ -76,7 +101,7 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
             
             return (
               <SortableSubGoalCard 
-                key={goal.id || goalIndex}
+                key={goal.id || `goal-${goalIndex}`}
                 goal={goal}
                 index={goalIndex}
                 isActiveGoal={isActiveGoal}

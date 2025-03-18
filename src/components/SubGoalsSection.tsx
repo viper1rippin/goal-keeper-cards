@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -45,6 +44,12 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const [subGoalToDelete, setSubGoalToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
+  const [localSubGoals, setLocalSubGoals] = useState<Goal[]>(subGoals);
+  
+  useEffect(() => {
+    setLocalSubGoals(subGoals);
+  }, [subGoals]);
 
   const handleAddSubGoal = () => {
     setSubGoalToEdit(null);
@@ -73,33 +78,54 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
     setIsSubGoalDialogOpen(false);
-    onUpdateSubGoals(subGoals);
+    onUpdateSubGoals(localSubGoals);
   };
   
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveSubGoalId(active.id as string);
-    const draggedGoal = subGoals.find(goal => goal.id === active.id);
+    
+    const draggedGoal = active.data.current?.goal as Goal;
     if (draggedGoal) {
       setActiveSubGoal(draggedGoal);
+      console.log("Drag started:", draggedGoal);
     }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over) {
+      setActiveSubGoal(null);
+      setActiveSubGoalId(null);
+      return;
+    }
+    
+    console.log("Drag ended:", event);
     
     if (active.id !== over.id) {
-      const reorderedGoals = [...subGoals];
-      const oldIndex = reorderedGoals.findIndex(item => item.id === active.id);
-      const newIndex = reorderedGoals.findIndex(item => item.id === over.id);
+      const oldIndex = localSubGoals.findIndex(item => 
+        item.id === active.id || 
+        (active.id as string).startsWith('goal-') && localSubGoals.indexOf(item) === parseInt((active.id as string).split('-')[1])
+      );
       
-      const newItems = arrayMove(reorderedGoals, oldIndex, newIndex);
+      const newIndex = localSubGoals.findIndex(item => 
+        item.id === over.id || 
+        (over.id as string).startsWith('goal-') && localSubGoals.indexOf(item) === parseInt((over.id as string).split('-')[1])
+      );
       
-      await saveSubGoalOrder(newItems);
-      
-      onUpdateSubGoals(newItems);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedGoals = arrayMove(localSubGoals, oldIndex, newIndex);
+        setLocalSubGoals(reorderedGoals);
+        
+        await saveSubGoalOrder(reorderedGoals);
+        onUpdateSubGoals(reorderedGoals);
+        
+        toast({
+          title: "Success",
+          description: "Sub-goal order updated",
+        });
+      }
     }
     
     setActiveSubGoal(null);
@@ -108,22 +134,19 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   
   const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      for (let i = 0; i < updatedSubGoals.length; i++) {
-        if (updatedSubGoals[i].id) {
-          const delayOffset = i * 50;
-          
-          setTimeout(async () => {
-            const { error } = await supabase
-              .from('sub_goals')
-              .update({ 
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', updatedSubGoals[i].id);
-            
-            if (error) throw error;
-          }, delayOffset);
-        }
-      }
+      const promises = updatedSubGoals.map((goal, index) => {
+        if (!goal.id) return Promise.resolve();
+        
+        return supabase
+          .from('sub_goals')
+          .update({ 
+            updated_at: new Date().toISOString(),
+            display_order: index
+          })
+          .eq('id', goal.id);
+      });
+      
+      await Promise.all(promises);
     } catch (error) {
       console.error("Error saving sub-goal order:", error);
       toast({
@@ -134,7 +157,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
 
-  // Handle navigation to detail page
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
     
@@ -152,7 +174,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   return (
     <>
       <SubGoalDndContext
-        subGoals={subGoals}
+        subGoals={localSubGoals}
         parentTitle={parentTitle}
         rowIndex={rowIndex}
         activeGoal={activeGoal}

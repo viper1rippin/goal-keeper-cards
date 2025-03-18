@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import GoalCard from "./GoalCard";
 import { Goal } from "./GoalRow";
+import GoalCardDragHandle from "./GoalCardDragHandle";
 
 interface SortableSubGoalCardProps {
   goal: Goal;
@@ -32,22 +33,26 @@ const SortableSubGoalCard = ({
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: goal.id || index.toString() });
+  } = useSortable({ 
+    id: goal.id || `goal-${index}`,
+    data: { goal, index }
+  });
 
   // Apply dnd-kit styles
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: 'relative' as const,
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className="relative"
+      className="relative touch-manipulation"
     >
+      <GoalCardDragHandle {...attributes} {...listeners} />
       <GoalCard
         title={goal.title}
         description={goal.description}
