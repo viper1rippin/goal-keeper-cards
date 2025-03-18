@@ -53,7 +53,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           onClick={() => {}} 
         />
         <SidebarMenuItem 
-          icon={darkMode ? <Sun size={20} /> : <Moon size={20} />} 
+          icon={darkMode ? <Moon size={20} /> : <Sun size={20} />} 
           label="Night Mode" 
           collapsed={collapsed} 
           onClick={toggleDarkMode} 
