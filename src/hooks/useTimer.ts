@@ -30,8 +30,16 @@ export function useTimer({ userLevel, onLevelUp, activeGoal }: UseTimerProps) {
   
   const pointsForNextLevel = getPointsForNextLevel(userLevel);
 
-  // Remove auto-start behavior when activeGoal changes
-  // This was causing the timer to start automatically
+  // Auto-start timer when activeGoal changes to non-null, but only if in IDLE state
+  useEffect(() => {
+    if (activeGoal && timerState === "IDLE" && time === 0) {
+      // Only auto-start if the timer is in IDLE state and at zero
+      setTimerState("RUNNING");
+    }
+  }, [activeGoal, timerState, time]);
+
+  // Remove toast notifications for timer state changes
+  // useEffect for timer state changes removed
 
   // Toggle timer with debouncing to prevent rapid state changes
   const toggleTimer = () => {

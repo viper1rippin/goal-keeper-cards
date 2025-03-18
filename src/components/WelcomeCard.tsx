@@ -1,95 +1,29 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Timer } from "lucide-react";
+import { Plus } from "lucide-react";
 import AnimatedContainer from "./AnimatedContainer";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 interface WelcomeCardProps {
   onAddGoal: () => void;
-  onToggleFocusTimer?: () => void;
-  showFocusTimer?: boolean;
 }
 
-const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal, onToggleFocusTimer, showFocusTimer }) => {
-  const { user } = useAuth();
-  const [displayName, setDisplayName] = useState<string>("");
-  
-  useEffect(() => {
-    if (user) {
-      // Initial fetch
-      const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('display_name')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (data && data.display_name) {
-          setDisplayName(data.display_name);
-        } else {
-          setDisplayName(user.email?.split('@')[0] || 'Guest');
-        }
-      };
-      
-      fetchProfile();
-      
-      // Subscribe to changes
-      const channel = supabase
-        .channel('welcome-profile-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            if (payload.new && payload.new.display_name) {
-              setDisplayName(payload.new.display_name);
-            }
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-  
-  const username = displayName || user?.email?.split('@')[0] || 'Guest';
-  
+const WelcomeCard: React.FC<WelcomeCardProps> = ({ onAddGoal }) => {
   return (
-    <AnimatedContainer className="w-full mb-8">
-      <div className="glass-card p-5 rounded-lg border border-slate-800/80">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <AnimatedContainer className="max-w-7xl mx-auto mb-12">
+      <div className="glass-card p-6 rounded-lg border border-slate-800/80 mb-12">
+        <div className="flex justify-between items-center">
           <div>
-            <p className="text-slate-400 text-sm">Welcome back, {username}. Set a goal and stay focused.</p>
+            <h2 className="text-lg font-medium mb-1">Welcome back, John</h2>
+            <p className="text-slate-400">Track your progress and stay focused on your goals.</p>
           </div>
-          <div className="flex items-center space-x-3 self-end md:self-auto">
-            {user && (
-              <Button 
-                variant={showFocusTimer ? "default" : "outline"}
-                onClick={onToggleFocusTimer}
-                size="sm"
-                className={`${showFocusTimer ? "bg-emerald hover:bg-emerald-dark" : "border-emerald/20 hover:border-emerald/40"}`}
-              >
-                <Timer className="mr-2" size={16} />
-                {showFocusTimer ? "Focusing" : "Focus"}
-              </Button>
-            )}
-            <Button 
-              onClick={onAddGoal}
-              size="sm"
-              className="bg-emerald hover:bg-emerald-dark"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Goal
-            </Button>
-          </div>
+          <Button 
+            onClick={onAddGoal}
+            className="bg-emerald hover:bg-emerald-dark"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Goal
+          </Button>
         </div>
       </div>
     </AnimatedContainer>

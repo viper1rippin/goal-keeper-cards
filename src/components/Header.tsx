@@ -1,14 +1,12 @@
 
-import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
+import UserBadge from "./UserBadge";
 import { Button } from "./ui/button";
-import { Timer, LogIn, UserPlus } from "lucide-react";
+import { Timer } from "lucide-react";
 import FocusTimer from "./FocusTimer";
 import { Goal } from "./GoalRow";
-import { useAuth } from "@/context/AuthContext";
-import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   activeGoal?: Goal | null;
@@ -23,52 +21,9 @@ const Header = ({
   setShowFocusTimer,
   onStopFocus
 }: HeaderProps) => {
-  const [userLevel, setUserLevel] = useState(1); // Start at level 1 (Peasant)
-  const { user } = useAuth();
+  const [userLevel, setUserLevel] = useState(10); // Default starting level
   // Reference to track the last scroll position
   const lastScrollPosition = useRef(0);
-  
-  // Fetch the user's level on mount
-  useEffect(() => {
-    if (user) {
-      const fetchUserLevel = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('level')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (data && data.level) {
-          setUserLevel(data.level);
-        }
-      };
-      
-      fetchUserLevel();
-      
-      // Subscribe to level changes
-      const channel = supabase
-        .channel('header-level-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            if (payload.new && payload.new.level) {
-              setUserLevel(payload.new.level);
-            }
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
   
   // Handle showing/hiding focus timer without scroll jumping
   useLayoutEffect(() => {
@@ -107,50 +62,26 @@ const Header = ({
           
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex items-center space-x-4">
+              <UserBadge level={userLevel} />
+              
               <div className="glass-card px-4 py-2 rounded-lg text-sm text-slate-300">
                 Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
             </div>
             
-            {user ? (
-              <Button 
-                variant={showFocusTimer ? "default" : "outline"}
-                size="sm"
-                onClick={handleTimerToggle}
-                className={cn(
-                  showFocusTimer 
-                    ? "bg-emerald hover:bg-emerald-dark" 
-                    : "border-emerald/20 hover:border-emerald/40"
-                )}
-              >
-                <Timer className="mr-2" size={16} />
-                {showFocusTimer ? "Focusing" : "Focus"}
-              </Button>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                >
-                  <Link to="/login">
-                    <LogIn className="mr-2" size={16} />
-                    Log In
-                  </Link>
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-emerald hover:bg-emerald-dark"
-                  asChild
-                >
-                  <Link to="/signup">
-                    <UserPlus className="mr-2" size={16} />
-                    Sign Up
-                  </Link>
-                </Button>
-              </div>
-            )}
+            <Button 
+              variant={activeGoal ? "default" : "outline"}
+              size="sm"
+              onClick={handleTimerToggle}
+              className={cn(
+                activeGoal 
+                  ? "bg-emerald hover:bg-emerald-dark" 
+                  : "border-emerald/20 hover:border-emerald/40"
+              )}
+            >
+              <Timer className="mr-2" size={16} />
+              {activeGoal ? "Focusing" : "Focus"}
+            </Button>
           </div>
         </div>
         

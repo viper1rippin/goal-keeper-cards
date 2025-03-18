@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import GoalCard from "./GoalCard";
 import { Goal } from "./GoalRow";
+import { Trash2 } from "lucide-react";
 
 interface SortableSubGoalCardProps {
   goal: Goal;
@@ -12,7 +13,6 @@ interface SortableSubGoalCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   isDragging?: boolean;
-  onViewDetail?: () => void;
 }
 
 const SortableSubGoalCard = ({
@@ -22,8 +22,7 @@ const SortableSubGoalCard = ({
   onGoalFocus,
   onEdit,
   onDelete,
-  isDragging,
-  onViewDetail
+  isDragging
 }: SortableSubGoalCardProps) => {
   // Setup sortable hook
   const {
@@ -34,20 +33,19 @@ const SortableSubGoalCard = ({
     transition,
   } = useSortable({ id: goal.id || index.toString() });
 
-  // Apply dnd-kit styles without animation transitions
+  // Apply dnd-kit styles
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition, // Disable transition animation during dragging
-    zIndex: isDragging ? 50 : 'auto' // Ensure dragged item stays on top
+    transition
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group select-none"
       {...attributes}
       {...listeners}
+      className="relative"
     >
       <GoalCard
         title={goal.title}
@@ -60,8 +58,19 @@ const SortableSubGoalCard = ({
         onEdit={onEdit}
         isDragging={isDragging}
         onDelete={onDelete}
-        onViewDetail={onViewDetail}
       />
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute bottom-2 right-2 p-1.5 rounded-full bg-red-800/60 text-red-300 hover:bg-red-800/90 transition-colors z-10 opacity-0 group-hover:opacity-100"
+          aria-label="Delete sub-goal"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
     </div>
   );
 };

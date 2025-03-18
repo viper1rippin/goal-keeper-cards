@@ -7,6 +7,7 @@ import GoalCardContent from "./GoalCardContent";
 import GoalCardGlow from "./GoalCardGlow";
 import GoalCardEditButton from "./GoalCardEditButton";
 import GoalCardDragHandle from "./GoalCardDragHandle";
+import { Trash2 } from "lucide-react";
 
 export interface GoalCardProps {
   title: string;
@@ -24,8 +25,6 @@ export interface GoalCardProps {
   onDelete?: () => void;
   // Add drag state
   isDragging?: boolean;
-  // Add new prop for navigating to project detail
-  onViewDetail?: () => void;
 }
 
 const GoalCard = ({ 
@@ -39,11 +38,10 @@ const GoalCard = ({
   onStartFocus,
   onEdit,
   onDelete,
-  isDragging = false,
-  onViewDetail
+  isDragging = false
 }: GoalCardProps) => {
-  // Calculate delay based on index for staggered animation - disable for dragging items
-  const delay = isDragging ? 0 : 150 + index * 50;
+  // Calculate delay based on index for staggered animation
+  const delay = 150 + index * 50;
   
   // State to track hover status
   const [isHovered, setIsHovered] = useState(false);
@@ -105,55 +103,24 @@ const GoalCard = ({
     }
   }, [isActiveFocus]);
 
-  // Handle card click - only select the goal, don't start timer
+  // Handle card click to start focus timer
   const handleClick = () => {
-    onFocus(); // Keep the focus state toggling
-    
-    // If we have a handler for viewing details, call it
-    if (onViewDetail) {
-      onViewDetail();
+    onFocus(); // Toggle focus state as before
+    if (onStartFocus) {
+      onStartFocus(); // Start focus timer with this goal
     }
   };
   
-  // Use a regular div instead of AnimatedContainer when dragging to avoid animation artifacts
-  if (isDragging) {
-    return (
-      <div className="w-full group">
-        <div 
-          ref={cardRef}
-          className={cn(
-            "glass-card rounded-lg p-4 h-full transition-none relative overflow-hidden select-none",
-            `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20 ring-2 ring-emerald/50 shadow-xl`
-          )}
-        >
-          {/* Drag handle indicator */}
-          <GoalCardDragHandle />
-          
-          {/* Content area with title, description and progress */}
-          <GoalCardContent
-            title={title}
-            description={description}
-            progress={progress}
-            progressGradient={progressGradient}
-            isActiveFocus={isActiveFocus}
-            isFocused={isFocused}
-            isHovered={isHovered}
-          />
-        </div>
-      </div>
-    );
-  }
-  
   return (
     <AnimatedContainer 
-      animation={isDragging ? undefined : "scale-in"}
+      animation="scale-in"
       delay={delay}
       className="w-full group"
     >
       <div 
         ref={cardRef}
         className={cn(
-          "glass-card rounded-lg p-4 h-full hover-scale transition-all duration-300 relative overflow-hidden select-none",
+          "glass-card rounded-lg p-5 h-full hover-scale transition-all duration-300 relative overflow-hidden",
           // Only use the active gradients when this card is the active focused card
           isActiveFocus
             ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
@@ -188,6 +155,20 @@ const GoalCard = ({
         
         {/* Edit button - only visible on hover */}
         <GoalCardEditButton isHovered={isHovered} onEdit={onEdit} />
+        
+        {/* Delete button - only visible on hover */}
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="absolute bottom-2 right-2 p-1.5 rounded-full bg-red-800/60 text-red-300 hover:bg-red-800/90 transition-colors z-10 opacity-0 group-hover:opacity-100"
+            aria-label="Delete sub-goal"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
         
         {/* Content area with title, description and progress */}
         <GoalCardContent

@@ -12,6 +12,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface DeleteParentGoalDialogProps {
   title: string;
@@ -22,10 +23,6 @@ const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
   title,
   onDelete
 }) => {
-  const handleDelete = async () => {
-    await onDelete();
-  };
-
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -34,6 +31,7 @@ const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
           size="sm"
           className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
         >
+          <Trash2 size={16} className="mr-1" />
           Delete
         </Button>
       </AlertDialogTrigger>
@@ -51,7 +49,7 @@ const DeleteParentGoalDialog: React.FC<DeleteParentGoalDialogProps> = ({
           </AlertDialogCancel>
           <AlertDialogAction 
             className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={handleDelete}
+            onClick={onDelete}
           >
             Delete
           </AlertDialogAction>

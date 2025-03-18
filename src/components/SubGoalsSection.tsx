@@ -4,10 +4,10 @@ import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
-import { useNavigate } from 'react-router-dom';
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -32,35 +32,42 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   onDeleteSubGoal,
   isLoading
 }) => {
-  const navigate = useNavigate();
+  const { toast } = useToast();
   
+  // State for drag and drop of sub-goals
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
   const [activeSubGoalId, setActiveSubGoalId] = useState<string | null>(null);
   
+  // State for sub-goal dialog
   const [isSubGoalDialogOpen, setIsSubGoalDialogOpen] = useState(false);
   const [subGoalToEdit, setSubGoalToEdit] = useState<Goal | null>(null);
   const [editingGoalIndex, setEditingGoalIndex] = useState<number | null>(null);
   
+  // State for delete confirmation dialog
   const [subGoalToDelete, setSubGoalToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // Handle adding a new sub-goal
   const handleAddSubGoal = () => {
     setSubGoalToEdit(null);
     setEditingGoalIndex(null);
     setIsSubGoalDialogOpen(true);
   };
   
+  // Handle editing an existing sub-goal
   const handleEditSubGoal = (goal: Goal, index: number) => {
     setSubGoalToEdit(goal);
     setEditingGoalIndex(index);
     setIsSubGoalDialogOpen(true);
   };
   
+  // Handle confirming sub-goal deletion
   const handleConfirmDeleteSubGoal = (subGoalId: string) => {
     setSubGoalToDelete(subGoalId);
     setIsDeleteDialogOpen(true);
   };
   
+  // Execute sub-goal deletion
   const executeDeleteSubGoal = async () => {
     if (subGoalToDelete) {
       await onDeleteSubGoal(subGoalToDelete);
@@ -69,11 +76,15 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
   
+  // Handle saving sub-goal (both add and edit)
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
+    // Close the dialog
     setIsSubGoalDialogOpen(false);
+    // We'll refresh subgoals by calling fetchSubGoals from the parent
     onUpdateSubGoals(subGoals);
   };
   
+  // Handle drag start for sub-goals
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveSubGoalId(active.id as string);
@@ -83,61 +94,68 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     }
   };
 
+  // Handle drag end for sub-goals
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (!over) return;
     
     if (active.id !== over.id) {
-      const oldIndex = subGoals.findIndex(item => item.id === active.id);
-      const newIndex = subGoals.findIndex(item => item.id === over.id);
+      const reorderedGoals = [...subGoals];
+      const oldIndex = reorderedGoals.findIndex(item => item.id === active.id);
+      const newIndex = reorderedGoals.findIndex(item => item.id === over.id);
       
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedGoals = arrayMove(subGoals, oldIndex, newIndex);
-        
-        onUpdateSubGoals(reorderedGoals);
-        
-        try {
-          await updateSubGoalOrder(reorderedGoals);
-        } catch (error) {
-          console.error("Error updating sub-goal order:", error);
-          // Toast notification removed
-        }
-      }
+      // Reorder the items
+      const newItems = arrayMove(reorderedGoals, oldIndex, newIndex);
+      
+      // Save the new order to the database
+      saveSubGoalOrder(newItems);
+      
+      // Update the parent component
+      onUpdateSubGoals(newItems);
     }
     
+    // Clear the active sub-goal when dragging ends
     setActiveSubGoal(null);
     setActiveSubGoalId(null);
   };
   
-  const updateSubGoalOrder = async (updatedSubGoals: Goal[]) => {
+  // Save the updated order of sub-goals to the database
+  const saveSubGoalOrder = async (updatedSubGoals: Goal[]) => {
     try {
-      const updatePromises = updatedSubGoals.map((goal, index) => {
-        if (goal.id) {
-          return supabase
-            .from('sub_goals')
-            .update({ display_order: index })
-            .eq('id', goal.id);
+      // Since there's no position field in the database,
+      // we'll need to update the goals one by one with a timestamp to maintain order
+      // We'll use the updated_at field to maintain order
+      for (let i = 0; i < updatedSubGoals.length; i++) {
+        if (updatedSubGoals[i].id) {
+          // Add a small delay between updates to ensure ordering by updated_at works correctly
+          const delayOffset = i * 50; // 50ms spacing between updates
+          
+          setTimeout(async () => {
+            const { error } = await supabase
+              .from('sub_goals')
+              .update({ 
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', updatedSubGoals[i].id);
+            
+            if (error) throw error;
+          }, delayOffset);
         }
-        return Promise.resolve();
-      });
-      
-      await Promise.all(updatePromises);
+      }
     } catch (error) {
-      console.error("Error updating sub-goal order:", error);
-      throw error;
+      console.error("Error saving sub-goal order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save sub-goal order. Please try again.",
+        variant: "destructive",
+      });
     }
-  };
-
-  const handleViewDetail = (goal: Goal) => {
-    if (!goal.id) return;
-    
-    navigate(`/projects/${goal.id}`);
   };
 
   if (isLoading) {
     return (
-      <div className="py-4 text-center text-slate-400">
+      <div className="col-span-4 py-8 text-center text-slate-400">
         Loading sub-goals...
       </div>
     );
@@ -158,9 +176,9 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         onEdit={handleEditSubGoal}
         onDelete={handleConfirmDeleteSubGoal}
         onAddSubGoal={handleAddSubGoal}
-        onViewDetail={handleViewDetail}
       />
       
+      {/* Sub-Goal Dialog for adding/editing */}
       <SubGoalDialog
         isOpen={isSubGoalDialogOpen}
         onClose={() => {
@@ -172,9 +190,9 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         subGoalToEdit={subGoalToEdit}
         parentGoalTitle={parentTitle}
         parentGoalId={parentId}
-        onDelete={onDeleteSubGoal}
       />
       
+      {/* Delete Confirmation Dialog */}
       <DeleteSubGoalDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}

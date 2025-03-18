@@ -1,5 +1,3 @@
-
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -71,40 +69,6 @@
   .hover-scale {
     @apply transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98];
   }
-  
-  /* Sidebar specific styles */
-  .sidebar-menu-item {
-    @apply flex items-center w-full p-2 rounded-lg text-slate-300 hover:text-white hover:bg-muted transition-colors;
-  }
-  
-  .sidebar-menu-item.active {
-    @apply bg-muted text-white;
-  }
-
-  /* TipTap editor styles */
-  .tiptap-editor {
-    @apply w-full outline-none;
-  }
-
-  .tiptap-editor ul {
-    @apply list-disc pl-6 my-4;
-  }
-
-  .tiptap-editor ol {
-    @apply list-decimal pl-6 my-4;
-  }
-
-  .tiptap-editor p {
-    @apply my-2;
-  }
-
-  .tiptap-editor li {
-    @apply my-1;
-  }
-
-  .tiptap-editor li p {
-    @apply my-0;
-  }
 }
 
 /* Animations for our components */
@@ -165,4 +129,3 @@
 .animate-green-lantern {
   animation: green-lantern-pulse 4s infinite;
 }
-

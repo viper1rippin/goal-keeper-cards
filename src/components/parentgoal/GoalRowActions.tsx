@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import DeleteParentGoalDialog from './DeleteParentGoalDialog';
 
 interface GoalRowActionsProps {
   title: string;
@@ -23,7 +24,11 @@ const GoalRowActions: React.FC<GoalRowActionsProps> = ({
       >
         Edit
       </Button>
-      {/* Delete button removed from the home page */}
+      
+      <DeleteParentGoalDialog
+        title={title}
+        onDelete={onDelete}
+      />
     </div>
   );
 };

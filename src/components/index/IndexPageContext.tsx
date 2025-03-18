@@ -64,20 +64,18 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     if (parentGoal) {
       parentGoal.goals = parentGoal.goals.filter(goal => goal.id !== id);
-      setParentGoals(updatedParentGoals as any);
+      setParentGoals(updatedParentGoals);
     }
   };
   
   // Handle updating sub-goals for a parent goal
   const handleUpdateSubGoals = (parentIndex: number, updatedGoals: Goal[]) => {
     const updatedParentGoals = [...parentGoals];
-    if (updatedParentGoals[parentIndex]) {
-      updatedParentGoals[parentIndex] = {
-        ...updatedParentGoals[parentIndex],
-        goals: updatedGoals
-      };
-      setParentGoals(updatedParentGoals as any);
-    }
+    updatedParentGoals[parentIndex] = {
+      ...updatedParentGoals[parentIndex],
+      goals: updatedGoals
+    };
+    setParentGoals(updatedParentGoals);
   };
   
   // Handle drag end event
@@ -134,7 +132,7 @@ export const IndexPageProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const contextValue: IndexPageContextType = {
     // State
-    parentGoals: parentGoals as ParentGoal[],
+    parentGoals,
     isLoading,
     activeGoal,
     activeGoalIndices,

@@ -11,8 +11,7 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  DragOverlay,
-  defaultDropAnimationSideEffects
+  DragOverlay
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -33,7 +32,6 @@ interface SubGoalDndContextProps {
   onEdit: (goal: Goal, index: number) => void;
   onDelete: (subGoalId: string) => void;
   onAddSubGoal: () => void;
-  onViewDetail?: (goal: Goal) => void;
 }
 
 const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
@@ -48,31 +46,16 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
   activeSubGoalId,
   onEdit,
   onDelete,
-  onAddSubGoal,
-  onViewDetail
+  onAddSubGoal
 }) => {
-  // Setup sensors for drag and drop with lower activation constraint
+  // Setup sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Reduced from 8 to make drag activation easier
+        distance: 8, // Minimum drag distance before activation
       },
     })
   );
-
-  // Create an array of valid IDs for the sortable context
-  const sortableIds = subGoals.map(goal => goal.id || '').filter(id => id !== '');
-
-  // Custom drop animation that's minimal and doesn't cause a flash
-  const customDropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: {
-        active: {
-          opacity: '0.5',
-        },
-      },
-    }),
-  };
 
   return (
     <DndContext 
@@ -82,7 +65,7 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
       onDragEnd={onDragEnd}
     >
       <SortableContext 
-        items={sortableIds}
+        items={subGoals.map(goal => goal.id || '')}
         strategy={horizontalListSortingStrategy}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -99,7 +82,6 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
                 onEdit={() => onEdit(goal, goalIndex)}
                 onDelete={goal.id ? () => onDelete(goal.id as string) : undefined}
                 isDragging={activeSubGoalId === goal.id}
-                onViewDetail={onViewDetail ? () => onViewDetail(goal) : undefined}
               />
             );
           })}
@@ -112,8 +94,8 @@ const SubGoalDndContext: React.FC<SubGoalDndContextProps> = ({
         </div>
       </SortableContext>
       
-      {/* Drag overlay for dragged cards - no animation on this */}
-      <DragOverlay adjustScale={false} dropAnimation={customDropAnimation}>
+      {/* Drag overlay for dragged cards */}
+      <DragOverlay adjustScale={true}>
         {activeSubGoal ? (
           <GoalCard
             title={activeSubGoal.title}
