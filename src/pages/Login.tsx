@@ -2,7 +2,6 @@
 import { Link } from "react-router-dom";
 import { AuthCard } from "@/components/auth/AuthCard";
 import LoginForm from "@/components/auth/LoginForm";
-import { Button } from "@/components/ui/button";
 import AnimatedContainer from "@/components/AnimatedContainer";
 
 export default function Login() {
@@ -32,14 +31,6 @@ export default function Login() {
         >
           <LoginForm />
         </AuthCard>
-      </AnimatedContainer>
-      
-      <AnimatedContainer animation="fade-in-delayed" className="mt-8">
-        <Button variant="ghost" asChild>
-          <Link to="/">
-            Continue as guest
-          </Link>
-        </Button>
       </AnimatedContainer>
     </div>
   );
