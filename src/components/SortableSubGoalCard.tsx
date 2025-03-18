@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import GoalCard from "./GoalCard";
 import { Goal } from "./GoalRow";
+import GoalCardDragHandle from "./GoalCardDragHandle";
 
 interface SortableSubGoalCardProps {
   goal: Goal;
@@ -44,10 +45,9 @@ const SortableSubGoalCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className="relative"
     >
+      <GoalCardDragHandle {...attributes} {...listeners} />
       <GoalCard
         title={goal.title}
         description={goal.description}

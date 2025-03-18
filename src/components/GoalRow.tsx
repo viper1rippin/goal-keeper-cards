@@ -15,7 +15,8 @@ export interface Goal {
   title: string;
   description: string;
   progress: number;
-  user_id?: string; // Add user_id field
+  user_id?: string;
+  display_order?: number; // Add display_order field
 }
 
 interface GoalRowProps {
@@ -85,7 +86,7 @@ const GoalRow = ({
         .select('*')
         .eq('parent_goal_id', id)
         .eq('user_id', user.id) // Only fetch user's own sub-goals
-        .order('created_at', { ascending: true });
+        .order('display_order', { ascending: true }); // Order by display_order
       
       if (error) {
         throw error;
@@ -97,6 +98,7 @@ const GoalRow = ({
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
+          display_order: goal.display_order,
           // Handle user_id properly with type assertion if it exists on the database record
           ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
         }));
