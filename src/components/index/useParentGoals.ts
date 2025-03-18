@@ -5,6 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ParentGoal } from "./IndexPageTypes";
+import { 
+  getGuestParentGoals, 
+  saveGuestParentGoals,
+  deleteGuestParentGoal,
+  updateGuestParentGoalOrder
+} from "@/utils/guestStorage";
 
 // Type for parent goal from Supabase, avoiding deep nesting
 interface ParentGoalData {
@@ -37,11 +43,18 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
 
   // Function to fetch parent goals
   const fetchParentGoals = useCallback(async () => {
-    if (!user) return;
-    
     try {
       setIsLoading(true);
       
+      // Handle guest mode
+      if (!user) {
+        const guestGoals = getGuestParentGoals();
+        setParentGoals(guestGoals);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Handle authenticated user - fetch from supabase
       // Fetch parent goals
       const { data: parentGoalsData, error: parentGoalsError } = await supabase
         .from('parent_goals')
@@ -106,9 +119,14 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
 
   // Function to save parent goal order
   const saveParentGoalOrder = useCallback(async (reorderedGoals: ParentGoal[]) => {
-    if (!user) return;
-    
     try {
+      // Handle guest mode
+      if (!user) {
+        updateGuestParentGoalOrder(reorderedGoals);
+        return;
+      }
+      
+      // Handle authenticated user
       // Create an array of updates for each goal
       for (const goal of reorderedGoals) {
         const { error } = await supabase
@@ -132,9 +150,24 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
 
   // Function to delete a parent goal
   const deleteParentGoal = useCallback(async (id: string) => {
-    if (!user) return;
-    
     try {
+      // Handle guest mode
+      if (!user) {
+        const deleted = deleteGuestParentGoal(id);
+        
+        if (deleted) {
+          // Update state
+          setParentGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
+          
+          toast({
+            title: 'Success',
+            description: 'Goal deleted successfully',
+          });
+        }
+        return;
+      }
+      
+      // Handle authenticated user
       // Delete parent goal
       const { error } = await supabase
         .from('parent_goals')
@@ -167,7 +200,11 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
 
   // Function to delete a sub goal
   const deleteSubGoal = useCallback(async (id: string) => {
-    if (!user) return;
+    if (!user) {
+      // For guest mode, we need parent goal id to delete sub goal
+      // This will be handled by the component that calls this function
+      return;
+    }
     
     try {
       // Delete sub goal

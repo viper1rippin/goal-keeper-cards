@@ -7,6 +7,7 @@ import GridBackground from '@/components/effects/GridBackground';
 import GlowingCursor from '@/components/effects/GlowingCursor';
 import FeatureShowcase from '@/components/features/FeatureShowcase';
 import NavigationBar from '@/components/layout/NavigationBar';
+import { Link } from "react-router-dom";
 
 const Landing = () => {
   return (
@@ -32,9 +33,12 @@ const Landing = () => {
               <Button 
                 size="lg"
                 className="bg-emerald hover:bg-emerald-600"
+                asChild
               >
-                Start Planning
-                <ArrowRight className="ml-2" size={20} />
+                <Link to="/progress">
+                  Start Planning
+                  <ArrowRight className="ml-2" size={20} />
+                </Link>
               </Button>
               <Button 
                 size="lg"
