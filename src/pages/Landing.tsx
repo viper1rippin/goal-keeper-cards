@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Code2, BadgeCheck } from "lucide-react";
@@ -5,6 +6,7 @@ import AnimatedContainer from '@/components/AnimatedContainer';
 import GridBackground from '@/components/effects/GridBackground';
 import GlowingCursor from '@/components/effects/GlowingCursor';
 import FeatureShowcase from '@/components/features/FeatureShowcase';
+import NavigationBar from '@/components/layout/NavigationBar';
 
 const Landing = () => {
   return (
@@ -12,10 +14,13 @@ const Landing = () => {
       <GlowingCursor />
       <GridBackground />
       
+      {/* Navigation Bar */}
+      <NavigationBar />
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-600/10 via-transparent to-transparent" />
-        <div className="container mx-auto px-4 pt-32 pb-24">
+        <div className="container mx-auto px-4 pt-20 pb-24">
           <AnimatedContainer className="max-w-4xl mx-auto text-center space-y-8">
             <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
               Create Goals and Track Progress with AI

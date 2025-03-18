@@ -15,13 +15,15 @@ interface HeaderProps {
   showFocusTimer: boolean;
   setShowFocusTimer: (show: boolean) => void;
   onStopFocus?: () => void;
+  hideAuthButtons?: boolean;
 }
 
 const Header = ({ 
   activeGoal,
   showFocusTimer,
   setShowFocusTimer,
-  onStopFocus
+  onStopFocus,
+  hideAuthButtons = false
 }: HeaderProps) => {
   const [userLevel, setUserLevel] = useState(1); // Start at level 1 (Peasant)
   const { user } = useAuth();
@@ -127,29 +129,31 @@ const Header = ({
                 {showFocusTimer ? "Focusing" : "Focus"}
               </Button>
             ) : (
-              <div className="flex items-center space-x-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                >
-                  <Link to="/login">
-                    <LogIn className="mr-2" size={16} />
-                    Log In
-                  </Link>
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-emerald hover:bg-emerald-dark"
-                  asChild
-                >
-                  <Link to="/signup">
-                    <UserPlus className="mr-2" size={16} />
-                    Sign Up
-                  </Link>
-                </Button>
-              </div>
+              !hideAuthButtons && (
+                <div className="flex items-center space-x-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
+                    <Link to="/login">
+                      <LogIn className="mr-2" size={16} />
+                      Log In
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-emerald hover:bg-emerald-dark"
+                    asChild
+                  >
+                    <Link to="/signup">
+                      <UserPlus className="mr-2" size={16} />
+                      Sign Up
+                    </Link>
+                  </Button>
+                </div>
+              )
             )}
           </div>
         </div>
