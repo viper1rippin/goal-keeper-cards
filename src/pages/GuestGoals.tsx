@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import AnimatedContainer from "@/components/AnimatedContainer";
@@ -51,29 +50,46 @@ const GuestGoals = () => {
   
   // Handle goal saved from dialog
   const handleGoalSaved = () => {
-    if (goalToEdit) {
+    // Get the latest form values from the form state
+    // For new goals
+    if (!goalToEdit) {
+      // Get the form element
+      const formElement = document.querySelector('form');
+      if (formElement) {
+        const titleInput = formElement.querySelector('input[name="title"]') as HTMLInputElement;
+        const descriptionTextarea = formElement.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
+        
+        if (titleInput && descriptionTextarea) {
+          // Create new goal with form values
+          const newGoal: ParentGoal = {
+            id: `temp-${Date.now()}`,
+            title: titleInput.value,
+            description: descriptionTextarea.value,
+            goals: [],
+          };
+          
+          setParentGoals(prev => [...prev, newGoal]);
+          
+          toast({
+            title: "Goal saved",
+            description: "Your goal has been saved to your browser.",
+          });
+        }
+      }
+    } else {
       // Edit existing goal
       setParentGoals(prev => 
         prev.map(p => p.id === goalToEdit.id ? goalToEdit : p)
       );
-    } else {
-      // Add new goal with temporary ID
-      const newGoal: ParentGoal = {
-        id: `temp-${Date.now()}`,
-        title: goalToEdit?.title || "New Goal",
-        description: goalToEdit?.description || "Description",
-        goals: [],
-      };
-      setParentGoals(prev => [...prev, newGoal]);
+      
+      toast({
+        title: "Goal updated",
+        description: "Your goal has been updated in your browser.",
+      });
     }
     
     setIsDialogOpen(false);
     setGoalToEdit(null);
-    
-    toast({
-      title: "Goal saved",
-      description: "Your goal has been saved to your browser.",
-    });
   };
   
   // Handle deleting a parent goal

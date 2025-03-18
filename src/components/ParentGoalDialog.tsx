@@ -23,13 +23,14 @@ const ParentGoalDialog = ({
     try {
       // If user is not authenticated, just use the callback
       if (!user) {
-        // Update goal to edit with new values
-        if (goalToEdit) {
-          goalToEdit.title = values.title;
-          goalToEdit.description = values.description;
-        }
+        // Create a new goal object with the form values
+        const newGoal = {
+          id: goalToEdit?.id || `temp-${Date.now()}`,
+          title: values.title,
+          description: values.description
+        };
         
-        // Close dialog and call the callback
+        // Close dialog and call the callback with the new goal
         onClose();
         onGoalSaved();
         return;

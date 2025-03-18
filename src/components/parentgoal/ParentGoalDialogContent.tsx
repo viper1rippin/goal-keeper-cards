@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import ParentGoalForm from "../ParentGoalForm";
 
 interface ParentGoalDialogContentProps {
@@ -20,8 +20,11 @@ export const ParentGoalDialogContent = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="bg-apple-dark border-slate-800/80 text-white max-w-md">
-        <DialogDescription className="sr-only">
+        <DialogTitle className="sr-only">
           {goalToEdit ? "Edit Goal" : "Create New Goal"}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {goalToEdit ? "Edit your existing goal" : "Create a new goal"}
         </DialogDescription>
         <ParentGoalForm
           initialData={goalToEdit}
