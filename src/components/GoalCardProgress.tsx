@@ -17,7 +17,7 @@ const GoalCardProgress = ({
   isHovered 
 }: GoalCardProgressProps) => {
   return (
-    <div className="mt-auto">
+    <div className="mt-auto select-none">
       <div className="flex justify-between text-xs text-slate-400 mb-1.5">
         <span>Progress</span>
         <span>{progress}%</span>

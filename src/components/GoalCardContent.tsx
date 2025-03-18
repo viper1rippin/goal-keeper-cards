@@ -22,7 +22,7 @@ const GoalCardContent = ({
   isHovered 
 }: GoalCardContentProps) => {
   return (
-    <div className="flex flex-col h-full relative z-2 pt-4">
+    <div className="flex flex-col h-full relative z-2 pt-4 select-none">
       <h3 className={cn(
         "font-medium text-lg mb-2",
         isActiveFocus 
