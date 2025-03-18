@@ -2,7 +2,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Infinity, Star, Brain, Users } from "lucide-react";
+import { Infinity, Star, Sparkles, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "../AnimatedContainer";
@@ -25,22 +25,22 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ open, onOpenChange }) => 
     {
       title: "Unlimited Goals",
       description: "Set and track as many goals and sub-goals as you need without limits",
-      icon: <Infinity className="w-6 h-6 text-emerald" />
+      icon: <Infinity className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
     },
     {
       title: "Patriot Badge",
       description: "Stand out with an exclusive Patriot badge on your profile",
-      icon: <Star className="w-6 h-6 text-amber-500" />
+      icon: <Star className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
     },
     {
       title: "AI Companion",
       description: "Get AI-powered suggestions and advice for your goals and projects",
-      icon: <Brain className="w-6 h-6 text-indigo-500" />
+      icon: <Sparkles className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
     },
     {
       title: "Team Collaboration",
       description: "Work together with your team members on shared goals and projects",
-      icon: <Users className="w-6 h-6 text-blue-500" />
+      icon: <Users className="w-5 h-5 text-emerald-light" strokeWidth={1.5} />
     }
   ];
 
@@ -76,7 +76,7 @@ const PremiumDialog: React.FC<PremiumDialogProps> = ({ open, onOpenChange }) => 
               delay={150 + index * 100}
               className="flex items-start space-x-3 group hover:translate-x-1 transition-transform duration-300"
             >
-              <div className="glass-card-emerald rounded-lg p-2 flex-shrink-0 shadow-sm group-hover:shadow-emerald/10 transition-all duration-300">
+              <div className="glass-card rounded-lg p-2 flex-shrink-0 border border-emerald/15 shadow-sm group-hover:shadow-emerald/10 transition-all duration-300">
                 {feature.icon}
               </div>
               <div>
