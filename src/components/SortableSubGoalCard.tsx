@@ -3,6 +3,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import GoalCard from "./GoalCard";
 import { Goal } from "./GoalRow";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/components/ui/use-toast";
 
 interface SortableSubGoalCardProps {
   goal: Goal;
@@ -25,6 +28,9 @@ const SortableSubGoalCard = ({
   isDragging,
   onViewDetail
 }: SortableSubGoalCardProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   // Setup sortable hook
   const {
     attributes,
@@ -38,6 +44,28 @@ const SortableSubGoalCard = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition
+  };
+
+  // Handle view detail navigation
+  const handleViewDetail = () => {
+    if (onViewDetail) {
+      onViewDetail();
+    } else if (goal.id && user) {
+      // If user is authenticated, navigate to project details
+      navigate(`/projects/${goal.id}`);
+    } else if (!user) {
+      // Show toast for guests
+      toast({
+        title: "Premium Feature",
+        description: "Sign up to access mind maps and project notes.",
+      });
+      
+      // Try to open premium dialog if available
+      const dialogTrigger = document.querySelector('[data-premium-trigger]') as HTMLButtonElement;
+      if (dialogTrigger) {
+        dialogTrigger.click();
+      }
+    }
   };
 
   return (
@@ -59,7 +87,7 @@ const SortableSubGoalCard = ({
         onEdit={onEdit}
         isDragging={isDragging}
         onDelete={onDelete}
-        onViewDetail={onViewDetail}
+        onViewDetail={handleViewDetail}
       />
     </div>
   );

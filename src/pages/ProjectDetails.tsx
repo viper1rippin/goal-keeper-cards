@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { ProjectTextEditor } from "@/components/project/ProjectTextEditor";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AnimatedContainer from "@/components/AnimatedContainer";
+import Sidebar from "@/components/Sidebar";
 
 // Extended Goal type that includes user_id
 interface ProjectGoal extends Goal {
@@ -23,6 +25,7 @@ const ProjectDetails = () => {
   const { user } = useAuth();
   const [project, setProject] = useState<ProjectGoal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -64,7 +67,7 @@ const ProjectDetails = () => {
   }, [id, user]);
 
   const handleBackClick = () => {
-    navigate('/');
+    navigate('/projects');
   };
 
   if (isLoading) {
@@ -93,26 +96,34 @@ const ProjectDetails = () => {
   }
 
   return (
-    <AnimatedContainer animation="fade-in" className="min-h-screen pb-16 bg-slate-950">
-      <div className="container py-8">
-        <Button variant="outline" onClick={handleBackClick} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
-        </Button>
-        
-        <ProjectHeader project={project} />
-        
-        <div className="mt-12">
-          <ZodiacMindMap projectId={project.id as string} />
+    <div className="flex min-h-screen">
+      <Sidebar onCollapseChange={setSidebarCollapsed} />
+      <AnimatedContainer 
+        animation="fade-in" 
+        className={`flex-1 min-h-screen pb-16 bg-slate-950 transition-all ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}
+      >
+        <div className="container py-8">
+          <Button variant="outline" onClick={handleBackClick} className="mb-6">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+          </Button>
+          
+          <ProjectHeader project={project} />
+          
+          <div className="mt-12">
+            <ZodiacMindMap projectId={project.id as string} />
+          </div>
+          
+          {user && (
+            <ProjectTextEditor 
+              projectId={project.id as string} 
+              userId={user.id} 
+            />
+          )}
         </div>
-        
-        {user && (
-          <ProjectTextEditor 
-            projectId={project.id as string} 
-            userId={user.id} 
-          />
-        )}
-      </div>
-    </AnimatedContainer>
+      </AnimatedContainer>
+    </div>
   );
 };
 
