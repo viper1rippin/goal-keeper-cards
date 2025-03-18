@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ const NavigationBar = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center">
-          <span className="text-emerald text-2xl font-bold">John's App</span>
+          <span className="text-emerald text-2xl font-bold">Loyde</span>
         </Link>
 
         {/* Navigation Menu */}

@@ -9,7 +9,7 @@ export default function SignUp() {
     <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-apple-dark">
       <AnimatedContainer className="w-full max-w-md mb-6">
         <h1 className="text-4xl font-bold tracking-tight text-center mb-2">
-          <span className="text-gradient">John's App</span>
+          <span className="text-gradient">Loyde</span>
         </h1>
         <p className="text-slate-400 text-center">Set, track, and accomplish your goals</p>
       </AnimatedContainer>

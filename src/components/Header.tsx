@@ -102,7 +102,7 @@ const Header = ({
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              <span className="text-gradient">John's App</span>
+              <span className="text-gradient">Loyde</span>
             </h1>
             <p className="text-slate-400 mt-1">Set, track, and accomplish your goals</p>
           </div>
