@@ -1,7 +1,6 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 import { ParentGoalDialogContent } from "./parentgoal/ParentGoalDialogContent";
 
 interface ParentGoalDialogProps {
@@ -50,10 +49,6 @@ const ParentGoalDialog = ({
           .eq('user_id', user.id); // Only update if user owns the goal
 
         if (error) throw error;
-        toast({ 
-          title: "Goal updated",
-          description: "Your goal has been updated successfully."
-        });
       } else {
         // Create new goal
         const { error } = await supabase
@@ -65,10 +60,6 @@ const ParentGoalDialog = ({
           }]);
 
         if (error) throw error;
-        toast({ 
-          title: "Goal created",
-          description: "Your new goal has been created successfully."
-        });
       }
       
       // Close dialog and refresh goals
@@ -76,11 +67,6 @@ const ParentGoalDialog = ({
       onGoalSaved();
     } catch (error) {
       console.error("Error saving goal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save the goal. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -114,21 +100,11 @@ const ParentGoalDialog = ({
       
       if (error) throw error;
       
-      toast({
-        title: "Goal Deleted",
-        description: "The goal and all its sub-goals have been deleted.",
-      });
-      
       // Close dialog and refresh goals
       onClose();
       onGoalSaved();
     } catch (error) {
       console.error("Error deleting parent goal:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the goal. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 

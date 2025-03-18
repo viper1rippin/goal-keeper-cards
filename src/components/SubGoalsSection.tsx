@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
 import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
@@ -32,7 +32,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   onDeleteSubGoal,
   isLoading
 }) => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const [activeSubGoal, setActiveSubGoal] = useState<Goal | null>(null);
@@ -71,8 +70,31 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   };
   
   const handleSaveSubGoal = (subGoal: Omit<Goal, 'progress'>) => {
+    let updatedSubGoals: Goal[];
+    
+    if (editingGoalIndex !== null && subGoalToEdit) {
+      // Update existing subgoal
+      updatedSubGoals = [...subGoals];
+      updatedSubGoals[editingGoalIndex] = {
+        ...subGoalToEdit,
+        title: subGoal.title,
+        description: subGoal.description
+      };
+    } else {
+      // Add new subgoal
+      const newSubGoal: Goal = {
+        id: subGoal.id || `temp-${Date.now()}`,
+        title: subGoal.title,
+        description: subGoal.description,
+        progress: 0
+      };
+      updatedSubGoals = [...subGoals, newSubGoal];
+    }
+    
+    onUpdateSubGoals(updatedSubGoals);
     setIsSubGoalDialogOpen(false);
-    onUpdateSubGoals(subGoals);
+    setSubGoalToEdit(null);
+    setEditingGoalIndex(null);
   };
   
   const handleDragStart = (event: DragStartEvent) => {
@@ -95,18 +117,12 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
       
       if (oldIndex !== -1 && newIndex !== -1) {
         const reorderedGoals = arrayMove(subGoals, oldIndex, newIndex);
-        
         onUpdateSubGoals(reorderedGoals);
         
         try {
           await updateSubGoalOrder(reorderedGoals);
         } catch (error) {
           console.error("Error updating sub-goal order:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update sub-goal order. Please try again.",
-            variant: "destructive",
-          });
         }
       }
     }
@@ -136,7 +152,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
 
   const handleViewDetail = (goal: Goal) => {
     if (!goal.id) return;
-    
     navigate(`/projects/${goal.id}`);
   };
 

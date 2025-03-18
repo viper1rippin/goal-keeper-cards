@@ -12,7 +12,6 @@ import ParentGoalDialog from "@/components/ParentGoalDialog";
 import GoalsList from "@/components/GoalsList";
 import { Goal } from "@/components/GoalRow";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
-import { toast } from "@/hooks/use-toast";
 
 // Local storage key for guest goals
 const GUEST_GOALS_STORAGE_KEY = "loyde_guest_goals";
@@ -50,7 +49,6 @@ const GuestGoals = () => {
   
   // Handle goal saved from dialog
   const handleGoalSaved = () => {
-    // Get the latest form values from the form state
     // For new goals
     if (!goalToEdit) {
       // Get the form element
@@ -69,11 +67,6 @@ const GuestGoals = () => {
           };
           
           setParentGoals(prev => [...prev, newGoal]);
-          
-          toast({
-            title: "Goal saved",
-            description: "Your goal has been saved to your browser.",
-          });
         }
       }
     } else {
@@ -81,11 +74,6 @@ const GuestGoals = () => {
       setParentGoals(prev => 
         prev.map(p => p.id === goalToEdit.id ? goalToEdit : p)
       );
-      
-      toast({
-        title: "Goal updated",
-        description: "Your goal has been updated in your browser.",
-      });
     }
     
     setIsDialogOpen(false);
@@ -99,11 +87,6 @@ const GuestGoals = () => {
       setActiveGoalIndices(null);
       setActiveGoal(null);
     }
-    
-    toast({
-      title: "Goal deleted",
-      description: "Your goal has been removed.",
-    });
   };
   
   // Handle deleting a sub-goal
@@ -120,11 +103,6 @@ const GuestGoals = () => {
         setActiveGoal(null);
       }
     }
-    
-    toast({
-      title: "Sub-goal deleted",
-      description: "Your sub-goal has been removed.",
-    });
   };
   
   // Handle updating sub-goals
@@ -163,11 +141,6 @@ const GuestGoals = () => {
       const [movedItem] = updatedGoals.splice(oldIndex, 1);
       updatedGoals.splice(newIndex, 0, movedItem);
       setParentGoals(updatedGoals);
-      
-      toast({
-        title: "Goal order updated",
-        description: "Your goal order has been saved to your browser.",
-      });
     }
   };
 
