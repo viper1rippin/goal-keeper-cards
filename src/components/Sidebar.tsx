@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   UserRound, 
@@ -10,15 +9,12 @@ import {
   Star, 
   LogOut, 
   ChevronLeft,
-  ChevronRight,
-  Home
+  ChevronRight 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -29,51 +25,6 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [displayName, setDisplayName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (user) {
-      const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('display_name, avatar_url')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (data) {
-          setDisplayName(data.display_name || user.email?.split('@')[0] || 'User');
-          setAvatarUrl(data.avatar_url);
-        }
-      };
-      
-      fetchProfile();
-      
-      // Subscribe to profile changes
-      const channel = supabase
-        .channel('sidebar-profile-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            if (payload.new) {
-              setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
-              setAvatarUrl(payload.new.avatar_url);
-            }
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
   
   const handleSignOut = async () => {
     await signOut();
@@ -88,7 +39,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
     }
   };
 
-  const username = displayName || user?.email?.split('@')[0] || 'Guest';
+  const username = user?.email?.split('@')[0] || 'Guest';
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -115,13 +66,10 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
 
       <div className="flex flex-col h-full p-4">
         {/* User profile section at top */}
-        <div className="flex items-center mb-6 mt-2 cursor-pointer" onClick={() => navigate('/profile')}>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className="bg-gradient-to-r from-emerald to-emerald-light text-white text-xl font-bold">
-              {username.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex items-center mb-6 mt-2">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald to-emerald-light flex items-center justify-center text-white text-xl font-bold">
+            {username.charAt(0).toUpperCase()}
+          </div>
           {!collapsed && (
             <div className="ml-3 overflow-hidden">
               <p className="text-white font-medium truncate">{username}</p>
@@ -134,16 +82,10 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
         <div className="flex-1">
           <ul className="space-y-2">
             <MenuItem 
-              icon={<Home size={20} />} 
-              label="Home" 
-              collapsed={collapsed} 
-              onClick={() => navigate('/')} 
-            />
-            <MenuItem 
               icon={<UserRound size={20} />} 
               label="Profile" 
               collapsed={collapsed} 
-              onClick={() => navigate('/profile')} 
+              onClick={() => {}} 
             />
             <MenuItem 
               icon={<Settings size={20} />} 
