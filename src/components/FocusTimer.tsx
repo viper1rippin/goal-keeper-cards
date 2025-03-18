@@ -14,15 +14,13 @@ interface FocusTimerProps {
   onLevelUp: (newLevel: number) => void;
   onClose: () => void;
   activeGoal?: Goal | null;
-  isGuestMode?: boolean;
 }
 
 const FocusTimer: React.FC<FocusTimerProps> = ({ 
   userLevel, 
   onLevelUp,
   onClose,
-  activeGoal,
-  isGuestMode = false
+  activeGoal
 }) => {
   const {
     isActive,
@@ -62,7 +60,6 @@ const FocusTimer: React.FC<FocusTimerProps> = ({
             earnedPoints={earnedPoints}
             pointsForNextLevel={pointsForNextLevel}
             userLevel={userLevel}
-            isGuestMode={isGuestMode}
           />
         </div>
       </CardContent>

@@ -5,9 +5,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { getCurrentBadge, getNextBadge, POINTS_FOR_LEVEL_UP } from "@/utils/badgeUtils";
 import { Badge } from "./ui/badge";
-import { Link } from "react-router-dom";
-import { LogIn } from "lucide-react";
-import { Button } from "./ui/button";
 
 interface TimerDisplayProps {
   time: number;
@@ -15,7 +12,6 @@ interface TimerDisplayProps {
   earnedPoints: number;
   pointsForNextLevel: number;
   userLevel: number;
-  isGuestMode?: boolean;
 }
 
 const TimerDisplay: React.FC<TimerDisplayProps> = ({
@@ -24,10 +20,9 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   earnedPoints,
   pointsForNextLevel,
   userLevel,
-  isGuestMode = false
 }) => {
   const { user } = useAuth();
-  const username = user?.email?.split('@')[0] || 'Guest';
+  const username = user?.email?.split('@')[0] || 'User';
   
   // Get current and next badges
   const currentBadge = getCurrentBadge(userLevel);
@@ -57,18 +52,9 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
             </Badge>
           </div>
         </div>
-        {isGuestMode ? (
-          <Button variant="outline" size="sm" asChild className="text-xs">
-            <Link to="/login">
-              <LogIn className="h-3 w-3 mr-1" />
-              Login to track progress
-            </Link>
-          </Button>
-        ) : (
-          <div className="text-right text-slate-400 text-sm">
-            {hoursCompleted.toFixed(1)}/{hoursNeeded} hours
-          </div>
-        )}
+        <div className="text-right text-slate-400 text-sm">
+          {hoursCompleted.toFixed(1)}/{hoursNeeded} hours
+        </div>
       </div>
       
       {/* Timer display */}
@@ -79,23 +65,14 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
         )}>
           {formatTime(time)}
         </div>
+        <div className="text-slate-400 text-sm mt-2">
+          ~{hoursRemaining} hours of focus needed for next level
+        </div>
         
-        {isGuestMode ? (
-          <div className="text-slate-400 text-sm mt-2">
-            Sign up to track your focus progress
+        {nextBadge && (
+          <div className="text-slate-400 text-xs mt-1">
+            {`${nextBadge.name} badge at level ${nextBadge.level}`}
           </div>
-        ) : (
-          <>
-            <div className="text-slate-400 text-sm mt-2">
-              ~{hoursRemaining} hours of focus needed for next level
-            </div>
-            
-            {nextBadge && (
-              <div className="text-slate-400 text-xs mt-1">
-                {`${nextBadge.name} badge at level ${nextBadge.level}`}
-              </div>
-            )}
-          </>
         )}
       </div>
     </div>

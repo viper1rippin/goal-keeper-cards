@@ -107,7 +107,6 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           username={username}
           avatarUrl={avatarUrl}
           userLevel={userLevel}
-          isGuest={!user}
         />
 
         {/* Menu items */}
@@ -119,15 +118,13 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
           />
         </div>
 
-        {/* Logout at bottom - only show for authenticated users */}
-        {user && (
-          <div className="mb-6">
-            <SidebarLogout 
-              collapsed={collapsed}
-              onLogout={handleSignOut}
-            />
-          </div>
-        )}
+        {/* Logout at bottom */}
+        <div className="mb-6">
+          <SidebarLogout 
+            collapsed={collapsed}
+            onLogout={handleSignOut}
+          />
+        </div>
       </div>
     </div>
   );

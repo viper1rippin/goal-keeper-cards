@@ -70,14 +70,8 @@ const GoalsContent: React.FC = () => {
     }
   }, [user]);
   
-  // Only update level if user is authenticated
   const handleLevelUp = (newLevel: number) => {
-    if (user) {
-      setUserLevel(newLevel);
-    } else {
-      // For guest users, show a message encouraging signup
-      console.log("Guest users can't accumulate progress. Sign up to track your progress!");
-    }
+    setUserLevel(newLevel);
   };
 
   return (
@@ -98,7 +92,6 @@ const GoalsContent: React.FC = () => {
               if (handleStopFocus) handleStopFocus();
             }}
             activeGoal={activeGoal}
-            isGuestMode={!user}
           />
         </div>
       )}
