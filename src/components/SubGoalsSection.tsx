@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -139,14 +140,6 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     
     navigate(`/projects/${goal.id}`);
   };
-
-  if (isLoading) {
-    return (
-      <div className="py-4 text-center text-slate-400">
-        Loading sub-goals...
-      </div>
-    );
-  }
 
   return (
     <>
