@@ -60,6 +60,7 @@ const SortableSubGoalCard = ({
         isDragging={isDragging}
         onDelete={onDelete}
         onViewDetail={onViewDetail}
+        goal={goal}
       />
     </div>
   );

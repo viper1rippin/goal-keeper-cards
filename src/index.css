@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -81,6 +82,23 @@
   
   .sidebar-menu-item.active {
     @apply bg-muted text-white;
+  }
+
+  /* Card Selection styles */
+  .card-selected {
+    @apply border-emerald/40 shadow-md shadow-emerald/15;
+  }
+  
+  .selection-indicator {
+    @apply absolute top-2 left-2 w-5 h-5 rounded-full transition-all duration-200;
+  }
+  
+  .selection-indicator-checked {
+    @apply bg-emerald text-white flex items-center justify-center;
+  }
+  
+  .selection-indicator-unchecked {
+    @apply border-2 border-slate-600 bg-transparent hover:border-emerald/80;
   }
 
   /* TipTap editor styles */

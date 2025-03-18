@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Goal } from './GoalRow';
 import SubGoalDialog from './SubGoalDialog';
@@ -8,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import SubGoalDndContext from './subgoal/SubGoalDndContext';
 import DeleteSubGoalDialog from './subgoal/DeleteSubGoalDialog';
 import { useNavigate } from 'react-router-dom';
+import SelectionToolbar from './SelectionToolbar';
+import { SelectionProvider } from '@/context/SelectionContext';
 
 interface SubGoalsSectionProps {
   subGoals: Goal[];
@@ -140,6 +143,19 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
     navigate(`/projects/${goal.id}`);
   };
 
+  const handleDeleteSelectedGoals = async (goalIds: string[]) => {
+    try {
+      // Call the delete function for each selected goal
+      const deletePromises = goalIds.map(id => onDeleteSubGoal(id));
+      await Promise.all(deletePromises);
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting multiple goals:", error);
+      throw error;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="py-4 text-center text-slate-400">
@@ -149,7 +165,9 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
   }
 
   return (
-    <>
+    <SelectionProvider>
+      <SelectionToolbar onDeleteSelected={handleDeleteSelectedGoals} />
+      
       <SubGoalDndContext
         subGoals={subGoals}
         parentTitle={parentTitle}
@@ -185,7 +203,7 @@ const SubGoalsSection: React.FC<SubGoalsSectionProps> = ({
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={executeDeleteSubGoal}
       />
-    </>
+    </SelectionProvider>
   );
 };
 

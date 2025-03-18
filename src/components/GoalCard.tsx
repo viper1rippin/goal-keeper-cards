@@ -7,6 +7,8 @@ import GoalCardContent from "./GoalCardContent";
 import GoalCardGlow from "./GoalCardGlow";
 import GoalCardEditButton from "./GoalCardEditButton";
 import GoalCardDragHandle from "./GoalCardDragHandle";
+import GoalCardSelectionIndicator from "./GoalCardSelectionIndicator";
+import { useSelection } from "@/context/SelectionContext";
 
 export interface GoalCardProps {
   title: string;
@@ -26,6 +28,8 @@ export interface GoalCardProps {
   isDragging?: boolean;
   // Add new prop for navigating to project detail
   onViewDetail?: () => void;
+  // Add goal object for selection
+  goal?: any;
 }
 
 const GoalCard = ({ 
@@ -40,13 +44,19 @@ const GoalCard = ({
   onEdit,
   onDelete,
   isDragging = false,
-  onViewDetail
+  onViewDetail,
+  goal
 }: GoalCardProps) => {
   // Calculate delay based on index for staggered animation
   const delay = 150 + index * 50;
   
   // State to track hover status
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Get selection context if goal is provided
+  const selection = useSelection();
+  const isSelectionMode = selection.selectedCount > 0;
+  const isSelected = goal?.id ? selection.isSelected(goal.id) : false;
   
   // Refs for tracking mouse position and card element
   const cardRef = useRef<HTMLDivElement>(null);
@@ -105,13 +115,17 @@ const GoalCard = ({
     }
   }, [isActiveFocus]);
 
-  // Handle card click - only select the goal, don't start timer
+  // Handle card click - select the goal if in selection mode, otherwise focus
   const handleClick = () => {
-    onFocus(); // Keep the focus state toggling
-    
-    // If we have a handler for viewing details, call it
-    if (onViewDetail) {
-      onViewDetail();
+    if (isSelectionMode && goal?.id) {
+      selection.toggleSelection(goal);
+    } else {
+      onFocus(); // Keep the focus state toggling
+      
+      // If we have a handler for viewing details, call it
+      if (onViewDetail) {
+        onViewDetail();
+      }
     }
   };
   
@@ -126,18 +140,23 @@ const GoalCard = ({
         className={cn(
           "glass-card rounded-lg p-4 h-full hover-scale transition-all duration-300 relative overflow-hidden select-none",
           // Only use the active gradients when this card is the active focused card
-          isActiveFocus
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
-            : isFocused 
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
-              : isHovered
-                ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
-                : "bg-slate-900/80 border-slate-800/60 opacity-75",
-          progress === 100 && !isFocused && !isActiveFocus && "border-emerald/15",
+          isSelected
+            ? "bg-gradient-to-br from-emerald-light/15 to-emerald/10 border-emerald/40 shadow-lg shadow-emerald/20"
+            : isActiveFocus
+              ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
+              : isFocused 
+                ? `bg-gradient-to-br ${cardGradient} border-emerald/25 shadow-md shadow-emerald/15` 
+                : isHovered
+                  ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
+                  : "bg-slate-900/80 border-slate-800/60 opacity-75",
+          progress === 100 && !isFocused && !isActiveFocus && !isSelected && "border-emerald/15",
           isDragging ? "ring-2 ring-emerald/50 shadow-xl scale-105" : ""
         )}
         onClick={handleClick}
       >
+        {/* Selection indicator */}
+        {goal?.id && <GoalCardSelectionIndicator goal={goal} />}
+        
         {/* Drag handle indicator */}
         <GoalCardDragHandle />
         
@@ -157,8 +176,8 @@ const GoalCard = ({
           }}
         />
         
-        {/* Edit button - only visible on hover */}
-        <GoalCardEditButton isHovered={isHovered} onEdit={onEdit} />
+        {/* Edit button - only visible on hover and not in selection mode */}
+        {!isSelectionMode && <GoalCardEditButton isHovered={isHovered} onEdit={onEdit} />}
         
         {/* Content area with title, description and progress */}
         <GoalCardContent
