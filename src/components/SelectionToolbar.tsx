@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { useSelection } from '@/context/SelectionContext';
 import { Button } from './ui/button';
 import { X, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SelectionToolbarProps {
   onDeleteSelected: (goalIds: string[]) => Promise<void>;
