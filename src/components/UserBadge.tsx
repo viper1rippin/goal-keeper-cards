@@ -1,107 +1,112 @@
 
-import { useState, useEffect } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "./ui/button";
-import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
-import { getCurrentBadge } from "@/utils/badgeUtils";
-import { Badge } from "./ui/badge";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Sword, Award, Crown, Trophy } from "lucide-react";
 
-const UserBadge = ({ level }: { level: number }) => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  
-  // Get the user's current badge based on their level
-  const currentBadge = getCurrentBadge(level);
-  const BadgeIcon = currentBadge.icon;
-  
-  useEffect(() => {
-    if (user) {
-      const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('display_name, avatar_url')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (data) {
-          setDisplayName(data.display_name || user.email?.split('@')[0] || 'User');
-          setAvatarUrl(data.avatar_url);
-        }
-      };
-      
-      fetchProfile();
-      
-      // Subscribe to changes in the profiles table for this user
-      const channel = supabase
-        .channel('profile-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Profile updated:', payload);
-            if (payload.new) {
-              setDisplayName(payload.new.display_name || user.email?.split('@')[0] || 'User');
-              setAvatarUrl(payload.new.avatar_url);
-            }
-          }
-        )
-        .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-  
-  // Add a logout button if the user is logged in
-  if (user) {
-    return (
-      <div className="flex items-center gap-3">
-        <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
-          <Avatar className="w-5 h-5">
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className={`bg-gradient-to-r ${currentBadge.color} flex items-center justify-center text-[10px] font-bold`}>
-              {displayName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-slate-200 truncate max-w-[100px]">
-            {displayName}
-          </span>
-          <Badge 
-            variant="outline" 
-            className="ml-1 px-1.5 py-0 h-4 text-[10px] bg-transparent border-slate-600 cursor-pointer hover:border-emerald/40 transition-colors"
-            onClick={() => navigate('/progress')}
-          >
-            <BadgeIcon className="h-2.5 w-2.5 mr-0.5" />
-            {currentBadge.name}
-          </Badge>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-8 px-2">
-          <LogOut size={16} />
-        </Button>
-      </div>
-    );
+export type BadgeLevel = 
+  | "soldier" 
+  | "knight" 
+  | "elite_knight" 
+  | "general" 
+  | "commander" 
+  | "king" 
+  | "emperor";
+
+interface BadgeConfig {
+  name: string;
+  level: number;
+  icon: React.ReactNode;
+  color: string;
+}
+
+export const badgeConfigs: Record<BadgeLevel, BadgeConfig> = {
+  soldier: {
+    name: "Soldier",
+    level: 10,
+    icon: <Shield className="mr-1" size={14} />,
+    color: "bg-slate-500"
+  },
+  knight: {
+    name: "Knight",
+    level: 20,
+    icon: <Sword className="mr-1" size={14} />,
+    color: "bg-slate-400"
+  },
+  elite_knight: {
+    name: "Elite Knight",
+    level: 45,
+    icon: <Sword className="mr-1" size={14} strokeWidth={2.5} />,
+    color: "bg-blue-500"
+  },
+  general: {
+    name: "General",
+    level: 70,
+    icon: <Award className="mr-1" size={14} />,
+    color: "bg-purple-500"
+  },
+  commander: {
+    name: "Commander",
+    level: 100,
+    icon: <Award className="mr-1" size={14} strokeWidth={2.5} />,
+    color: "bg-purple-400"
+  },
+  king: {
+    name: "King",
+    level: 120,
+    icon: <Crown className="mr-1" size={14} />,
+    color: "bg-amber-500"
+  },
+  emperor: {
+    name: "Emperor",
+    level: 200,
+    icon: <Trophy className="mr-1" size={14} />,
+    color: "bg-emerald"
   }
+};
+
+interface UserBadgeProps {
+  level: number;
+  showLevel?: boolean;
+  size?: "sm" | "md" | "lg";
+}
+
+export const getBadgeByLevel = (level: number): BadgeLevel => {
+  if (level >= 200) return "emperor";
+  if (level >= 120) return "king";
+  if (level >= 100) return "commander";
+  if (level >= 70) return "general";
+  if (level >= 45) return "elite_knight";
+  if (level >= 20) return "knight";
+  return "soldier";
+};
+
+const UserBadge: React.FC<UserBadgeProps> = ({ 
+  level, 
+  showLevel = true,
+  size = "md" 
+}) => {
+  const badgeType = getBadgeByLevel(level);
+  const badge = badgeConfigs[badgeType];
   
-  // Return the default badge for non-logged in users
+  const sizeClasses = {
+    sm: "text-xs py-0 px-1.5",
+    md: "text-xs py-0.5 px-2",
+    lg: "text-sm py-1 px-2.5"
+  };
+
   return (
-    <div className="glass-card py-1 px-3 rounded-full text-sm flex items-center gap-1.5">
-      <div className="rounded-full w-5 h-5 bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center text-[10px] font-bold">
-        {level}
-      </div>
-      <span className="text-slate-200">Guest</span>
-    </div>
+    <Badge 
+      className={cn(
+        "flex items-center font-medium", 
+        badge.color,
+        sizeClasses[size]
+      )}
+    >
+      {badge.icon}
+      {badge.name}
+      {showLevel && <span className="ml-1 opacity-80">Lvl {level}</span>}
+    </Badge>
   );
 };
 
