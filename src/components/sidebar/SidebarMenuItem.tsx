@@ -24,7 +24,7 @@ const SidebarMenuItem = ({
       <button
         className={cn(
           "flex items-center w-full p-2 rounded-lg hover:bg-muted transition-colors",
-          highlight ? "text-emerald-400 hover:text-emerald-300" : "text-slate-300 hover:text-white"
+          highlight ? "text-emerald-400" : "text-slate-300 hover:text-white"
         )}
         onClick={onClick}
       >

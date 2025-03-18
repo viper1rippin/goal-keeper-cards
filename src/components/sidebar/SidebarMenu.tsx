@@ -41,13 +41,13 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           onClick={() => navigate('/profile')} 
         />
         <SidebarMenuItem 
-          icon={<Award size={20} strokeWidth={1.5} />} 
+          icon={<Award size={20} />} 
           label="Progress" 
           collapsed={collapsed} 
           onClick={() => navigate('/progress')} 
         />
         <SidebarMenuItem 
-          icon={<Diamond size={20} strokeWidth={1.5} />} 
+          icon={<Diamond size={20} />} 
           label="Custom Themes" 
           collapsed={collapsed} 
           onClick={() => {}} 
@@ -66,7 +66,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           }
         />
         <SidebarMenuItem 
-          icon={<Crown size={20} strokeWidth={1.5} />} 
+          icon={<Crown size={20} />} 
           label="Upgrade" 
           collapsed={collapsed} 
           onClick={() => setIsPremiumDialogOpen(true)}
