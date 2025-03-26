@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -86,9 +85,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   useEffect(() => {
     if (timelineRef.current) {
       const containerWidth = timelineRef.current.clientWidth;
-      const calculatedWidth = (containerWidth - 60) / timeUnitCount;
+      const calculatedWidth = (containerWidth - 60) / 31; // Display one month at a time
       
-      setCellWidth(Math.max(calculatedWidth, 100));
+      setCellWidth(Math.max(calculatedWidth, 90)); // Slightly smaller cells for more visibility
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
@@ -232,7 +231,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleAutoResizeCards = () => {
     const updatedItems = items.map(item => {
       const titleLength = item.title.length;
-      const minCellsNeeded = Math.ceil(titleLength / 10);
+      const minCellsNeeded = Math.ceil(titleLength / 8); // Adjust more aggressively to ensure titles fit
       
       if (minCellsNeeded > item.duration) {
         return {
@@ -272,7 +271,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       </ScrollArea>
       
       {/* Main scrollable timeline content - now with horizontal scrolling */}
-      <ScrollArea className="h-[calc(100vh-250px)]">
+      <ScrollArea className="h-[calc(100vh-250px)]" orientation="both">
         <div 
           className="relative p-2"
           style={{ height: `${maxRow * ROW_HEIGHT + 60}px`, minWidth: `${timeUnitCount * cellWidth + 60}px` }}
@@ -382,3 +381,5 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
 };
 
 export default RoadmapTimeline;
+
+

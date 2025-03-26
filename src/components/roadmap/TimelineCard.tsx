@@ -45,8 +45,8 @@ const TimelineCard = ({
   // Calculate minimum width based on text length to ensure title visibility
   const calculateMinWidth = () => {
     const titleLength = item.title?.length || 0;
-    // Ensure at least 10px per character with a minimum of 150px
-    const minTitleWidth = Math.max(titleLength * 12, 150);
+    // Ensure at least 15px per character with a minimum of 180px for better visibility
+    const minTitleWidth = Math.max(titleLength * 15, 180);
     const durationWidth = item.duration * cellWidth;
     
     // Return the larger of the calculated width or the duration width
@@ -57,7 +57,7 @@ const TimelineCard = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    width: `${item.duration * cellWidth}px`,
+    width: `${Math.max(item.duration * cellWidth, calculateMinWidth())}px`,
     minWidth: `${calculateMinWidth()}px`, // Apply calculated min width
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
@@ -177,12 +177,12 @@ const TimelineCard = ({
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
         )}>
-          <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
+          <h3 className="font-medium text-base text-white break-words line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
           {/* Always display description with better contrast */}
           <div className="mt-2 space-y-1">
             {item.description && (
-              <p className="text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
+              <p className="text-sm text-white/90 line-clamp-2 overflow-ellipsis drop-shadow-sm">{item.description}</p>
             )}
           </div>
           
