@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -70,6 +69,7 @@ const SubGoalDialog = ({
           id: subGoalToEdit?.id || `temp-${Date.now()}`,
           title: values.title,
           description: values.description,
+          progress: subGoalToEdit?.progress || 0,
         };
         
         onSave(newSubGoal);
@@ -102,11 +102,7 @@ const SubGoalDialog = ({
       title: values.title,
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
-      user_id: user.id, // Associate sub-goal with user
-      color: subGoalToEdit?.color,
-      start_date: subGoalToEdit?.startDate,
-      end_date: subGoalToEdit?.endDate,
-      category: subGoalToEdit?.category || 'default'
+      user_id: user.id // Associate sub-goal with user
     };
     
     // If editing, update the existing sub-goal
@@ -131,10 +127,6 @@ const SubGoalDialog = ({
     onSave({
       title: values.title,
       description: values.description,
-      color: subGoalToEdit?.color,
-      startDate: subGoalToEdit?.startDate,
-      endDate: subGoalToEdit?.endDate,
-      category: subGoalToEdit?.category
     });
   };
 

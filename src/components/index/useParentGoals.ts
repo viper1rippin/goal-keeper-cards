@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ParentGoal } from "./IndexPageTypes";
-import { TimelineCategory } from "../roadmap/types";
 
 // Type for parent goal from Supabase, avoiding deep nesting
 interface ParentGoalData {
@@ -28,11 +27,6 @@ interface SubGoalData {
   created_at: string;
   updated_at: string;
   user_id?: string;
-  display_order?: number;
-  color?: string;
-  start_date?: string;
-  end_date?: string;
-  timeline_category?: TimelineCategory;
 }
 
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
@@ -81,12 +75,7 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            progress: subGoal.progress,
-            display_order: subGoal.display_order,
-            color: subGoal.color,
-            startDate: subGoal.start_date,
-            endDate: subGoal.end_date,
-            category: subGoal.timeline_category
+            progress: subGoal.progress
           });
         }
       });
