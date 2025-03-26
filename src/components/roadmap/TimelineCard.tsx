@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -29,10 +29,11 @@ const TimelineCard = ({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [initialDuration, setInitialDuration] = useState(item.duration);
+  const [currentDuration, setCurrentDuration] = useState(item.duration);
   
   const resizeRef = useRef<HTMLDivElement>(null);
   
-  // Setup sortable hook
+  // Setup sortable hook with resize-disable condition
   const {
     attributes,
     listeners,
@@ -40,14 +41,23 @@ const TimelineCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ 
+    id: item.id,
+    disabled: isResizing
+  });
+
+  useEffect(() => {
+    // Update current duration when the item's duration changes from parent
+    setCurrentDuration(item.duration);
+    setInitialDuration(item.duration);
+  }, [item.duration]);
 
   // Calculate minimum width based on text length to ensure title visibility
   const calculateMinWidth = () => {
     const titleLength = item.title?.length || 0;
     // Ensure at least 10px per character with a minimum of 150px
     const minTitleWidth = Math.max(titleLength * 12, 150);
-    const durationWidth = item.duration * cellWidth;
+    const durationWidth = currentDuration * cellWidth;
     
     // Return the larger of the calculated width or the duration width
     return Math.max(minTitleWidth, durationWidth);
@@ -57,9 +67,9 @@ const TimelineCard = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    width: `${item.duration * cellWidth}px`,
+    width: `${currentDuration * cellWidth}px`,
     minWidth: `${calculateMinWidth()}px`, // Apply calculated min width
-    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
+    zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
   
   // Get category icon
@@ -93,8 +103,9 @@ const TimelineCard = ({
     
     setIsResizing(true);
     setResizeStartX(e.clientX);
-    setInitialDuration(item.duration);
+    setInitialDuration(currentDuration);
     
+    // Add document event listeners
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
   };
@@ -107,14 +118,20 @@ const TimelineCard = ({
     const deltaUnits = Math.round(deltaX / cellWidth);
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
-    if (onResize) {
-      onResize(item.id, newDuration);
-    }
+    // Update local state for smoother UI feedback
+    setCurrentDuration(newDuration);
   };
   
   // Handle resize end
   const handleResizeEnd = () => {
+    if (isResizing && onResize && currentDuration !== item.duration) {
+      // Only call parent callback if duration actually changed
+      onResize(item.id, currentDuration);
+    }
+    
     setIsResizing(false);
+    
+    // Remove document event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
@@ -124,18 +141,18 @@ const TimelineCard = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "h-[120px] rounded-lg transition-all duration-300", 
+        "h-[120px] rounded-lg transition-all", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
-        "transform-gpu cursor-grab select-none",
+        isResizing ? "cursor-ew-resize" : "transform-gpu cursor-grab",
+        "select-none"
       )}
-      {...attributes}
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
+          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
           isSelected
             ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30 animate-emerald-pulse`
             : isHovered
@@ -145,8 +162,12 @@ const TimelineCard = ({
       >
         {/* Drag handle */}
         <div 
-          className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
-          {...listeners}
+          className={cn(
+            "absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all z-10",
+            isResizing ? "cursor-ew-resize" : "cursor-grab"
+          )}
+          {...(isResizing ? {} : listeners)}
+          {...attributes}
         >
           <GripHorizontal size={14} />
         </div>
@@ -159,7 +180,7 @@ const TimelineCard = ({
         )}
         
         {/* Edit button */}
-        {onEdit && (isHovered || isSelected) && (
+        {onEdit && (isHovered || isSelected) && !isResizing && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -187,7 +208,7 @@ const TimelineCard = ({
           </div>
           
           {/* Progress bar for items with longer duration */}
-          {item.duration > 1 && (
+          {currentDuration > 1 && (
             <div className="mt-auto select-none">
               <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
                 <div 
@@ -203,8 +224,12 @@ const TimelineCard = ({
         {onResize && (
           <div 
             ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
+            className={cn(
+              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/20",
+              isResizing && "bg-white/30"
+            )}
             onMouseDown={handleResizeStart}
+            aria-label="Resize card"
           />
         )}
       </div>
