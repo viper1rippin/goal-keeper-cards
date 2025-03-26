@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem, TimelineViewMode } from './types';
+import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from './types';
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
@@ -22,6 +22,13 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z.object({
   id: z.string(),
@@ -32,6 +39,7 @@ const formSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   progress: z.number().min(0).max(100),
+  category: z.string().default('default'),
 });
 
 interface SubGoalTimelineFormProps {
@@ -60,6 +68,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       startDate: item.startDate || '',
       endDate: item.endDate || '',
       progress: item.progress,
+      category: item.category || 'default',
     },
   });
 
@@ -74,6 +83,8 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       progress: values.progress,
       startDate: values.startDate,
       endDate: values.endDate,
+      category: (values.category as TimelineCategory) || 'default',
+      color: item.color,
       ...(item.parentId && { parentId: item.parentId }),
       ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
     };
@@ -132,6 +143,41 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
                     rows={3}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="milestone">Milestone</SelectItem>
+                    <SelectItem value="feature">Feature</SelectItem>
+                    <SelectItem value="research">Research</SelectItem>
+                    <SelectItem value="design">Design</SelectItem>
+                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="testing">Testing</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="mobile">Mobile</SelectItem>
+                    <SelectItem value="web">Web</SelectItem>
+                    <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                    <SelectItem value="backend">Backend</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
