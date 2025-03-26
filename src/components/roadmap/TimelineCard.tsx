@@ -4,7 +4,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, Rocket, Layers, Smartphone, Globe, Server, HardDrive } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -31,6 +31,7 @@ const TimelineCard = ({
   const [initialDuration, setInitialDuration] = useState(item.duration);
   const [currentDuration, setCurrentDuration] = useState(item.duration);
   
+  // Setup sortable hook with resize-disable condition
   const {
     attributes,
     listeners,
@@ -44,17 +45,20 @@ const TimelineCard = ({
   });
 
   useEffect(() => {
+    // Update current duration when the item's duration changes from parent
     setCurrentDuration(item.duration);
     setInitialDuration(item.duration);
   }, [item.duration]);
 
+  // Apply dnd-kit styles with width based on duration and cell width
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     width: `${currentDuration * cellWidth}px`,
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
-
+  
+  // Get category icon
   const getCategoryIcon = () => {
     const category = item.category || 'default';
     
@@ -69,57 +73,16 @@ const TimelineCard = ({
         return <Monitor size={16} className="text-white" />;
       case 'testing':
         return <Cpu size={16} className="text-white" />;
-      case 'marketing':
-        return <Rocket size={16} className="text-white" />;
-      case 'feature':
-        return <Layers size={16} className="text-white" />;
-      case 'mobile':
-        return <Smartphone size={16} className="text-white" />;
-      case 'web':
-        return <Globe size={16} className="text-white" />;
-      case 'backend':
-        return <Server size={16} className="text-white" />;
-      case 'infrastructure':
-        return <HardDrive size={16} className="text-white" />;
       default:
-        return <Layers size={16} className="text-white" />;
+        return null;
     }
   };
 
-  const getCategoryStyles = () => {
-    const category = item.category || 'default';
-    
-    switch (category) {
-      case 'milestone':
-        return "from-purple-400 to-purple-500 border-purple-300";
-      case 'research':
-        return "from-amber-400 to-amber-500 border-amber-300";
-      case 'design':
-        return "from-pink-400 to-pink-500 border-pink-300";
-      case 'development':
-        return "from-blue-400 to-blue-500 border-blue-300";
-      case 'testing':
-        return "from-teal-400 to-teal-500 border-teal-300";
-      case 'marketing':
-        return "from-red-400 to-red-500 border-red-300";
-      case 'feature':
-        return "from-emerald-400 to-emerald-500 border-emerald-300";
-      case 'mobile':
-        return "from-cyan-400 to-cyan-500 border-cyan-300";
-      case 'web':
-        return "from-indigo-400 to-indigo-500 border-indigo-300";
-      case 'backend':
-        return "from-violet-400 to-violet-500 border-violet-300";
-      case 'infrastructure':
-        return "from-gray-400 to-gray-500 border-gray-300";
-      default:
-        return "from-emerald-400 to-emerald-500 border-emerald-300";
-    }
-  };
-
-  const cardGradient = getCategoryStyles();
+  // Use a uniform emerald gradient like the home page sub-goal cards
+  const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
   const categoryIcon = getCategoryIcon();
-
+  
+  // Handle resize start
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -128,29 +91,36 @@ const TimelineCard = ({
     setResizeStartX(e.clientX);
     setInitialDuration(currentDuration);
     
+    // Add document event listeners
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
   };
-
+  
+  // Handle resize move
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
     const deltaUnits = Math.round(deltaX / cellWidth);
     
+    // Calculate new duration with a minimum of 1 cell
     const maxDuration = viewMode === 'month' ? 31 : 12;
     const newDuration = Math.max(1, Math.min(maxDuration, initialDuration + deltaUnits));
     
+    // Update local state for visual feedback
     setCurrentDuration(newDuration);
   };
-
+  
+  // Handle resize end
   const handleResizeEnd = () => {
     setIsResizing(false);
     
+    // Call parent callback if duration changed
     if (onResize && currentDuration !== item.duration) {
       onResize(item.id, currentDuration);
     }
     
+    // Remove document event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
@@ -158,13 +128,11 @@ const TimelineCard = ({
   return (
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        cursor: isResizing ? 'ew-resize' : isDragging ? 'grabbing' : 'grab',
-      }}
+      style={style}
       className={cn(
         "h-[120px] rounded-lg transition-all", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
+        isResizing ? "cursor-ew-resize" : "transform-gpu cursor-grab",
         "select-none"
       )}
       onClick={onSelect}
@@ -173,7 +141,7 @@ const TimelineCard = ({
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md",
+          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
           isSelected
             ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30`
             : isHovered
@@ -181,6 +149,7 @@ const TimelineCard = ({
               : `bg-gradient-to-r ${cardGradient} opacity-90`
         )}
       >
+        {/* Drag handle */}
         <div 
           className={cn(
             "absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all z-10",
@@ -192,12 +161,14 @@ const TimelineCard = ({
           <GripHorizontal size={14} />
         </div>
         
+        {/* Category icon */}
         {categoryIcon && (
           <div className="absolute left-3 top-3">
             {categoryIcon}
           </div>
         )}
         
+        {/* Edit button */}
         {onEdit && (isHovered || isSelected) && !isResizing && (
           <button
             onClick={(e) => {
@@ -211,6 +182,7 @@ const TimelineCard = ({
           </button>
         )}
         
+        {/* Content */}
         <div className={cn(
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
@@ -221,6 +193,7 @@ const TimelineCard = ({
             <p className="mt-2 text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
           )}
           
+          {/* Progress bar for items with longer duration */}
           {currentDuration > 1 && (
             <div className="mt-auto select-none">
               <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
@@ -229,21 +202,14 @@ const TimelineCard = ({
                   style={{ width: `${item.progress}%` }}
                 />
               </div>
-              <div className="text-white/90 text-xs mt-1 font-medium">
-                {item.progress}% complete
-              </div>
             </div>
           )}
         </div>
         
+        {/* Right edge for resizing - using the entire right edge of the card */}
         {onResize && (
           <div 
-            className={cn(
-              "absolute top-0 right-0 w-1 h-full cursor-ew-resize group",
-              "after:content-[''] after:absolute after:top-0 after:right-0 after:w-4 after:h-full after:bg-transparent",
-              "hover:after:bg-white/20 hover:after:backdrop-blur-sm",
-              isResizing && "after:bg-white/20 after:backdrop-blur-sm"
-            )}
+            className="absolute top-0 right-0 w-4 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
             onMouseDown={handleResizeStart}
             aria-label="Resize card"
           />

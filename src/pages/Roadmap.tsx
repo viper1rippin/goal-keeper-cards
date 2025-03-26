@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -6,7 +5,7 @@ import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
 import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
-import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
+import { SubGoalTimelineItem, TimelineViewMode } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -23,7 +22,6 @@ const Roadmap = () => {
   const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   
   useEffect(() => {
     const fetchParentGoals = async () => {
@@ -95,15 +93,18 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal) => ({
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: subGoal.timeline_row ?? Math.floor(Math.random() * 3),
-            start: subGoal.timeline_start ?? 0,
-            duration: subGoal.timeline_duration ?? 2,
-            progress: subGoal.progress ?? 0,
-            category: (subGoal.timeline_category as TimelineCategory) ?? 'default',
+            row: Math.floor(index / 3),
+            start: index * 3,
+            duration: 2,
+            progress: subGoal.progress || 0,
+            category: index % 5 === 0 ? 'milestone' : 
+                    index % 4 === 0 ? 'research' : 
+                    index % 3 === 0 ? 'design' : 
+                    index % 2 === 0 ? 'development' : 'testing',
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id
           }));
@@ -126,62 +127,29 @@ const Roadmap = () => {
     fetchSubGoals();
   }, [selectedRoadmapId, user]);
   
-  const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
+  const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
     
-    if (!user || !selectedRoadmapId) return;
-    
-    try {
-      setIsSaving(true);
-      
-      // Prepare updates for batch processing
-      const updates = updatedItems
-        .filter(item => item.originalSubGoalId)
-        .map(item => ({
-          id: item.originalSubGoalId,
-          title: item.title,
-          description: item.description,
-          progress: item.progress,
-          timeline_row: item.row,
-          timeline_start: item.start,
-          timeline_duration: item.duration,
-          timeline_category: item.category,
-          display_order: item.row * 100 + item.start, // Use a composite value for ordering
-          parent_goal_id: selectedRoadmapId,
-          user_id: user.id
-        }));
-      
-      // Process updates in batches to avoid timeouts
-      const batchSize = 10;
-      for (let i = 0; i < updates.length; i += batchSize) {
-        const batch = updates.slice(i, i + batchSize);
-        
-        // Process each update in the batch as a separate query for stability
-        const updatePromises = batch.map(update => {
-          return supabase
-            .from('sub_goals')
-            .update(update)
-            .eq('id', update.id)
-            .eq('user_id', user.id);
-        });
-        
-        await Promise.all(updatePromises);
-      }
-      
-      toast({
-        title: "Roadmap updated",
-        description: "Your changes have been saved.",
+    if (user && selectedRoadmapId) {
+      updatedItems.forEach(async (item) => {
+        if (item.originalSubGoalId) {
+          try {
+            await supabase
+              .from('sub_goals')
+              .update({ progress: item.progress })
+              .eq('id', item.originalSubGoalId)
+              .eq('user_id', user.id);
+          } catch (error) {
+            console.error('Error updating sub-goal progress:', error);
+          }
+        }
       });
-    } catch (error) {
-      console.error('Error updating sub-goals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save some changes. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSaving(false);
     }
+    
+    toast({
+      title: "Roadmap updated",
+      description: "Your changes have been saved.",
+    });
   };
   
   const handleCreateRoadmap = () => {
@@ -273,7 +241,6 @@ const Roadmap = () => {
               items={roadmapItems}
               onItemsChange={handleItemsChange}
               viewMode={selectedView}
-              isSaving={isSaving}
             />
           )}
         </div>

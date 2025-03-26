@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -14,20 +14,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem, TimelineCategory, TimelineViewMode } from './types';
+import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 
 const formSchema = z.object({
   id: z.string(),
@@ -35,9 +27,6 @@ const formSchema = z.object({
   description: z.string().optional(),
   row: z.number(),
   start: z.number(),
-  duration: z.number().min(1, 'Duration must be at least 1'),
-  category: z.string(),
-  progress: z.number().min(0).max(100).default(0),
 });
 
 interface SubGoalTimelineFormProps {
@@ -45,30 +34,15 @@ interface SubGoalTimelineFormProps {
   onSave: (item: SubGoalTimelineItem) => void;
   onDelete: (id: string) => void;
   onCancel: () => void;
-  viewMode?: TimelineViewMode;
+  viewMode?: TimelineViewMode; // Added viewMode as an optional prop
 }
-
-const categoryOptions: { value: TimelineCategory; label: string }[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'research', label: 'Research' },
-  { value: 'design', label: 'Design' },
-  { value: 'development', label: 'Development' },
-  { value: 'testing', label: 'Testing' },
-  { value: 'milestone', label: 'Milestone' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'feature', label: 'Feature' },
-  { value: 'mobile', label: 'Mobile' },
-  { value: 'web', label: 'Web' },
-  { value: 'backend', label: 'Backend' },
-  { value: 'infrastructure', label: 'Infrastructure' },
-];
 
 const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
   item,
   onSave,
   onDelete,
   onCancel,
-  viewMode,
+  viewMode, // Added viewMode to destructured props
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,25 +52,8 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: item.description || '',
       row: item.row,
       start: item.start,
-      duration: item.duration || 2,
-      category: item.category || 'default',
-      progress: item.progress || 0,
     },
   });
-
-  // Update form if item changes
-  useEffect(() => {
-    form.reset({
-      id: item.id,
-      title: item.title,
-      description: item.description || '',
-      row: item.row,
-      start: item.start,
-      duration: item.duration || 2,
-      category: item.category || 'default',
-      progress: item.progress || 0,
-    });
-  }, [item, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const updatedItem: SubGoalTimelineItem = {
@@ -106,9 +63,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: values.description || '',
       row: values.row,
       start: values.start,
-      duration: values.duration,
-      category: values.category as TimelineCategory,
-      progress: values.progress,
     };
     
     onSave(updatedItem);
@@ -154,99 +108,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
                     rows={3}
                   />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Duration</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min={1} 
-                      max={viewMode === 'month' ? 31 : 12}
-                      placeholder="Duration" 
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="progress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Progress (%)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min={0} 
-                      max={100}
-                      placeholder="Progress" 
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="progress"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Progress: {field.value}%</FormLabel>
-                <FormControl>
-                  <Slider
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={[field.value]}
-                    onValueChange={(value) => field.onChange(value[0])}
-                    className="py-4"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categoryOptions.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}

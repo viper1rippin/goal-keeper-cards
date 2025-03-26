@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -20,26 +19,15 @@ import {
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
-import { useAuth } from "@/context/AuthContext";
-import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { TimelineCategory } from "@/components/roadmap/types";
 
 interface RoadmapTimelineProps {
   roadmapId: string;
   items: SubGoalTimelineItem[];
   onItemsChange: (items: SubGoalTimelineItem[]) => void;
   viewMode: TimelineViewMode;
-  isSaving?: boolean;
 }
 
-const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ 
-  roadmapId, 
-  items, 
-  onItemsChange, 
-  viewMode,
-  isSaving = false
-}) => {
+const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onItemsChange, viewMode }) => {
   const [months] = useState([
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
@@ -53,8 +41,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
   
-  const { user } = useAuth();
-
   const getExtendedTimeUnits = () => {
     if (viewMode === 'month') {
       return [
@@ -127,7 +113,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
-    // This can be used for visual feedback during drag
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
@@ -171,7 +156,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
     setDraggingItemId(null);
   };
   
-  const handleResizeItem = async (itemId: string, newDuration: number) => {
+  const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
         return {
@@ -182,7 +167,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
       return item;
     });
     
-    // Update UI immediately
     onItemsChange(updatedItems);
   };
   
@@ -191,126 +175,35 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
     setOpenForm(true);
   };
   
-  const handleAddItem = async () => {
-    if (!user || !roadmapId) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to add items.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Generate a temporary ID
-    const tempId = `item-${Date.now()}`;
-    
+  const handleAddItem = () => {
     const newItem: SubGoalTimelineItem = {
-      id: tempId,
+      id: `item-${Date.now()}`,
       title: 'New Item',
       description: '',
       progress: 0,
       row: 0,
       start: 0,
       duration: 2,
-      category: 'default',
-      parentId: roadmapId
+      category: 'default'
     };
     
     setSelectedItem(newItem);
     setOpenForm(true);
   };
   
-  const handleSaveItem = async (item: SubGoalTimelineItem) => {
+  const handleSaveItem = (item: SubGoalTimelineItem) => {
     const isEditing = items.some(i => i.id === item.id);
-    let updatedItems: SubGoalTimelineItem[] = [];
     
-    // For new items, we need to create them in the database first
-    if (!isEditing && item.id.startsWith('item-') && user && roadmapId) {
-      try {
-        const { data, error } = await supabase
-          .from('sub_goals')
-          .insert({
-            title: item.title,
-            description: item.description,
-            parent_goal_id: roadmapId,
-            user_id: user.id,
-            progress: item.progress,
-            timeline_row: item.row,
-            timeline_start: item.start,
-            timeline_duration: item.duration,
-            timeline_category: item.category,
-            display_order: item.row * 100 + item.start // For proper ordering
-          })
-          .select()
-          .single();
-          
-        if (error) throw error;
-        
-        if (data) {
-          // Replace the temporary item with the one from the database
-          const newItem: SubGoalTimelineItem = {
-            id: data.id,
-            title: data.title,
-            description: data.description,
-            row: data.timeline_row || 0,
-            start: data.timeline_start || 0,
-            duration: data.timeline_duration || 2,
-            progress: data.progress || 0,
-            category: (data.timeline_category as TimelineCategory) || 'default',
-            parentId: roadmapId,
-            originalSubGoalId: data.id
-          };
-          
-          updatedItems = [...items, newItem];
-        }
-      } catch (error) {
-        console.error('Error creating sub-goal:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create new item. Please try again.",
-          variant: "destructive"
-        });
-        setOpenForm(false);
-        setSelectedItem(null);
-        return;
-      }
-    } else {
-      // For existing items, just update the items array
-      updatedItems = isEditing
-        ? items.map(i => (i.id === item.id ? item : i))
-        : [...items, item];
-    }
+    const updatedItems = isEditing
+      ? items.map(i => (i.id === item.id ? item : i))
+      : [...items, item];
     
     onItemsChange(updatedItems);
     setOpenForm(false);
     setSelectedItem(null);
   };
   
-  const handleDeleteItem = async (itemId: string) => {
-    // Check if this is a real database item (not a temporary one)
-    const itemToDelete = items.find(item => item.id === itemId);
-    
-    if (itemToDelete?.originalSubGoalId && user) {
-      try {
-        const { error } = await supabase
-          .from('sub_goals')
-          .delete()
-          .eq('id', itemToDelete.originalSubGoalId)
-          .eq('user_id', user.id);
-          
-        if (error) throw error;
-        
-      } catch (error) {
-        console.error('Error deleting sub-goal:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete item. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-    
+  const handleDeleteItem = (itemId: string) => {
     const updatedItems = items.filter(item => item.id !== itemId);
     onItemsChange(updatedItems);
     setOpenForm(false);
@@ -429,20 +322,12 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
               
               <button
                 onClick={handleAddItem}
-                disabled={isSaving}
-                className={`absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
               >
-                {isSaving ? (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                    <path d="M5 12h14" />
-                    <path d="M12 5v14" />
-                  </svg>
-                )}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
               </button>
             </div>
             
