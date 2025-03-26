@@ -138,15 +138,15 @@ const TimelineCard = ({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  // Determine if we should show the expanded view with full details
-  const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
+  // Always show expanded details by default, no longer dependent on hover or selection
+  // Removed the conditional that was checking for hover/selection state
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "h-[120px] rounded-lg transition-all duration-300", // Increased height from 80px to 120px
+        "h-[120px] rounded-lg transition-all duration-300", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
         "transform-gpu cursor-grab select-none",
       )}
@@ -157,7 +157,7 @@ const TimelineCard = ({
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", // Increased padding
+          "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
           isSelected
             ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
             : isHovered
@@ -167,15 +167,15 @@ const TimelineCard = ({
       >
         {/* Drag handle */}
         <div 
-          className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10" // Adjusted position
+          className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
           {...listeners}
         >
-          <GripHorizontal size={14} /> {/* Slightly larger icon */}
+          <GripHorizontal size={14} />
         </div>
         
         {/* Category icon */}
         {categoryIcon && (
-          <div className="absolute left-3 top-3"> {/* Adjusted position */}
+          <div className="absolute left-3 top-3">
             {categoryIcon}
           </div>
         )}
@@ -187,32 +187,31 @@ const TimelineCard = ({
               e.stopPropagation();
               onEdit();
             }}
-            className="absolute top-2 right-2 p-1 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10" // Adjusted position
+            className="absolute top-2 right-2 p-1 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
             aria-label="Edit goal"
           >
-            <Edit2 size={14} /> {/* Slightly larger icon */}
+            <Edit2 size={14} />
           </button>
         )}
         
-        {/* Content */}
+        {/* Content - Always showing details now */}
         <div className={cn(
-          "flex flex-col h-full relative z-2 pt-4", // Increased top padding
-          categoryIcon ? "pl-7" : "" // Adjusted left padding
+          "flex flex-col h-full relative z-2 pt-4",
+          categoryIcon ? "pl-7" : ""
         )}>
-          <h3 className="font-medium text-base text-white line-clamp-1">{item.title}</h3> {/* Larger text */}
+          <h3 className="font-medium text-base text-white line-clamp-1">{item.title}</h3>
           
-          {shouldShowExpandedDetails && (
-            <div className="mt-2 space-y-1"> {/* Increased spacing */}
-              {item.description && (
-                <p className="text-sm text-white/80 line-clamp-3">{item.description}</p> /* Larger text and showing more lines */
-              )}
-            </div>
-          )}
+          {/* Always display description now */}
+          <div className="mt-2 space-y-1">
+            {item.description && (
+              <p className="text-sm text-white/80 line-clamp-3">{item.description}</p>
+            )}
+          </div>
           
           {/* Progress bar for items with longer duration */}
           {item.duration > 1 && (
             <div className="mt-auto select-none">
-              <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2"> {/* Taller progress bar */}
+              <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
                 <div 
                   className="h-full bg-white/80 transition-all duration-700 ease-out"
                   style={{ width: `${item.progress}%` }}
@@ -226,7 +225,7 @@ const TimelineCard = ({
         {onResize && (
           <div 
             ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20" // Wider handle
+            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
             onMouseDown={handleResizeStart}
           />
         )}
