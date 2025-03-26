@@ -204,7 +204,7 @@ const Roadmap = () => {
               <Button 
                 variant="secondary"
                 onClick={() => handleCreateRoadmap()}
-                className="text-base px-5 py-2.5" {/* Larger button */}
+                className="text-base px-5 py-2.5" /* Larger button */
               >
                 <Plus size={18} className="mr-2" /> {/* Larger icon */}
                 New Roadmap
@@ -223,25 +223,25 @@ const Roadmap = () => {
               <div className="flex bg-slate-800/50 rounded-md p-1.5"> {/* Increased padding */}
                 <button 
                   onClick={() => handleViewChange("day")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} {/* Increased size */}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Day
                 </button>
                 <button 
                   onClick={() => handleViewChange("week")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} {/* Increased size */}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Week
                 </button>
                 <button 
                   onClick={() => handleViewChange("month")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} {/* Increased size */}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Month
                 </button>
                 <button 
                   onClick={() => handleViewChange("year")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} {/* Increased size */}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Year
                 </button>

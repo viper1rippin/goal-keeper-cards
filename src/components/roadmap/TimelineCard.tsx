@@ -4,7 +4,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft, BeakerIcon } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -204,7 +204,7 @@ const TimelineCard = ({
           {shouldShowExpandedDetails && (
             <div className="mt-2 space-y-1"> {/* Increased spacing */}
               {item.description && (
-                <p className="text-sm text-white/80 line-clamp-3">{item.description}</p> {/* Larger text and showing more lines */}
+                <p className="text-sm text-white/80 line-clamp-3">{item.description}</p> /* Larger text and showing more lines */
               )}
             </div>
           )}
