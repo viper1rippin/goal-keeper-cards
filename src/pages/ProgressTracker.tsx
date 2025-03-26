@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -256,8 +255,7 @@ const ProgressTracker = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {/* Increased height and adjusted margins to fix the overlap */}
-                      <div className="h-[350px]">
+                      <div className="h-[300px]">
                         <ChartContainer 
                           config={{
                             current: { theme: { light: '#10b981', dark: '#10b981' } },
@@ -268,7 +266,7 @@ const ProgressTracker = () => {
                             <BarChart
                               data={levelProgressData}
                               layout="vertical"
-                              margin={{ top: 20, right: 30, left: 150, bottom: 30 }}
+                              margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
                             >
                               <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                               <XAxis 
@@ -279,7 +277,7 @@ const ProgressTracker = () => {
                               <YAxis 
                                 dataKey="name" 
                                 type="category" 
-                                width={140} 
+                                width={120} 
                                 tick={{ fontSize: 12 }}
                               />
                               <Tooltip 
