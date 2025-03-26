@@ -9,11 +9,12 @@ const Roadmap: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen">
       <Sidebar onCollapseChange={setSidebarCollapsed} />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
         <AnimatedContainer className="flex-1 overflow-hidden">
-          <div className="h-full p-4">
+          <div className="container mx-auto p-4 h-full">
+            <h1 className="text-2xl font-bold mb-6">Roadmap Timeline</h1>
             <RoadmapTimeline />
           </div>
         </AnimatedContainer>

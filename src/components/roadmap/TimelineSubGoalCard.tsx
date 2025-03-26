@@ -6,7 +6,6 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { TimelineItem } from "./RoadmapTimeline";
-import { MonitorSmartphone, Star, Package, AlertTriangle, Computer } from "lucide-react";
 
 interface TimelineSubGoalCardProps {
   item: TimelineItem;
@@ -141,25 +140,6 @@ const TimelineSubGoalCard: React.FC<TimelineSubGoalCardProps> = ({
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
-
-  // Choose icon based on title
-  const getIcon = () => {
-    const title = item.title.toLowerCase();
-    
-    if (title.includes('research') || title.includes('study') || title.includes('learning')) {
-      return <AlertTriangle className="h-5 w-5 mr-1" />;
-    } else if (title.includes('test') || title.includes('alpha') || title.includes('qa')) {
-      return <MonitorSmartphone className="h-5 w-5 mr-1" />;
-    } else if (title.includes('design') || title.includes('ui') || title.includes('ux')) {
-      return <Package className="h-5 w-5 mr-1" />;
-    } else if (title.includes('beta') || title.includes('release')) {
-      return <Star className="h-5 w-5 mr-1" />;
-    } else if (title.includes('mvp') || title.includes('develop')) {
-      return <Computer className="h-5 w-5 mr-1" />;
-    }
-    
-    return null;
-  };
   
   return (
     <div
@@ -167,6 +147,7 @@ const TimelineSubGoalCard: React.FC<TimelineSubGoalCardProps> = ({
       style={style}
       className={cn(
         "absolute glass-card rounded-md border transition-all duration-200 cursor-pointer hover:shadow-md group",
+        // Add some styling based on progress
         item.progress === 100 
           ? "border-emerald-500/30" 
           : "border-slate-700/50",
@@ -182,17 +163,12 @@ const TimelineSubGoalCard: React.FC<TimelineSubGoalCardProps> = ({
       >
         {/* Card content */}
         <div className="flex justify-between items-start mb-1">
-          <div className="flex-1 flex items-center truncate text-sm font-medium">
-            {getIcon()}
-            {item.title}
-          </div>
+          <div className="flex-1 truncate text-sm font-medium">{item.title}</div>
         </div>
         
-        {style.width && parseInt(style.width as string) > 150 && (
-          <div className="text-xs text-muted-foreground mb-1 truncate">
-            {item.description}
-          </div>
-        )}
+        <div className="text-xs text-muted-foreground mb-1 truncate">
+          {format(item.startDate, 'MMM d')} - {format(item.endDate, 'MMM d, yyyy')}
+        </div>
         
         {/* Progress bar */}
         <Progress value={item.progress} className="h-1.5 mt-auto" />

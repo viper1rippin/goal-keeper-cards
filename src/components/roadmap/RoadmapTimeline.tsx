@@ -1,11 +1,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { addMonths, subMonths, format, startOfMonth, endOfMonth, eachDayOfInterval, 
-  isToday, addYears, subYears, differenceInDays, parseISO, getYear } from "date-fns";
-import { Plus } from "lucide-react";
+import { addMonths, subMonths, format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval, addYears, subYears, differenceInDays, parseISO } from "date-fns";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,7 @@ import TimelineSubGoalDialog from "./TimelineSubGoalDialog";
 import { Goal } from "@/components/GoalRow";
 
 // Define timeline views
-type TimelineView = "month" | "year" | "week" | "day";
+type TimelineView = "month" | "year";
 
 // Define the timeline item interface that extends Goal
 export interface TimelineItem extends Goal {
@@ -34,21 +34,17 @@ interface ParentGoal {
 const RoadmapTimeline: React.FC = () => {
   // State for the current date and view
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<TimelineView>("year");
+  const [view, setView] = useState<TimelineView>("month");
   const [selectedParentGoalId, setSelectedParentGoalId] = useState<string | null>(null);
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [editItem, setEditItem] = useState<TimelineItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startDragX, setStartDragX] = useState(0);
-  const [scrollStart, setScrollStart] = useState(0);
   
   const { toast } = useToast();
   const { user } = useAuth();
   const timelineRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   
   // Fetch parent goals from the database
   useEffect(() => {
@@ -140,37 +136,45 @@ const RoadmapTimeline: React.FC = () => {
     fetchSubGoals();
   }, [user, selectedParentGoalId, toast]);
   
-  // Mouse events for horizontal dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (contentRef.current) {
-      setIsDragging(true);
-      setStartDragX(e.clientX);
-      setScrollStart(contentRef.current.scrollLeft);
+  // Navigate to previous period (month or year)
+  const handlePrevious = () => {
+    if (view === "month") {
+      setCurrentDate(prevDate => subMonths(prevDate, 1));
+    } else {
+      setCurrentDate(prevDate => subYears(prevDate, 1));
     }
   };
   
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && contentRef.current) {
-      const distance = e.clientX - startDragX;
-      contentRef.current.scrollLeft = scrollStart - distance;
+  // Navigate to next period (month or year)
+  const handleNext = () => {
+    if (view === "month") {
+      setCurrentDate(prevDate => addMonths(prevDate, 1));
+    } else {
+      setCurrentDate(prevDate => addYears(prevDate, 1));
     }
   };
   
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  // Get days for the month view
+  const getDaysInMonth = () => {
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
+    return eachDayOfInterval({ start, end });
   };
   
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  // Handle scroll with wheel
-  const handleWheel = (e: React.WheelEvent) => {
-    if (contentRef.current) {
-      e.preventDefault();
-      // Use deltaY for vertical scroll to move horizontally for better UX
-      contentRef.current.scrollLeft += e.deltaY;
+  // Get months for the year view
+  const getMonthsInYear = () => {
+    const months = [];
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), i, 1);
+      months.push(date);
     }
+    return months;
+  };
+  
+  // Handle dialog open for editing an item
+  const handleEditItem = (item: TimelineItem) => {
+    setEditItem(item);
+    setIsDialogOpen(true);
   };
   
   // Handle creating a new sub-goal
@@ -188,10 +192,10 @@ const RoadmapTimeline: React.FC = () => {
     if (!parentGoal) return;
     
     const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 20); // Default to 20-day duration
+    endDate.setDate(endDate.getDate() + 7); // Default to 7-day duration
     
     const newItem: TimelineItem = {
-      id: "", // Will be assigned by database
+      id: '', // Will be assigned by database
       title: 'New Sub-Goal',
       description: 'Description',
       progress: 0,
@@ -356,67 +360,36 @@ const RoadmapTimeline: React.FC = () => {
     }
   };
   
-  // Helper function to generate months for year view
-  const getMonthsInYear = () => {
-    const months = [];
-    const startYear = getYear(currentDate) - 1;
-    const endYear = getYear(currentDate) + 1;
-    
-    for (let year = startYear; year <= endYear; year++) {
-      for (let month = 0; month < 12; month++) {
-        months.push(new Date(year, month, 1));
-      }
-    }
-    
-    return months;
-  };
-  
-  // Helper function to generate days for month view
-  const getDaysInMonth = () => {
-    // Generate dates for previous, current and next month
-    const prevMonthDates = eachDayOfInterval({
-      start: startOfMonth(subMonths(currentDate, 1)),
-      end: endOfMonth(subMonths(currentDate, 1))
-    });
-    
-    const currentMonthDates = eachDayOfInterval({
-      start: startOfMonth(currentDate),
-      end: endOfMonth(currentDate)
-    });
-    
-    const nextMonthDates = eachDayOfInterval({
-      start: startOfMonth(addMonths(currentDate, 1)),
-      end: endOfMonth(addMonths(currentDate, 1))
-    });
-    
-    return [...prevMonthDates, ...currentMonthDates, ...nextMonthDates];
-  };
-  
   // Calculate position and width for timeline items
-  const calculateItemStyle = (item: TimelineItem) => {
+  const calculateItemStyle = (item: TimelineItem, containerWidth: number, days: Date[]) => {
     if (!item.startDate || !item.endDate) return { display: 'none' };
-    
-    const containerWidth = contentRef.current?.clientWidth || 1200;
     
     // For month view
     if (view === "month") {
-      const days = getDaysInMonth();
-      const totalDays = days.length;
-      const dayWidth = containerWidth / totalDays;
+      // Check if the item overlaps with the current month
+      const start = startOfMonth(currentDate);
+      const end = endOfMonth(currentDate);
+      
+      // If item is not in this month at all, don't display
+      if (item.endDate < start || item.startDate > end) {
+        return { display: 'none' };
+      }
       
       // Calculate the item's position
-      const startDay = days.findIndex(d => 
-        format(d, 'yyyy-MM-dd') === format(item.startDate, 'yyyy-MM-dd')
-      );
+      const dayWidth = containerWidth / days.length;
       
-      if (startDay === -1) return { display: 'none' };
+      // Adjust start date to first day of month if it's before
+      const effectiveStartDate = item.startDate < start ? start : item.startDate;
       
-      const endDay = days.findIndex(d => 
-        format(d, 'yyyy-MM-dd') === format(item.endDate, 'yyyy-MM-dd')
-      );
+      // Adjust end date to last day of month if it's after
+      const effectiveEndDate = item.endDate > end ? end : item.endDate;
       
-      const duration = (endDay !== -1 ? endDay : days.length - 1) - startDay + 1;
-      const left = startDay * dayWidth;
+      // Calculate position (left offset)
+      const startOffset = differenceInDays(effectiveStartDate, start);
+      const left = startOffset * dayWidth;
+      
+      // Calculate width
+      const duration = differenceInDays(effectiveEndDate, effectiveStartDate) + 1; // +1 to include both start and end days
       const width = duration * dayWidth;
       
       return {
@@ -428,30 +401,35 @@ const RoadmapTimeline: React.FC = () => {
     }
     
     // For year view
-    else if (view === "year") {
-      const months = getMonthsInYear();
-      const totalMonths = months.length;
-      const monthWidth = containerWidth / 12; // Show 12 months at a time
+    else {
+      // Check if the item overlaps with the current year
+      const yearStart = new Date(currentDate.getFullYear(), 0, 1);
+      const yearEnd = new Date(currentDate.getFullYear(), 11, 31);
       
-      // Get start and end month indices
-      const startMonthIndex = months.findIndex(m => 
-        m.getFullYear() === item.startDate.getFullYear() && 
-        m.getMonth() === item.startDate.getMonth()
-      );
+      // If item is not in this year at all, don't display
+      if (item.endDate < yearStart || item.startDate > yearEnd) {
+        return { display: 'none' };
+      }
       
-      if (startMonthIndex === -1) return { display: 'none' };
+      // Calculate months as a percentage of the year
+      const effectiveStartDate = item.startDate < yearStart ? yearStart : item.startDate;
+      const effectiveEndDate = item.endDate > yearEnd ? yearEnd : item.endDate;
       
-      const endMonthIndex = months.findIndex(m => 
-        m.getFullYear() === item.endDate.getFullYear() && 
-        m.getMonth() === item.endDate.getMonth()
-      );
+      // Get start month percentage (0-11)
+      const startMonth = effectiveStartDate.getMonth();
+      const startDay = effectiveStartDate.getDate();
+      const daysInStartMonth = new Date(effectiveStartDate.getFullYear(), startMonth + 1, 0).getDate();
+      const startPercentage = (startMonth + (startDay - 1) / daysInStartMonth) / 12;
       
-      // Calculate position
-      const startMonthOffset = startMonthIndex - 12; // Adjust for initial scroll position
-      const endMonthOffset = (endMonthIndex !== -1 ? endMonthIndex : startMonthIndex) - 12;
+      // Get end month percentage (0-11)
+      const endMonth = effectiveEndDate.getMonth();
+      const endDay = effectiveEndDate.getDate();
+      const daysInEndMonth = new Date(effectiveEndDate.getFullYear(), endMonth + 1, 0).getDate();
+      const endPercentage = (endMonth + endDay / daysInEndMonth) / 12;
       
-      const left = startMonthOffset * monthWidth;
-      const width = (endMonthOffset - startMonthOffset + 1) * monthWidth;
+      // Calculate position and width
+      const left = startPercentage * containerWidth;
+      const width = (endPercentage - startPercentage) * containerWidth;
       
       return {
         left: `${left}px`,
@@ -460,283 +438,213 @@ const RoadmapTimeline: React.FC = () => {
         height: '80px'
       };
     }
-    
-    return { display: 'none' };
   };
   
-  // Set initial scroll position
-  useEffect(() => {
-    if (contentRef.current) {
-      // For year view, scroll to current year
-      if (view === "year") {
-        contentRef.current.scrollLeft = (12 * contentRef.current.clientWidth) / 12;
-      }
-      // For month view, scroll to show current month
-      else if (view === "month") {
-        const daysBeforeCurrentMonth = getDaysInMonth().findIndex(day => 
-          format(day, 'yyyy-MM') === format(currentDate, 'yyyy-MM')
-        );
-        
-        if (daysBeforeCurrentMonth > 0) {
-          const dayWidth = contentRef.current.clientWidth / getDaysInMonth().length;
-          contentRef.current.scrollLeft = daysBeforeCurrentMonth * dayWidth;
-        }
-      }
-    }
-  }, [view, timelineItems]);
-  
   return (
-    <div className="flex flex-col h-full border rounded-lg bg-black/90 shadow-md overflow-hidden">
+    <div className="flex flex-col h-full border rounded-lg bg-background shadow-md">
       {/* Header with controls */}
-      <div className="p-4 border-b border-gray-800 flex justify-between items-center gap-4">
-        <div className="flex items-center space-x-3">
-          <span className="text-lg font-medium text-white">Roadmap:</span>
-          <Select 
-            value={selectedParentGoalId || ''} 
-            onValueChange={setSelectedParentGoalId}
-            disabled={isLoading || parentGoals.length === 0}
-          >
-            <SelectTrigger className="w-[220px] border-gray-700 bg-gray-900">
-              <SelectValue placeholder="Select a goal" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-900 border-gray-700">
-              {parentGoals.map(goal => (
-                <SelectItem key={goal.id} value={goal.id}>
-                  {goal.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="p-4 border-b bg-muted/20 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="icon" onClick={handlePrevious}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <h2 className="text-lg font-medium">
+            {view === "month" 
+              ? format(currentDate, "MMMM yyyy") 
+              : format(currentDate, "yyyy")}
+          </h2>
+          
+          <Button variant="outline" size="icon" onClick={handleNext}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
         
-        <div className="flex gap-1 bg-gray-800 rounded-md p-1">
-          <Button
-            variant={view === "day" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("day")}
-            className={view === "day" ? "bg-gray-700" : "text-gray-400"}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <Tabs 
+            value={view} 
+            onValueChange={(v) => setView(v as TimelineView)}
+            className="mr-4"
           >
-            Day
-          </Button>
-          <Button
-            variant={view === "week" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("week")}
-            className={view === "week" ? "bg-gray-700" : "text-gray-400"}
-          >
-            Week
-          </Button>
-          <Button
-            variant={view === "month" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("month")}
-            className={view === "month" ? "bg-gray-700" : "text-gray-400"}
-          >
-            Month
-          </Button>
-          <Button
-            variant={view === "year" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("year")}
-            className={view === "year" ? "bg-gray-700" : "text-gray-400"}
-          >
-            Year
-          </Button>
+            <TabsList>
+              <TabsTrigger value="month">Month</TabsTrigger>
+              <TabsTrigger value="year">Year</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">Parent Goal:</span>
+            <Select 
+              value={selectedParentGoalId || ''} 
+              onValueChange={setSelectedParentGoalId}
+              disabled={isLoading || parentGoals.length === 0}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a goal" />
+              </SelectTrigger>
+              <SelectContent>
+                {parentGoals.map(goal => (
+                  <SelectItem key={goal.id} value={goal.id}>
+                    {goal.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       
       {/* Timeline content */}
       <div className="flex-1 overflow-hidden">
-        <div
-          className="relative h-full"
-          ref={timelineRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onWheel={handleWheel}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        >
-          {/* Year view */}
-          {view === "year" && (
-            <div className="h-full flex flex-col">
-              {/* Month headers */}
-              <div className="bg-gray-800/60 sticky top-0 z-10 grid grid-cols-12 border-b border-gray-700">
-                {getMonthsInYear().slice(12, 24).map((month, i) => (
-                  <div 
-                    key={i} 
-                    className={`
-                      text-center p-2 text-sm font-medium text-gray-200 border-r
-                      border-gray-700 last:border-r-0
-                      ${month.getMonth() === new Date().getMonth() && month.getFullYear() === new Date().getFullYear() ? 'bg-gray-700/50' : ''}
-                    `}
-                  >
-                    {format(month, "MMM")}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Timeline content */}
-              <div 
-                ref={contentRef}
-                className="flex-1 relative overflow-x-auto"
-                style={{ overscrollBehavior: 'none' }}
-              >
-                {/* Month blocks */}
-                <div 
-                  className="grid grid-cols-36 absolute min-h-[600px] top-0 left-0 right-0 bottom-0"
-                  style={{ width: `${getMonthsInYear().length * 100}px` }}
-                >
-                  {getMonthsInYear().map((month, i) => (
+        <ScrollArea className="h-[calc(100vh-300px)]">
+          <div className="relative p-4" ref={timelineRef}>
+            {/* Month view */}
+            {view === "month" && (
+              <div className="space-y-6">
+                {/* Day headers */}
+                <div className="grid grid-cols-[repeat(var(--days-count),minmax(100px,1fr))]" style={{ '--days-count': getDaysInMonth().length } as React.CSSProperties}>
+                  {getDaysInMonth().map((day, i) => (
                     <div 
-                      key={i}
-                      className="border-r border-b border-gray-800 relative h-full"
-                      onClick={() => handleCreateSubGoal(month)}
+                      key={i} 
+                      className="text-center p-2 border-r last:border-r-0 border-b text-sm font-medium"
+                      onClick={() => handleCreateSubGoal(day)}
                     >
-                      {/* Month grid column */}
+                      <div>{format(day, "d")}</div>
+                      <div className="text-xs text-muted-foreground">{format(day, "E")}</div>
                     </div>
                   ))}
                 </div>
                 
-                {/* Timeline items */}
-                <div className="absolute top-0 left-0 right-0 bottom-0">
-                  {/* The first row is for headers, then we place items on rows 1, 2, 3, etc. */}
-                  {Array.from({ length: 5 }).map((_, rowIndex) => (
-                    <div 
-                      key={rowIndex} 
-                      className="relative h-[95px] pt-4 border-b border-gray-800 overflow-visible"
-                    >
-                      {timelineItems
-                        .filter((_, itemIndex) => itemIndex % 5 === rowIndex)
-                        .map((item, i) => (
-                          <TimelineSubGoalCard
-                            key={item.id || i}
-                            item={item}
-                            style={calculateItemStyle(item)}
-                            onClick={() => { 
-                              setEditItem(item);
-                              setIsDialogOpen(true);
-                            }}
-                            onResize={handleItemResize}
-                            index={i}
-                          />
-                        ))}
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Empty state */}
-                {timelineItems.length === 0 && selectedParentGoalId && !isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                    <div className="text-center">
-                      <p className="mt-2">No sub-goals found. Click anywhere on the timeline to create one.</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Loading state */}
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                      <p className="mt-2 text-gray-400">Loading...</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Month view */}
-          {view === "month" && (
-            <div className="h-full flex flex-col">
-              {/* Day headers */}
-              <div className="bg-gray-800/60 sticky top-0 z-10 grid grid-cols-31 border-b border-gray-700">
-                {getDaysInMonth().map((day, i) => (
-                  <div 
-                    key={i} 
-                    className={`
-                      text-center p-2 text-sm flex flex-col items-center
-                      border-r border-gray-700 last:border-r-0
-                      ${isToday(day) ? 'bg-gray-700/50' : ''}
-                    `}
-                  >
-                    <div className="font-medium text-gray-200">{format(day, "d")}</div>
-                    <div className="text-xs text-gray-400">{format(day, "E")}</div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Timeline content */}
-              <div 
-                ref={contentRef}
-                className="flex-1 relative overflow-x-auto"
-                style={{ overscrollBehavior: 'none' }}
-              >
-                {/* Day blocks */}
+                {/* Timeline items container */}
                 <div 
-                  className="grid grid-cols-93 absolute min-h-[600px] top-0 left-0 right-0 bottom-0"
-                  style={{ width: `${getDaysInMonth().length * 100}px` }}
+                  className="relative border-l border-r min-h-[300px]" 
+                  style={{ 
+                    width: `${getDaysInMonth().length * 100}px`, 
+                    height: `${timelineItems.length === 0 ? 200 : timelineItems.length * 100 + 50}px` 
+                  }}
                 >
+                  {/* Render day columns */}
                   {getDaysInMonth().map((day, i) => (
                     <div 
                       key={i}
-                      className="border-r border-b border-gray-800 relative h-full"
+                      className="absolute border-r border-muted h-full hover:bg-muted/10 transition-colors cursor-pointer"
+                      style={{ 
+                        left: `${i * 100}px`, 
+                        width: '100px',
+                        top: 0 
+                      }}
                       onClick={() => handleCreateSubGoal(day)}
-                    >
-                      {/* Day grid column */}
-                    </div>
+                    ></div>
                   ))}
-                </div>
-                
-                {/* Timeline items */}
-                <div className="absolute top-0 left-0 right-0 bottom-0">
-                  {/* The first row is for headers, then we place items on rows 1, 2, 3, etc. */}
-                  {Array.from({ length: 5 }).map((_, rowIndex) => (
-                    <div 
-                      key={rowIndex} 
-                      className="relative h-[95px] pt-4 border-b border-gray-800 overflow-visible"
-                    >
-                      {timelineItems
-                        .filter((_, itemIndex) => itemIndex % 5 === rowIndex)
-                        .map((item, i) => (
-                          <TimelineSubGoalCard
-                            key={item.id || i}
-                            item={item}
-                            style={calculateItemStyle(item)}
-                            onClick={() => { 
-                              setEditItem(item);
-                              setIsDialogOpen(true);
-                            }}
-                            onResize={handleItemResize}
-                            index={i}
-                          />
-                        ))}
-                    </div>
+                  
+                  {/* Render timeline items */}
+                  {timelineItems.map((item, i) => (
+                    <TimelineSubGoalCard
+                      key={item.id || i}
+                      item={item}
+                      style={calculateItemStyle(item, getDaysInMonth().length * 100, getDaysInMonth())}
+                      onClick={() => handleEditItem(item)}
+                      onResize={handleItemResize}
+                      index={i}
+                    />
                   ))}
-                </div>
-                
-                {/* Empty state */}
-                {timelineItems.length === 0 && selectedParentGoalId && !isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                    <div className="text-center">
-                      <p className="mt-2">No sub-goals found. Click anywhere on the timeline to create one.</p>
+                  
+                  {/* Empty state */}
+                  {timelineItems.length === 0 && selectedParentGoalId && !isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <Calendar className="mx-auto h-12 w-12 opacity-20" />
+                        <p className="mt-2">No sub-goals found. Click on a day to create one.</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                  
+                  {/* Loading state */}
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                        <p className="mt-2 text-muted-foreground">Loading...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Add Button */}
-        <Button 
-          size="icon"
-          className="absolute bottom-4 right-4 rounded-full h-12 w-12 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg"
-          onClick={() => handleCreateSubGoal(new Date())}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
+            )}
+            
+            {/* Year view */}
+            {view === "year" && (
+              <div className="space-y-6">
+                {/* Month headers */}
+                <div className="grid grid-cols-12">
+                  {getMonthsInYear().map((month, i) => (
+                    <div 
+                      key={i} 
+                      className="text-center p-2 border-r last:border-r-0 border-b text-sm font-medium"
+                      onClick={() => handleCreateSubGoal(month)}
+                    >
+                      {format(month, "MMM")}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Timeline items container */}
+                <div 
+                  className="relative border-l border-r min-h-[300px]" 
+                  style={{ 
+                    height: `${timelineItems.length === 0 ? 200 : timelineItems.length * 100 + 50}px` 
+                  }}
+                >
+                  {/* Render month columns */}
+                  {getMonthsInYear().map((month, i) => (
+                    <div 
+                      key={i}
+                      className="absolute border-r border-muted h-full hover:bg-muted/10 transition-colors cursor-pointer"
+                      style={{ 
+                        left: `${i * (100/12)}%`, 
+                        width: `${100/12}%`,
+                        top: 0 
+                      }}
+                      onClick={() => handleCreateSubGoal(month)}
+                    ></div>
+                  ))}
+                  
+                  {/* Render timeline items */}
+                  {timelineItems.map((item, i) => (
+                    <TimelineSubGoalCard
+                      key={item.id || i}
+                      item={item}
+                      style={calculateItemStyle(item, timelineRef.current?.clientWidth || 1200, [])}
+                      onClick={() => handleEditItem(item)}
+                      onResize={handleItemResize}
+                      index={i}
+                    />
+                  ))}
+                  
+                  {/* Empty state */}
+                  {timelineItems.length === 0 && selectedParentGoalId && !isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <Calendar className="mx-auto h-12 w-12 opacity-20" />
+                        <p className="mt-2">No sub-goals found. Click on a month to create one.</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Loading state */}
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                        <p className="mt-2 text-muted-foreground">Loading...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </div>
       
       {/* Edit/Create Dialog */}
