@@ -14,7 +14,14 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem, TimelineViewMode } from './types';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from './types';
 import {
   DialogHeader,
   DialogTitle,
@@ -27,6 +34,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   row: z.number(),
   start: z.number(),
+  category: z.string().optional(),
 });
 
 interface SubGoalTimelineFormProps {
@@ -34,7 +42,7 @@ interface SubGoalTimelineFormProps {
   onSave: (item: SubGoalTimelineItem) => void;
   onDelete: (id: string) => void;
   onCancel: () => void;
-  viewMode?: TimelineViewMode; // Added viewMode as an optional prop
+  viewMode?: TimelineViewMode;
 }
 
 const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
@@ -42,7 +50,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
   onSave,
   onDelete,
   onCancel,
-  viewMode, // Added viewMode to destructured props
+  viewMode,
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,6 +60,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: item.description || '',
       row: item.row,
       start: item.start,
+      category: item.category || 'default',
     },
   });
 
@@ -63,6 +72,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: values.description || '',
       row: values.row,
       start: values.start,
+      category: values.category as TimelineCategory || 'default',
     };
     
     onSave(updatedItem);
@@ -108,6 +118,40 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
                     rows={3}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="milestone">Milestone</SelectItem>
+                    <SelectItem value="research">Research</SelectItem>
+                    <SelectItem value="design">Design</SelectItem>
+                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="testing">Testing</SelectItem>
+                    <SelectItem value="feature">Feature</SelectItem>
+                    <SelectItem value="mobile">Mobile</SelectItem>
+                    <SelectItem value="web">Web</SelectItem>
+                    <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                    <SelectItem value="backend">Backend</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
