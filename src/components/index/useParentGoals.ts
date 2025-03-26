@@ -27,6 +27,13 @@ interface SubGoalData {
   created_at: string;
   updated_at: string;
   user_id?: string;
+  color?: string;
+  timeline_row?: number;
+  timeline_start?: number;
+  timeline_duration?: number;
+  timeline_category?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
@@ -75,7 +82,15 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            progress: subGoal.progress
+            progress: subGoal.progress,
+            color: subGoal.color,
+            // Include timeline properties for sync with roadmap
+            timeline_row: subGoal.timeline_row,
+            timeline_start: subGoal.timeline_start,
+            timeline_duration: subGoal.timeline_duration,
+            timeline_category: subGoal.timeline_category,
+            start_date: subGoal.start_date,
+            end_date: subGoal.end_date
           });
         }
       });
@@ -184,6 +199,9 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
         description: 'Sub-goal deleted successfully',
       });
       
+      // Refresh goals to ensure consistency
+      fetchParentGoals();
+      
     } catch (error) {
       console.error('Error deleting sub-goal:', error);
       toast({
@@ -192,7 +210,7 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
         variant: 'destructive',
       });
     }
-  }, [user, toast]);
+  }, [user, toast, fetchParentGoals]);
 
   return {
     parentGoals,
