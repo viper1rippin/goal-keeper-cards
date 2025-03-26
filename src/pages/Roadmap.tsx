@@ -145,7 +145,7 @@ const Roadmap = () => {
                 progress: item.progress,
                 start_date: item.startDate,
                 end_date: item.endDate,
-                color: item.color  // Make sure we save the color to the database
+                color: item.color  // Save the color to the database
               })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
