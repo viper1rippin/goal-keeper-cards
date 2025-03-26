@@ -42,18 +42,21 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
   
+  // Expanded time units for seamless scrolling
   const getExtendedTimeUnits = () => {
     if (viewMode === 'month') {
+      // For month view, show 3 months worth of days (previous, current, next)
       return [
-        ...days.map(day => `P-${day}`),
-        ...days,
-        ...days.map(day => `N-${day}`),
+        ...days.map(day => `P-${day}`), // Previous month days
+        ...days, // Current month days
+        ...days.map(day => `N-${day}`), // Next month days
       ];
     } else {
+      // For year view, show 3 years worth of months (previous, current, next)
       return [
-        ...months.map(month => `PY-${month}`),
-        ...months,
-        ...months.map(month => `NY-${month}`),
+        ...months.map(month => `PY-${month}`), // Previous year months
+        ...months, // Current year months
+        ...months.map(month => `NY-${month}`), // Next year months
       ];
     }
   };
@@ -61,17 +64,19 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timeUnits = getExtendedTimeUnits();
   const timeUnitCount = timeUnits.length;
 
+  // Modified version to handle display formatting of time unit labels
   const formatTimeUnitLabel = (unit: string | number) => {
     if (typeof unit === 'number') {
-      return unit;
+      return unit; // Simple day number
     }
     
+    // For the extended time units with prefixes
     if (typeof unit === 'string') {
       if (unit.startsWith('P-') || unit.startsWith('N-')) {
-        return unit.substring(2);
+        return unit.substring(2); // Remove the prefix for display
       }
       if (unit.startsWith('PY-') || unit.startsWith('NY-')) {
-        return unit.substring(3);
+        return unit.substring(3); // Remove the prefix for display
       }
     }
     
@@ -158,8 +163,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const handleResizeItem = (itemId: string, newDuration: number) => {
-    console.log(`Resizing item ${itemId} to duration ${newDuration}`);
-    
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
         return {
@@ -251,6 +254,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-900/90 backdrop-blur-sm overflow-hidden shadow-2xl">
+      {/* Horizontal scrollable header for time units */}
       <ScrollArea className="w-full overflow-auto" orientation="horizontal">
         <div className="border-b border-slate-800 p-3 bg-slate-800/70 min-w-fit" style={{ width: `${timeUnitCount * cellWidth + 60}px` }}>
           <div className="flex">
@@ -267,6 +271,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         </div>
       </ScrollArea>
       
+      {/* Main scrollable timeline content - now with horizontal scrolling */}
       <ScrollArea className="h-[calc(100vh-250px)]">
         <div 
           className="relative p-2"
