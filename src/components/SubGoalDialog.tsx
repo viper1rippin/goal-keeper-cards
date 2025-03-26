@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -15,8 +14,6 @@ import { TimelineCategory } from './roadmap/types';
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
 });
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
@@ -50,8 +47,6 @@ const SubGoalDialog = ({
     defaultValues: {
       title: subGoalToEdit?.title || "",
       description: subGoalToEdit?.description || "",
-      startDate: subGoalToEdit?.startDate || "",
-      endDate: subGoalToEdit?.endDate || "",
     },
   });
 
@@ -61,8 +56,6 @@ const SubGoalDialog = ({
       form.reset({
         title: subGoalToEdit?.title || "",
         description: subGoalToEdit?.description || "",
-        startDate: subGoalToEdit?.startDate || "",
-        endDate: subGoalToEdit?.endDate || "",
       });
     }
   }, [isOpen, subGoalToEdit, form]);
@@ -78,8 +71,8 @@ const SubGoalDialog = ({
           title: values.title,
           description: values.description,
           progress: subGoalToEdit?.progress || 0,
-          startDate: values.startDate,
-          endDate: values.endDate,
+          startDate: subGoalToEdit?.startDate,
+          endDate: subGoalToEdit?.endDate,
         };
         
         onSave(newSubGoal);
@@ -115,6 +108,10 @@ const SubGoalDialog = ({
     const timelineDuration = subGoalToEdit?.timeline_duration || 2;
     const timelineCategory = subGoalToEdit?.timeline_category || defaultCategory;
 
+    // Preserve existing dates if available
+    const startDate = subGoalToEdit?.startDate || null;
+    const endDate = subGoalToEdit?.endDate || null;
+
     // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
@@ -122,8 +119,8 @@ const SubGoalDialog = ({
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
       user_id: user.id, // Associate sub-goal with user
-      start_date: values.startDate || null,
-      end_date: values.endDate || null,
+      start_date: startDate,
+      end_date: endDate,
       timeline_row: timelineRow,
       timeline_start: timelineStart,
       timeline_duration: timelineDuration,
@@ -152,8 +149,8 @@ const SubGoalDialog = ({
     onSave({
       title: values.title,
       description: values.description,
-      startDate: values.startDate,
-      endDate: values.endDate,
+      startDate: startDate,
+      endDate: endDate,
       timeline_category: timelineCategory,
     });
   };

@@ -7,7 +7,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { UseFormReturn } from "react-hook-form";
 import { Goal } from '../GoalRow';
 import { SubGoalFormValues } from '../SubGoalDialog';
-import { Trash2, Calendar } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface SubGoalFormProps {
   form: UseFormReturn<SubGoalFormValues>;
@@ -73,56 +73,6 @@ export const SubGoalForm = ({
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-200">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} />
-                    Start Date
-                  </span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="date"
-                    placeholder="Start date"
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-200">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} />
-                    End Date
-                  </span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="date"
-                    placeholder="End date"
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         <div className="flex justify-between pt-4">
           {/* Delete button shown only when editing existing sub-goals */}
