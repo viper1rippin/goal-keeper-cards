@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -94,20 +93,18 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal) => ({
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: subGoal.timeline_row || 0,
-            start: subGoal.timeline_start || 0,
-            duration: subGoal.timeline_duration || 2,
+            row: Math.floor(index / 3),
+            start: index * 3,
+            duration: 2,
             progress: subGoal.progress || 0,
-            category: subGoal.timeline_category || (
-              subGoal.id.charCodeAt(0) % 5 === 0 ? 'milestone' : 
-              subGoal.id.charCodeAt(0) % 4 === 0 ? 'research' : 
-              subGoal.id.charCodeAt(0) % 3 === 0 ? 'design' : 
-              subGoal.id.charCodeAt(0) % 2 === 0 ? 'development' : 'testing'
-            ),
+            category: index % 5 === 0 ? 'milestone' : 
+                    index % 4 === 0 ? 'research' : 
+                    index % 3 === 0 ? 'design' : 
+                    index % 2 === 0 ? 'development' : 'testing',
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id
           }));
@@ -139,17 +136,11 @@ const Roadmap = () => {
           try {
             await supabase
               .from('sub_goals')
-              .update({ 
-                progress: item.progress,
-                timeline_row: item.row,
-                timeline_start: item.start,
-                timeline_duration: item.duration,
-                timeline_category: item.category || 'default'
-              })
+              .update({ progress: item.progress })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
           } catch (error) {
-            console.error('Error updating sub-goal:', error);
+            console.error('Error updating sub-goal progress:', error);
           }
         }
       });
