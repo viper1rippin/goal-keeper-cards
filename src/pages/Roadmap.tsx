@@ -105,13 +105,10 @@ const Roadmap = () => {
             title: subGoal.title,
             description: subGoal.description,
             row: Math.floor(index / 3), // Simple row distribution
-            start: index * 3, // Spread items out for better visibility
+            start: index % 4, // Simple start distribution
             duration: 2, // Default duration
             progress: subGoal.progress || 0,
-            category: index % 5 === 0 ? 'milestone' : 
-                    index % 4 === 0 ? 'research' : 
-                    index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing',
+            category: 'default',
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id
           }));
@@ -193,55 +190,54 @@ const Roadmap = () => {
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
-        <div className="container max-w-[1600px] pt-8 pb-24 relative z-10"> {/* Increased max-width and padding */}
-          <div className="flex justify-between items-center mb-8"> {/* Increased margin */}
+        <div className="container pt-8 pb-16 relative z-10">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-gradient">Project Roadmap</h1> {/* Larger heading */}
-              <p className="text-slate-400 mt-2 text-lg">Visualize your project timeline and milestones</p> {/* Larger text */}
+              <h1 className="text-3xl font-bold text-gradient">Project Roadmap</h1>
+              <p className="text-slate-400 mt-1">Visualize your project timeline and milestones</p>
             </div>
             
-            <div className="flex gap-3"> {/* Increased gap */}
+            <div className="flex gap-2">
               <Button 
                 variant="secondary"
                 onClick={() => handleCreateRoadmap()}
-                className="text-base px-5 py-2.5" /* Larger button */
               >
-                <Plus size={18} className="mr-2" /> {/* Larger icon */}
+                <Plus size={16} className="mr-1" />
                 New Roadmap
               </Button>
             </div>
           </div>
           
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-5 mb-8"> {/* Enhanced container and increased spacing */}
-            <div className="flex flex-col md:flex-row justify-between gap-6 items-start md:items-center"> {/* Increased gap */}
+          <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-lg p-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
               <RoadmapSelector 
                 selectedRoadmapId={selectedRoadmapId} 
                 onSelectRoadmap={setSelectedRoadmapId}
                 parentGoals={parentGoals}
               />
               
-              <div className="flex bg-slate-800/50 rounded-md p-1.5"> {/* Increased padding */}
+              <div className="flex bg-slate-800/50 rounded-md p-1">
                 <button 
                   onClick={() => handleViewChange("day")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
+                  className={`px-3 py-1 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
                 >
                   Day
                 </button>
                 <button 
                   onClick={() => handleViewChange("week")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
+                  className={`px-3 py-1 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
                 >
                   Week
                 </button>
                 <button 
                   onClick={() => handleViewChange("month")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
+                  className={`px-3 py-1 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
                 >
                   Month
                 </button>
                 <button 
                   onClick={() => handleViewChange("year")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
+                  className={`px-3 py-1 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
                 >
                   Year
                 </button>
@@ -250,12 +246,12 @@ const Roadmap = () => {
           </div>
           
           {isLoading ? (
-            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl"> {/* Enhanced container */}
-              <p className="text-slate-400 text-lg">Loading roadmap data...</p> {/* Larger text */}
+            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
+              <p className="text-slate-400">Loading roadmap data...</p>
             </div>
           ) : !selectedRoadmapId ? (
-            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl"> {/* Enhanced container */}
-              <p className="text-slate-400 text-lg">Select a parent goal to view its roadmap</p> {/* Larger text */}
+            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
+              <p className="text-slate-400">Select a parent goal to view its roadmap</p>
             </div>
           ) : (
             <RoadmapTimeline
