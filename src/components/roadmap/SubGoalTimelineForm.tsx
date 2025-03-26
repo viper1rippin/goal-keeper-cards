@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -90,8 +89,8 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: values.description || '',
       row: values.row,
       start: values.start,
-      startDate: values.startDate,
-      endDate: values.endDate,
+      startDate: values.startDate ? values.startDate.toISOString() : undefined,
+      endDate: values.endDate ? values.endDate.toISOString() : undefined,
       progress: values.progress,
       color: values.color,
       ...(item.parentId && { parentId: item.parentId }),
