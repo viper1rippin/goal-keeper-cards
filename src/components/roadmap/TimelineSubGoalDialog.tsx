@@ -1,17 +1,17 @@
 
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
+import { TimelineItem } from "./RoadmapTimeline";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { TimelineItem } from "./RoadmapTimeline";
+import { Slider } from "@/components/ui/slider";
 
 interface TimelineSubGoalDialogProps {
   open: boolean;
@@ -26,180 +26,173 @@ const TimelineSubGoalDialog: React.FC<TimelineSubGoalDialogProps> = ({
   onOpenChange,
   item,
   onSave,
-  onDelete
+  onDelete,
 }) => {
-  const [formValues, setFormValues] = React.useState<TimelineItem | null>(null);
-  const [startDateOpen, setStartDateOpen] = React.useState(false);
-  const [endDateOpen, setEndDateOpen] = React.useState(false);
-  
-  // Initialize form when item changes
+  const [title, setTitle] = React.useState<string>("");
+  const [description, setDescription] = React.useState<string>("");
+  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+  const [progress, setProgress] = React.useState<number>(0);
+
+  // Reset form when dialog opens with new item
   React.useEffect(() => {
     if (item) {
-      setFormValues({
-        ...item,
-        startDate: item.startDate || new Date(),
-        endDate: item.endDate || new Date()
-      });
+      setTitle(item.title || "");
+      setDescription(item.description || "");
+      setStartDate(item.startDate || undefined);
+      setEndDate(item.endDate || undefined);
+      setProgress(item.progress || 0);
+    } else {
+      // Clear form
+      setTitle("");
+      setDescription("");
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setProgress(0);
     }
-  }, [item]);
-  
-  if (!formValues) return null;
-  
-  const handleChange = (field: keyof TimelineItem, value: any) => {
-    setFormValues(prev => {
-      if (!prev) return null;
-      return { ...prev, [field]: value };
+  }, [item, open]);
+
+  const handleSave = () => {
+    if (!item || !startDate || !endDate || !title) return;
+
+    onSave({
+      ...item,
+      title,
+      description,
+      startDate,
+      endDate,
+      progress
     });
   };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formValues) {
-      onSave(formValues);
-    }
-  };
-  
+
   const handleDelete = () => {
-    if (formValues && formValues.id) {
-      onDelete(formValues.id);
+    if (item?.id) {
+      onDelete(item.id);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{formValues.id ? 'Edit Sub-Goal' : 'Add Sub-Goal'}</DialogTitle>
+          <DialogTitle>{item?.id ? "Edit Sub-Goal" : "Create Sub-Goal"}</DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div className="space-y-2">
+
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={formValues.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Sub-goal title"
             />
           </div>
-          
-          <div className="space-y-2">
+
+          <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={formValues.description}
-              onChange={(e) => handleChange('description', e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description of the sub-goal"
               rows={3}
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start-date">Start Date</Label>
-              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+            <div className="grid gap-2">
+              <Label>Start Date</Label>
+              <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formValues.startDate && "text-muted-foreground"
+                      "justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formValues.startDate ? format(formValues.startDate, "PPP") : "Select date"}
+                    {startDate ? format(startDate, "PPP") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 pointer-events-auto">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={formValues.startDate || undefined}
-                    onSelect={(date) => {
-                      handleChange('startDate', date);
-                      setStartDateOpen(false);
-                    }}
+                    selected={startDate}
+                    onSelect={(date) => setStartDate(date)}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="end-date">End Date</Label>
-              <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+
+            <div className="grid gap-2">
+              <Label>End Date</Label>
+              <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formValues.endDate && "text-muted-foreground"
+                      "justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formValues.endDate ? format(formValues.endDate, "PPP") : "Select date"}
+                    {endDate ? format(endDate, "PPP") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 pointer-events-auto">
+                <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={formValues.endDate || undefined}
-                    onSelect={(date) => {
-                      handleChange('endDate', date);
-                      setEndDateOpen(false);
-                    }}
-                    disabled={(date) => 
-                      formValues.startDate ? date < formValues.startDate : false
-                    }
+                    selected={endDate}
+                    onSelect={(date) => setEndDate(date)}
                     initialFocus
+                    disabled={(date) => 
+                      date < (startDate ? new Date(startDate) : new Date())
+                    }
                   />
                 </PopoverContent>
               </Popover>
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="progress">Progress ({formValues.progress}%)</Label>
-            <input
+
+          <div className="grid gap-2">
+            <div className="flex justify-between">
+              <Label htmlFor="progress">Progress: {progress}%</Label>
+            </div>
+            <Slider
               id="progress"
-              type="range"
-              min="0"
-              max="100"
-              value={formValues.progress}
-              onChange={(e) => handleChange('progress', parseInt(e.target.value))}
-              className="w-full"
+              min={0}
+              max={100}
+              step={5}
+              value={[progress]}
+              onValueChange={(value) => setProgress(value[0])}
             />
           </div>
-          
-          <DialogFooter className="gap-2 sm:gap-0">
-            {formValues.id && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="outline" className="text-destructive hover:bg-destructive/10">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. The sub-goal will be permanently deleted.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleDelete}
-                      className="bg-destructive hover:bg-destructive/90"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <Button type="submit">{formValues.id ? 'Update' : 'Create'}</Button>
-          </DialogFooter>
-        </form>
+        </div>
+
+        <DialogFooter className="flex justify-between sm:justify-between">
+          {item?.id && (
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          )}
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleSave}>
+              Save
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
