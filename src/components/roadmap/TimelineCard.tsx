@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
@@ -45,8 +44,8 @@ const TimelineCard = ({
   // Calculate minimum width based on text length to ensure title visibility
   const calculateMinWidth = () => {
     const titleLength = item.title?.length || 0;
-    // Ensure at least 10px per character with a minimum of 150px
-    const minTitleWidth = Math.max(titleLength * 12, 150);
+    // Ensure at least 15px per character with a minimum of 180px
+    const minTitleWidth = Math.max(titleLength * 15, 180);
     const durationWidth = item.duration * cellWidth;
     
     // Return the larger of the calculated width or the duration width
@@ -56,10 +55,10 @@ const TimelineCard = ({
   // Apply dnd-kit styles with minimum width calculation
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isResizing ? 'none' : transition,
     width: `${item.duration * cellWidth}px`,
     minWidth: `${calculateMinWidth()}px`, // Apply calculated min width
-    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
+    zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
   
   // Get category icon
@@ -82,10 +81,6 @@ const TimelineCard = ({
     }
   };
 
-  // Use a uniform emerald gradient like the home page sub-goal cards
-  const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
-  const categoryIcon = getCategoryIcon();
-  
   // Handle resize start
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,6 +113,10 @@ const TimelineCard = ({
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
+
+  // Use a uniform emerald gradient like the home page sub-goal cards
+  const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
+  const categoryIcon = getCategoryIcon();
 
   return (
     <div
@@ -199,13 +198,19 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle */}
+        {/* Resize handle - Always visible but more noticeable on hover */}
         {onResize && (
           <div 
             ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
+            className={cn(
+              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize",
+              isHovered || isResizing ? "bg-white/20" : "bg-white/10"
+            )}
             onMouseDown={handleResizeStart}
-          />
+            title="Drag to resize"
+          >
+            <div className="absolute inset-y-0 right-1.5 w-0.5 bg-white/40 my-2 rounded-full"></div>
+          </div>
         )}
       </div>
     </div>
