@@ -4,7 +4,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -62,8 +62,29 @@ const TimelineCard = ({
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
+  // Get category icon
+  const getCategoryIcon = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return <Star size={16} className="text-white" />;
+      case 'research':
+        return <AlertTriangle size={16} className="text-white" />;
+      case 'design':
+        return <Package size={16} className="text-white" />;
+      case 'development':
+        return <Monitor size={16} className="text-white" />;
+      case 'testing':
+        return <Cpu size={16} className="text-white" />;
+      default:
+        return null;
+    }
+  };
+
   // Use a uniform emerald gradient like the home page sub-goal cards
   const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
+  const categoryIcon = getCategoryIcon();
   
   // Handle resize start
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -130,6 +151,13 @@ const TimelineCard = ({
           <GripHorizontal size={14} />
         </div>
         
+        {/* Category icon */}
+        {categoryIcon && (
+          <div className="absolute left-3 top-3">
+            {categoryIcon}
+          </div>
+        )}
+        
         {/* Edit button */}
         {onEdit && (isHovered || isSelected) && (
           <button
@@ -144,16 +172,31 @@ const TimelineCard = ({
           </button>
         )}
         
-        {/* Content */}
-        <div className="flex flex-col h-full relative z-2 pt-4">
+        {/* Content - Enhanced for better visibility */}
+        <div className={cn(
+          "flex flex-col h-full relative z-2 pt-4",
+          categoryIcon ? "pl-7" : ""
+        )}>
           <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
-          {/* Description with better contrast */}
+          {/* Always display description with better contrast */}
           <div className="mt-2 space-y-1">
             {item.description && (
               <p className="text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
             )}
           </div>
+          
+          {/* Progress bar for items with longer duration */}
+          {item.duration > 1 && (
+            <div className="mt-auto select-none">
+              <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="h-full bg-white/80 transition-all duration-700 ease-out"
+                  style={{ width: `${item.progress}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Resize handle */}
@@ -162,9 +205,7 @@ const TimelineCard = ({
             ref={resizeRef}
             className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
             onMouseDown={handleResizeStart}
-          >
-            <div className="absolute right-1 top-0 bottom-0 w-[2px] bg-white/30"></div>
-          </div>
+          />
         )}
       </div>
     </div>

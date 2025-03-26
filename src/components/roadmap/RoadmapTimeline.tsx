@@ -1,9 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
-import TimelineCardDetails from './TimelineCardDetails';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import SubGoalTimelineForm from './SubGoalTimelineForm';
 import TimelineCard from './TimelineCard';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DndContext,
   DragEndEvent,
@@ -15,9 +14,11 @@ import {
   DragOverlay,
   DragMoveEvent,
   KeyboardSensor,
+  closestCenter,
   pointerWithin,
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
+import { cn } from '@/lib/utils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -30,11 +31,13 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const [months] = useState([
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
+  const [quarters] = useState(['Q1', 'Q2', 'Q3', 'Q4']);
   const [days] = useState(Array.from({ length: 31 }, (_, i) => i + 1));
   const [weeks] = useState(Array.from({ length: 52 }, (_, i) => i + 1));
   
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
+  const [openForm, setOpenForm] = useState(false);
   const [maxRow, setMaxRow] = useState(3);
   
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -49,7 +52,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       case 'month':
         return months;
       case 'year':
-        return months;
+        return quarters;
       default:
         return months;
     }
@@ -153,6 +156,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const handleEditItem = (item: SubGoalTimelineItem) => {
     setSelectedItem(item);
+    setOpenForm(true);
   };
   
   const handleAddItem = () => {
@@ -168,6 +172,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     };
     
     setSelectedItem(newItem);
+    setOpenForm(true);
   };
   
   const handleSaveItem = (item: SubGoalTimelineItem) => {
@@ -178,12 +183,14 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       : [...items, item];
     
     onItemsChange(updatedItems);
+    setOpenForm(false);
     setSelectedItem(null);
   };
   
   const handleDeleteItem = (itemId: string) => {
     const updatedItems = items.filter(item => item.id !== itemId);
     onItemsChange(updatedItems);
+    setOpenForm(false);
     setSelectedItem(null);
   };
   
@@ -194,9 +201,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       case 'week':
         return 'Weeks';
       case 'month':
-        return 'Days';
-      case 'year':
         return 'Months';
+      case 'year':
+        return 'Quarters';
       default:
         return 'Months';
     }
@@ -229,8 +236,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-900/90 backdrop-blur-sm overflow-hidden shadow-2xl">
-      {/* Timeline Header - Fixed at top */}
-      <div className="border-b border-slate-800 p-3 bg-slate-800/70 sticky top-0 z-10">
+      <div className="border-b border-slate-800 p-3 bg-slate-800/70">
         <div className="flex">
           {timeUnits.map((unit, idx) => (
             <div 
@@ -244,110 +250,109 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         </div>
       </div>
       
-      {/* Timeline Content - Scrollable */}
-      <ScrollArea 
-        className="w-full" 
+      <div 
+        className="relative overflow-x-auto p-2"
         style={{ height: `${maxRow * ROW_HEIGHT + 60}px` }}
+        ref={timelineRef}
       >
-        <div 
-          className="relative p-2 w-full" 
-          style={{ minWidth: `${timeUnitCount * cellWidth + 20}px` }}
-          ref={timelineRef}
-        >
-          {/* Timeline grid backgrounds */}
-          <div className="absolute inset-0 flex pointer-events-none">
-            {timeUnits.map((_, idx) => (
-              <div 
-                key={idx}
-                className="h-full border-r border-slate-800/50"
-                style={{ width: `${cellWidth}px` }}
-              ></div>
-            ))}
-          </div>
-          
-          <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: maxRow }).map((_, idx) => (
-              <div 
-                key={idx}
-                className="w-full border-b border-slate-800/50"
-                style={{ height: `${ROW_HEIGHT}px` }}
-              ></div>
-            ))}
-          </div>
-          
-          <DndContext
-            sensors={sensors}
-            onDragStart={handleDragStart}
-            onDragMove={handleDragMove}
-            onDragEnd={handleDragEnd}
-            collisionDetection={pointerWithin}
-            modifiers={[restrictToParentElement]}
-          >
-            <div className="absolute inset-0">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="absolute"
-                  style={{ 
-                    top: `${item.row * ROW_HEIGHT + 15}px`,
-                    left: `${item.start * cellWidth}px`,
-                  }}
-                >
-                  <TimelineCard
-                    item={item}
-                    isSelected={selectedItem?.id === item.id}
-                    onSelect={() => setSelectedItem(item)}
-                    onEdit={() => handleEditItem(item)}
-                    onResize={handleResizeItem}
-                    cellWidth={cellWidth}
-                    viewMode={viewMode}
-                  />
-                </div>
-              ))}
-              
-              <button
-                onClick={handleAddItem}
-                className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                  <path d="M5 12h14" />
-                  <path d="M12 5v14" />
-                </svg>
-              </button>
-            </div>
-            
-            <DragOverlay>
-              {draggingItemId ? (
-                <div className="opacity-80">
-                  {items.map((item) => {
-                    if (item.id === draggingItemId) {
-                      return (
-                        <TimelineCard
-                          key={`overlay-${item.id}`}
-                          item={item}
-                          isSelected={true}
-                          onSelect={() => {}}
-                          cellWidth={cellWidth}
-                          viewMode={viewMode}
-                        />
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
+        <div className="absolute inset-0 flex pointer-events-none">
+          {timeUnits.map((_, idx) => (
+            <div 
+              key={idx}
+              className="h-full border-r border-slate-800/50"
+              style={{ width: `${cellWidth}px` }}
+            ></div>
+          ))}
         </div>
-      </ScrollArea>
+        
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: maxRow }).map((_, idx) => (
+            <div 
+              key={idx}
+              className="w-full border-b border-slate-800/50"
+              style={{ height: `${ROW_HEIGHT}px` }}
+            ></div>
+          ))}
+        </div>
+        
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+          collisionDetection={pointerWithin}
+          modifiers={[restrictToParentElement]}
+        >
+          <div className="absolute inset-0">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="absolute"
+                style={{ 
+                  top: `${item.row * ROW_HEIGHT + 15}px`,
+                  left: `${item.start * cellWidth}px`,
+                }}
+              >
+                <TimelineCard
+                  item={item}
+                  isSelected={selectedItem?.id === item.id}
+                  onSelect={() => setSelectedItem(item)}
+                  onEdit={() => handleEditItem(item)}
+                  onResize={handleResizeItem}
+                  cellWidth={cellWidth}
+                  viewMode={viewMode}
+                />
+              </div>
+            ))}
+            
+            <button
+              onClick={handleAddItem}
+              className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+            </button>
+          </div>
+          
+          <DragOverlay>
+            {draggingItemId ? (
+              <div className="opacity-80">
+                {items.map((item) => {
+                  if (item.id === draggingItemId) {
+                    return (
+                      <TimelineCard
+                        key={`overlay-${item.id}`}
+                        item={item}
+                        isSelected={true}
+                        onSelect={() => {}}
+                        cellWidth={cellWidth}
+                        viewMode={viewMode}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
       
-      {/* Timeline Item Details Sheet */}
-      <TimelineCardDetails
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-        onSave={handleSaveItem}
-        onDelete={handleDeleteItem}
-      />
+      <Dialog open={openForm} onOpenChange={setOpenForm}>
+        <DialogContent className="sm:max-w-[500px]">
+          {selectedItem && (
+            <SubGoalTimelineForm
+              item={selectedItem}
+              onSave={handleSaveItem}
+              onDelete={handleDeleteItem}
+              onCancel={() => setOpenForm(false)}
+              viewMode={viewMode}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
