@@ -24,17 +24,10 @@ interface RoadmapTimelineProps {
   roadmapId: string;
   items: SubGoalTimelineItem[];
   onItemsChange: (items: SubGoalTimelineItem[]) => void;
-  onDeleteItem?: (itemId: string) => void;
   viewMode: TimelineViewMode;
 }
 
-const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ 
-  roadmapId, 
-  items, 
-  onItemsChange, 
-  onDeleteItem,
-  viewMode 
-}) => {
+const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onItemsChange, viewMode }) => {
   const [months] = useState([
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
@@ -196,8 +189,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
       row: 0,
       start: 0,
       duration: 2,
-      category: 'default',
-      parentId: roadmapId
+      category: 'default'
     };
     
     setSelectedItem(newItem);
@@ -219,17 +211,22 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
   
   // Delete an item
   const handleDeleteItem = (itemId: string) => {
-    // Call the parent component's delete handler if provided
-    if (onDeleteItem) {
-      onDeleteItem(itemId);
-    } else {
-      // Fallback to local state update if no handler provided
-      const updatedItems = items.filter(item => item.id !== itemId);
-      onItemsChange(updatedItems);
-    }
-    
+    const updatedItems = items.filter(item => item.id !== itemId);
+    onItemsChange(updatedItems);
     setOpenForm(false);
     setSelectedItem(null);
+  };
+  
+  // Get header label based on view mode
+  const getHeaderLabel = () => {
+    switch (viewMode) {
+      case 'month':
+        return 'Months';
+      case 'year':
+        return 'Quarters';
+      default:
+        return 'Months';
+    }
   };
   
   // Render timeline with months and items

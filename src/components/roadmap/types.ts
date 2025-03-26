@@ -24,7 +24,6 @@ export interface SubGoalTimelineItem {
   duration: number; // Length in time units
   progress: number; // 0-100
   category?: TimelineCategory;
-  color?: string; // Color for the timeline item
   parentId?: string; // Reference to parent goal
   originalSubGoalId?: string; // If imported from a sub-goal
   startDate?: string; // New field for start date

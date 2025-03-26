@@ -32,7 +32,6 @@ const formSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   progress: z.number().min(0).max(100),
-  color: z.string().optional(),
 });
 
 interface SubGoalTimelineFormProps {
@@ -42,17 +41,6 @@ interface SubGoalTimelineFormProps {
   onCancel: () => void;
   viewMode: TimelineViewMode;
 }
-
-// Predefined colors for selection
-const colorOptions = [
-  { name: "Purple", value: "#9b87f5" },
-  { name: "Blue", value: "#0EA5E9" },
-  { name: "Green", value: "#10B981" },
-  { name: "Red", value: "#F43F5E" },
-  { name: "Orange", value: "#F97316" },
-  { name: "Pink", value: "#D946EF" },
-  { name: "Yellow", value: "#F59E0B" },
-];
 
 const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
   item,
@@ -72,7 +60,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       startDate: item.startDate || '',
       endDate: item.endDate || '',
       progress: item.progress,
-      color: item.color || '',
     },
   });
 
@@ -85,10 +72,8 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       start: values.start,
       duration: item.duration, // Keep existing duration for now
       progress: values.progress,
-      color: values.color,
       startDate: values.startDate,
       endDate: values.endDate,
-      category: item.category,
       ...(item.parentId && { parentId: item.parentId }),
       ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
     };
@@ -233,42 +218,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
               )}
             />
           </div>
-
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Color</FormLabel>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {colorOptions.map((color) => (
-                    <div
-                      key={color.value}
-                      onClick={() => field.onChange(color.value)}
-                      className={cn(
-                        "w-8 h-8 rounded-full cursor-pointer transition-all",
-                        field.value === color.value ? "ring-2 ring-white ring-offset-2" : "hover:scale-110"
-                      )}
-                      style={{ backgroundColor: color.value }}
-                      title={color.name}
-                    />
-                  ))}
-                  {/* Option to clear color */}
-                  <div
-                    onClick={() => field.onChange('')}
-                    className={cn(
-                      "w-8 h-8 rounded-full cursor-pointer flex items-center justify-center bg-slate-800 transition-all",
-                      !field.value ? "ring-2 ring-white ring-offset-2" : "hover:scale-110"
-                    )}
-                    title="Default"
-                  >
-                    <span className="text-xs">×</span>
-                  </div>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
