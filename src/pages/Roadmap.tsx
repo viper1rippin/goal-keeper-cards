@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -13,6 +14,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
+import { startOfMonth, format, parseISO, addMonths, addQuarters, differenceInMonths } from "date-fns";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -93,21 +95,51 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
-            id: subGoal.id,
-            title: subGoal.title,
-            description: subGoal.description,
-            row: Math.floor(index / 3),
-            start: index * 3,
-            duration: 2,
-            progress: subGoal.progress || 0,
-            category: index % 5 === 0 ? 'milestone' : 
-                    index % 4 === 0 ? 'research' : 
-                    index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing',
-            parentId: selectedRoadmapId,
-            originalSubGoalId: subGoal.id
-          }));
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
+            // Get or create default dates
+            const startDate = subGoal.start_date || new Date().toISOString();
+            const endDate = subGoal.end_date || addMonths(new Date(), 1).toISOString();
+            
+            // Calculate timeline positioning based on dates
+            let start = 0;
+            let duration = 1;
+            
+            if (startDate && endDate) {
+              const startDateObj = new Date(startDate);
+              const endDateObj = new Date(endDate);
+              
+              if (selectedView === 'month') {
+                // For month view, calculate position in months from the start of the year
+                const startOfYear = new Date(startDateObj.getFullYear(), 0, 1);
+                start = differenceInMonths(startDateObj, startOfYear);
+                duration = Math.max(1, differenceInMonths(endDateObj, startDateObj) + 1);
+              } else {
+                // For year view, calculate position in quarters
+                const startOfYear = new Date(startDateObj.getFullYear(), 0, 1);
+                start = Math.floor(differenceInMonths(startDateObj, startOfYear) / 3);
+                duration = Math.max(1, Math.ceil(differenceInMonths(endDateObj, startDateObj) / 3));
+              }
+            }
+            
+            return {
+              id: subGoal.id,
+              title: subGoal.title,
+              description: subGoal.description,
+              row: subGoal.timeline_row || Math.floor(index / 3),
+              start: subGoal.timeline_start || start,
+              duration: subGoal.timeline_duration || duration,
+              progress: subGoal.progress || 0,
+              category: (subGoal.timeline_category as TimelineCategory) || 
+                      (index % 5 === 0 ? 'milestone' : 
+                      index % 4 === 0 ? 'research' : 
+                      index % 3 === 0 ? 'design' : 
+                      index % 2 === 0 ? 'development' : 'testing'),
+              parentId: selectedRoadmapId,
+              originalSubGoalId: subGoal.id,
+              startDate: startDate,
+              endDate: endDate
+            };
+          });
           
           setRoadmapItems(items);
         }
@@ -125,7 +157,7 @@ const Roadmap = () => {
     };
     
     fetchSubGoals();
-  }, [selectedRoadmapId, user]);
+  }, [selectedRoadmapId, user, selectedView]);
   
   const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
@@ -136,11 +168,19 @@ const Roadmap = () => {
           try {
             await supabase
               .from('sub_goals')
-              .update({ progress: item.progress })
+              .update({ 
+                progress: item.progress,
+                start_date: item.startDate,
+                end_date: item.endDate,
+                timeline_row: item.row,
+                timeline_start: item.start,
+                timeline_duration: item.duration,
+                timeline_category: item.category
+              })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
           } catch (error) {
-            console.error('Error updating sub-goal progress:', error);
+            console.error('Error updating sub-goal:', error);
           }
         }
       });

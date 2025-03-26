@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,7 +18,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, differenceInDays, differenceInMonths, parse, isValid, addMonths } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -29,9 +29,21 @@ const formSchema = z.object({
   description: z.string().optional(),
   row: z.number(),
   start: z.number(),
+  progress: z.number().min(0).max(100),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  progress: z.number().min(0).max(100),
+})
+.refine(data => {
+  // Only validate dates if both are provided
+  if (data.startDate && data.endDate) {
+    const start = new Date(data.startDate);
+    const end = new Date(data.endDate);
+    return end >= start;
+  }
+  return true;
+}, {
+  message: "End date must be after start date",
+  path: ["endDate"]
 });
 
 interface SubGoalTimelineFormProps {
@@ -63,33 +75,46 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
     },
   });
 
+  // Calculate duration when dates change
+  const calculateDuration = () => {
+    const startDate = form.watch('startDate');
+    const endDate = form.watch('endDate');
+    
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (viewMode === 'month') {
+        // For month view, calculate duration in months
+        return Math.max(1, differenceInMonths(end, start) + 1);
+      } else {
+        // For year view (quarters), calculate in quarters
+        return Math.max(1, Math.ceil(differenceInMonths(end, start) / 3));
+      }
+    }
+    
+    return item.duration || 1; // Default duration
+  };
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const duration = calculateDuration();
+    
     const updatedItem: SubGoalTimelineItem = {
       id: values.id,
       title: values.title,
       description: values.description || '',
       row: values.row,
       start: values.start,
-      duration: item.duration, // Keep existing duration for now
+      duration: duration,
       progress: values.progress,
       startDate: values.startDate,
       endDate: values.endDate,
+      category: item.category || 'default',
       ...(item.parentId && { parentId: item.parentId }),
       ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
     };
     
     onSave(updatedItem);
-  };
-
-  const getTimeUnitLabel = () => {
-    switch (viewMode) {
-      case 'month':
-        return 'months';
-      case 'year':
-        return 'quarters';
-      default:
-        return 'months';
-    }
   };
 
   return (

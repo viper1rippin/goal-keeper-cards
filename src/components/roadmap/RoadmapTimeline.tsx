@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
+import { format, addMonths, parseISO, startOfMonth, differenceInMonths, endOfMonth, addQuarters, startOfQuarter, endOfQuarter, differenceInQuarters } from 'date-fns';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -40,6 +41,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
+  
+  // Get current year
+  const currentYear = new Date().getFullYear();
   
   // Get time units based on view mode
   const getTimeUnits = () => {
@@ -140,13 +144,47 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
-      // Update the item's position
+      // Update the item's position and date
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
+          // Calculate new start date based on timeline position
+          let newStartDate = item.startDate;
+          
+          if (viewMode === "month") {
+            // In month view, each cell is one month
+            const currentYearDate = new Date(currentYear, newCell, 1);
+            newStartDate = currentYearDate.toISOString();
+          } else {
+            // In year view, each cell is one quarter
+            const quarterStartMonth = newCell * 3;
+            const currentYearDate = new Date(currentYear, quarterStartMonth, 1);
+            newStartDate = currentYearDate.toISOString();
+          }
+          
+          // Calculate new end date based on duration
+          let newEndDate = item.endDate;
+          if (newStartDate && item.duration) {
+            if (viewMode === "month") {
+              // Each cell is one month
+              const startDate = new Date(newStartDate);
+              const endDate = addMonths(startDate, item.duration - 1);
+              endDate.setDate(endDate.getDate() + (endOfMonth(endDate).getDate() - endDate.getDate()));
+              newEndDate = endDate.toISOString();
+            } else {
+              // Each cell is one quarter
+              const startDate = new Date(newStartDate);
+              const endDate = addQuarters(startDate, item.duration - 1);
+              endDate.setDate(endDate.getDate() + (endOfQuarter(endDate).getDate() - endDate.getDate()));
+              newEndDate = endDate.toISOString();
+            }
+          }
+          
           return {
             ...item,
             start: newCell,
-            row: newRow
+            row: newRow,
+            startDate: newStartDate,
+            endDate: newEndDate
           };
         }
         return item;
@@ -162,9 +200,31 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
+        // Calculate new end date based on new duration
+        let newEndDate = item.endDate;
+        
+        if (item.startDate) {
+          const startDate = new Date(item.startDate);
+          
+          if (viewMode === "month") {
+            // Calculate end date based on months
+            const endDate = addMonths(startDate, newDuration - 1);
+            // Move to the end of the month
+            endDate.setDate(endOfMonth(endDate).getDate());
+            newEndDate = endDate.toISOString();
+          } else {
+            // Calculate end date based on quarters
+            const endDate = addQuarters(startDate, newDuration - 1);
+            // Move to the end of the quarter
+            endDate.setDate(endOfQuarter(endDate).getDate());
+            newEndDate = endDate.toISOString();
+          }
+        }
+        
         return {
           ...item,
-          duration: newDuration
+          duration: newDuration,
+          endDate: newEndDate
         };
       }
       return item;
@@ -181,15 +241,23 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   // Open form for new item
   const handleAddItem = () => {
+    // Calculate default dates
+    const today = new Date();
+    const startDate = today.toISOString();
+    const endDate = addMonths(today, 1).toISOString();
+    
+    // Create new item
     const newItem: SubGoalTimelineItem = {
       id: `item-${Date.now()}`,
       title: 'New Item',
       description: '',
       progress: 0,
       row: 0,
-      start: 0,
-      duration: 2,
-      category: 'default'
+      start: today.getMonth(), // Current month
+      duration: 1,
+      category: 'default',
+      startDate: startDate,
+      endDate: endDate
     };
     
     setSelectedItem(newItem);
@@ -200,9 +268,42 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleSaveItem = (item: SubGoalTimelineItem) => {
     const isEditing = items.some(i => i.id === item.id);
     
+    // Position the item based on dates if they're set
+    let updatedItem = { ...item };
+    
+    if (item.startDate && item.endDate) {
+      const startDate = new Date(item.startDate);
+      const endDate = new Date(item.endDate);
+      
+      // Calculate start and duration based on view mode
+      if (viewMode === "month") {
+        // For month view
+        const startOfYear = new Date(startDate.getFullYear(), 0, 1);
+        const start = differenceInMonths(startDate, startOfYear);
+        const duration = Math.max(1, differenceInMonths(endDate, startDate) + 1);
+        
+        updatedItem = {
+          ...updatedItem,
+          start,
+          duration
+        };
+      } else {
+        // For year view (quarters)
+        const startOfYear = new Date(startDate.getFullYear(), 0, 1);
+        const start = Math.floor(differenceInMonths(startDate, startOfYear) / 3);
+        const duration = Math.max(1, Math.ceil(differenceInQuarters(endDate, startDate) + 0.1)); // Add 0.1 to handle edge cases
+        
+        updatedItem = {
+          ...updatedItem,
+          start,
+          duration
+        };
+      }
+    }
+    
     const updatedItems = isEditing
-      ? items.map(i => (i.id === item.id ? item : i))
-      : [...items, item];
+      ? items.map(i => (i.id === item.id ? updatedItem : i))
+      : [...items, updatedItem];
     
     onItemsChange(updatedItems);
     setOpenForm(false);
