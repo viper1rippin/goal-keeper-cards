@@ -23,6 +23,7 @@ const Roadmap = () => {
   const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
   useEffect(() => {
     const fetchParentGoals = async () => {
@@ -125,29 +126,51 @@ const Roadmap = () => {
     fetchSubGoals();
   }, [selectedRoadmapId, user]);
   
-  const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
+  const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
     
-    if (user && selectedRoadmapId) {
-      updatedItems.forEach(async (item) => {
-        if (item.originalSubGoalId) {
-          try {
-            await supabase
-              .from('sub_goals')
-              .update({ progress: item.progress })
-              .eq('id', item.originalSubGoalId)
-              .eq('user_id', user.id);
-          } catch (error) {
-            console.error('Error updating sub-goal progress:', error);
-          }
-        }
-      });
-    }
+    if (!user || !selectedRoadmapId) return;
     
-    toast({
-      title: "Roadmap updated",
-      description: "Your changes have been saved.",
-    });
+    try {
+      setIsSaving(true);
+      
+      // Prepare updates for batch processing
+      const updates = updatedItems
+        .filter(item => item.originalSubGoalId)
+        .map(item => ({
+          id: item.originalSubGoalId,
+          progress: item.progress,
+          timeline_row: item.row,
+          timeline_start: item.start,
+          timeline_duration: item.duration,
+          timeline_category: item.category,
+          title: item.title,
+          description: item.description
+        }));
+      
+      // Process updates in batches
+      for (const update of updates) {
+        await supabase
+          .from('sub_goals')
+          .update(update)
+          .eq('id', update.id)
+          .eq('user_id', user.id);
+      }
+      
+      toast({
+        title: "Roadmap updated",
+        description: "Your changes have been saved.",
+      });
+    } catch (error) {
+      console.error('Error updating sub-goals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   const handleCreateRoadmap = () => {
@@ -239,6 +262,7 @@ const Roadmap = () => {
               items={roadmapItems}
               onItemsChange={handleItemsChange}
               viewMode={selectedView}
+              isSaving={isSaving}
             />
           )}
         </div>

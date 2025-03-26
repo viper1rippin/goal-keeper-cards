@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, Rocket, Layers, Smartphone, Globe, Server, HardDrive } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -68,12 +69,55 @@ const TimelineCard = ({
         return <Monitor size={16} className="text-white" />;
       case 'testing':
         return <Cpu size={16} className="text-white" />;
+      case 'marketing':
+        return <Rocket size={16} className="text-white" />;
+      case 'feature':
+        return <Layers size={16} className="text-white" />;
+      case 'mobile':
+        return <Smartphone size={16} className="text-white" />;
+      case 'web':
+        return <Globe size={16} className="text-white" />;
+      case 'backend':
+        return <Server size={16} className="text-white" />;
+      case 'infrastructure':
+        return <HardDrive size={16} className="text-white" />;
       default:
-        return null;
+        return <Layers size={16} className="text-white" />;
     }
   };
 
-  const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
+  const getCategoryStyles = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return "from-purple-400 to-purple-500 border-purple-300";
+      case 'research':
+        return "from-amber-400 to-amber-500 border-amber-300";
+      case 'design':
+        return "from-pink-400 to-pink-500 border-pink-300";
+      case 'development':
+        return "from-blue-400 to-blue-500 border-blue-300";
+      case 'testing':
+        return "from-teal-400 to-teal-500 border-teal-300";
+      case 'marketing':
+        return "from-red-400 to-red-500 border-red-300";
+      case 'feature':
+        return "from-emerald-400 to-emerald-500 border-emerald-300";
+      case 'mobile':
+        return "from-cyan-400 to-cyan-500 border-cyan-300";
+      case 'web':
+        return "from-indigo-400 to-indigo-500 border-indigo-300";
+      case 'backend':
+        return "from-violet-400 to-violet-500 border-violet-300";
+      case 'infrastructure':
+        return "from-gray-400 to-gray-500 border-gray-300";
+      default:
+        return "from-emerald-400 to-emerald-500 border-emerald-300";
+    }
+  };
+
+  const cardGradient = getCategoryStyles();
   const categoryIcon = getCategoryIcon();
 
   const handleResizeStart = (e: React.MouseEvent) => {

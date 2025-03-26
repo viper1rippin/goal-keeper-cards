@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -29,9 +30,16 @@ interface RoadmapTimelineProps {
   items: SubGoalTimelineItem[];
   onItemsChange: (items: SubGoalTimelineItem[]) => void;
   viewMode: TimelineViewMode;
+  isSaving?: boolean;
 }
 
-const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onItemsChange, viewMode }) => {
+const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ 
+  roadmapId, 
+  items, 
+  onItemsChange, 
+  viewMode,
+  isSaving = false
+}) => {
   const [months] = useState([
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
@@ -119,6 +127,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
+    // This can be used for visual feedback during drag
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
@@ -175,27 +184,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     
     // Update UI immediately
     onItemsChange(updatedItems);
-    
-    // Save to database if it's a real sub-goal (not a temporary item)
-    const subGoal = updatedItems.find(item => item.id === itemId);
-    if (subGoal?.originalSubGoalId && user) {
-      try {
-        await supabase
-          .from('sub_goals')
-          .update({ 
-            timeline_duration: newDuration
-          })
-          .eq('id', subGoal.originalSubGoalId)
-          .eq('user_id', user.id);
-      } catch (error) {
-        console.error('Error updating sub-goal duration:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to save timeline changes',
-          variant: 'destructive',
-        });
-      }
-    }
   };
   
   const handleEditItem = (item: SubGoalTimelineItem) => {
@@ -203,35 +191,125 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setOpenForm(true);
   };
   
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
+    if (!user || !roadmapId) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add items.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Generate a temporary ID
+    const tempId = `item-${Date.now()}`;
+    
     const newItem: SubGoalTimelineItem = {
-      id: `item-${Date.now()}`,
+      id: tempId,
       title: 'New Item',
       description: '',
       progress: 0,
       row: 0,
       start: 0,
       duration: 2,
-      category: 'default'
+      category: 'default',
+      parentId: roadmapId
     };
     
     setSelectedItem(newItem);
     setOpenForm(true);
   };
   
-  const handleSaveItem = (item: SubGoalTimelineItem) => {
+  const handleSaveItem = async (item: SubGoalTimelineItem) => {
     const isEditing = items.some(i => i.id === item.id);
+    let updatedItems: SubGoalTimelineItem[] = [];
     
-    const updatedItems = isEditing
-      ? items.map(i => (i.id === item.id ? item : i))
-      : [...items, item];
+    // For new items, we need to create them in the database first
+    if (!isEditing && item.id.startsWith('item-') && user && roadmapId) {
+      try {
+        const { data, error } = await supabase
+          .from('sub_goals')
+          .insert({
+            title: item.title,
+            description: item.description,
+            parent_goal_id: roadmapId,
+            user_id: user.id,
+            progress: item.progress,
+            timeline_row: item.row,
+            timeline_start: item.start,
+            timeline_duration: item.duration,
+            timeline_category: item.category
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        if (data) {
+          // Replace the temporary item with the one from the database
+          const newItem: SubGoalTimelineItem = {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            row: data.timeline_row || 0,
+            start: data.timeline_start || 0,
+            duration: data.timeline_duration || 2,
+            progress: data.progress || 0,
+            category: (data.timeline_category as TimelineCategory) || 'default',
+            parentId: roadmapId,
+            originalSubGoalId: data.id
+          };
+          
+          updatedItems = [...items, newItem];
+        }
+      } catch (error) {
+        console.error('Error creating sub-goal:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create new item. Please try again.",
+          variant: "destructive"
+        });
+        setOpenForm(false);
+        setSelectedItem(null);
+        return;
+      }
+    } else {
+      // For existing items, just update the items array
+      updatedItems = isEditing
+        ? items.map(i => (i.id === item.id ? item : i))
+        : [...items, item];
+    }
     
     onItemsChange(updatedItems);
     setOpenForm(false);
     setSelectedItem(null);
   };
   
-  const handleDeleteItem = (itemId: string) => {
+  const handleDeleteItem = async (itemId: string) => {
+    // Check if this is a real database item (not a temporary one)
+    const itemToDelete = items.find(item => item.id === itemId);
+    
+    if (itemToDelete?.originalSubGoalId && user) {
+      try {
+        const { error } = await supabase
+          .from('sub_goals')
+          .delete()
+          .eq('id', itemToDelete.originalSubGoalId)
+          .eq('user_id', user.id);
+          
+        if (error) throw error;
+        
+      } catch (error) {
+        console.error('Error deleting sub-goal:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete item. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     const updatedItems = items.filter(item => item.id !== itemId);
     onItemsChange(updatedItems);
     setOpenForm(false);
@@ -350,12 +428,20 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
               
               <button
                 onClick={handleAddItem}
-                className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
+                disabled={isSaving}
+                className={`absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                  <path d="M5 12h14" />
-                  <path d="M12 5v14" />
-                </svg>
+                {isSaving ? (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                    <path d="M5 12h14" />
+                    <path d="M12 5v14" />
+                  </svg>
+                )}
               </button>
             </div>
             
