@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft } from "lucide-react";
+import TimelineCardDetails from "./TimelineCardDetails";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -29,6 +30,9 @@ const TimelineCard = ({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [initialDuration, setInitialDuration] = useState(item.duration);
+  
+  // Add clicked state for glow effect
+  const [isClicked, setIsClicked] = useState(false);
   
   const resizeRef = useRef<HTMLDivElement>(null);
   
@@ -82,6 +86,38 @@ const TimelineCard = ({
     }
   };
   
+  // Get glow color based on category
+  const getGlowColor = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return 'rgba(251, 191, 36, 0.6)'; // amber glow
+      case 'feature':
+        return 'rgba(96, 165, 250, 0.6)'; // blue glow
+      case 'research':
+        return 'rgba(167, 139, 250, 0.6)'; // purple glow
+      case 'design':
+        return 'rgba(244, 114, 182, 0.6)'; // pink glow
+      case 'development':
+        return 'rgba(52, 211, 153, 0.6)'; // emerald glow
+      case 'testing':
+        return 'rgba(249, 115, 22, 0.6)'; // orange glow
+      case 'marketing':
+        return 'rgba(239, 68, 68, 0.6)'; // red glow
+      case 'mobile':
+        return 'rgba(244, 63, 94, 0.6)'; // rose glow
+      case 'web':
+        return 'rgba(52, 211, 153, 0.6)'; // emerald glow
+      case 'infrastructure':
+        return 'rgba(167, 139, 250, 0.6)'; // purple glow
+      case 'backend':
+        return 'rgba(148, 163, 184, 0.6)'; // slate glow
+      default:
+        return 'rgba(52, 211, 153, 0.6)'; // emerald glow
+    }
+  };
+  
   // Get category icon
   const getCategoryIcon = () => {
     const category = item.category || 'default';
@@ -104,6 +140,7 @@ const TimelineCard = ({
 
   const colorClass = getCategoryColors();
   const categoryIcon = getCategoryIcon();
+  const glowColor = getGlowColor();
   
   // Handle resize start
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -138,99 +175,109 @@ const TimelineCard = ({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  // Always show expanded details by default, no longer dependent on hover or selection
-  // Removed the conditional that was checking for hover/selection state
+  // Handle card click to add glow effect
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Toggle click state for glow effect
+    setIsClicked(!isClicked);
+    // Call the original onSelect handler
+    onSelect();
+  };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "h-[120px] rounded-lg transition-all duration-300", 
-        isDragging ? "opacity-80 z-50" : "opacity-100",
-        "transform-gpu cursor-grab select-none",
-      )}
-      {...attributes}
-      onClick={onSelect}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div 
+    <TimelineCardDetails item={item}>
+      <div
+        ref={setNodeRef}
+        style={style}
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
-          isSelected
-            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
-            : isHovered
-              ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
-              : `bg-gradient-to-r ${colorClass} opacity-90`
+          "h-[120px] rounded-lg transition-all duration-300", 
+          isDragging ? "opacity-80 z-50" : "opacity-100",
+          "transform-gpu cursor-grab select-none",
         )}
+        {...attributes}
+        onClick={handleCardClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Drag handle */}
         <div 
-          className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
-          {...listeners}
+          className={cn(
+            "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
+            isSelected
+              ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
+              : isHovered
+                ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
+                : `bg-gradient-to-r ${colorClass} opacity-90`
+          )}
+          style={{
+            boxShadow: isClicked ? `0 0 15px 5px ${glowColor}` : '',
+          }}
         >
-          <GripHorizontal size={14} />
-        </div>
-        
-        {/* Category icon */}
-        {categoryIcon && (
-          <div className="absolute left-3 top-3">
-            {categoryIcon}
-          </div>
-        )}
-        
-        {/* Edit button */}
-        {onEdit && (isHovered || isSelected) && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            className="absolute top-2 right-2 p-1 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
-            aria-label="Edit goal"
+          {/* Drag handle */}
+          <div 
+            className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+            {...listeners}
           >
-            <Edit2 size={14} />
-          </button>
-        )}
-        
-        {/* Content - Always showing details now */}
-        <div className={cn(
-          "flex flex-col h-full relative z-2 pt-4",
-          categoryIcon ? "pl-7" : ""
-        )}>
-          <h3 className="font-medium text-base text-white line-clamp-1">{item.title}</h3>
+            <GripHorizontal size={14} />
+          </div>
           
-          {/* Always display description now */}
-          <div className="mt-2 space-y-1">
-            {item.description && (
-              <p className="text-sm text-white/80 line-clamp-3">{item.description}</p>
+          {/* Category icon */}
+          {categoryIcon && (
+            <div className="absolute left-3 top-3">
+              {categoryIcon}
+            </div>
+          )}
+          
+          {/* Edit button */}
+          {onEdit && (isHovered || isSelected) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="absolute top-2 right-2 p-1 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
+              aria-label="Edit goal"
+            >
+              <Edit2 size={14} />
+            </button>
+          )}
+          
+          {/* Content - Always showing details now */}
+          <div className={cn(
+            "flex flex-col h-full relative z-2 pt-4",
+            categoryIcon ? "pl-7" : ""
+          )}>
+            <h3 className="font-medium text-base text-white line-clamp-1">{item.title}</h3>
+            
+            {/* Always display description now */}
+            <div className="mt-2 space-y-1">
+              {item.description && (
+                <p className="text-sm text-white/80 line-clamp-3">{item.description}</p>
+              )}
+            </div>
+            
+            {/* Progress bar for items with longer duration */}
+            {item.duration > 1 && (
+              <div className="mt-auto select-none">
+                <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
+                  <div 
+                    className="h-full bg-white/80 transition-all duration-700 ease-out"
+                    style={{ width: `${item.progress}%` }}
+                  />
+                </div>
+              </div>
             )}
           </div>
           
-          {/* Progress bar for items with longer duration */}
-          {item.duration > 1 && (
-            <div className="mt-auto select-none">
-              <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
-                <div 
-                  className="h-full bg-white/80 transition-all duration-700 ease-out"
-                  style={{ width: `${item.progress}%` }}
-                />
-              </div>
-            </div>
+          {/* Resize handle */}
+          {onResize && (
+            <div 
+              ref={resizeRef}
+              className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
+              onMouseDown={handleResizeStart}
+            />
           )}
         </div>
-        
-        {/* Resize handle */}
-        {onResize && (
-          <div 
-            ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
-            onMouseDown={handleResizeStart}
-          />
-        )}
       </div>
-    </div>
+    </TimelineCardDetails>
   );
 };
 
