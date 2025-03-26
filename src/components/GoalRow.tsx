@@ -76,6 +76,22 @@ const GoalRow = ({
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
+  // Helper function to safely convert string to TimelineCategory
+  const parseTimelineCategory = (category: string | null): TimelineCategory => {
+    if (!category) return 'default';
+    
+    // Check if the category is a valid TimelineCategory value
+    const validCategories: TimelineCategory[] = [
+      'research', 'design', 'development', 'testing', 
+      'marketing', 'feature', 'milestone', 'default',
+      'mobile', 'web', 'infrastructure', 'backend'
+    ];
+    
+    return validCategories.includes(category as TimelineCategory) 
+      ? (category as TimelineCategory) 
+      : 'default';
+  };
+  
   // Fetch sub-goals for this parent goal
   const fetchSubGoals = async () => {
     try {
@@ -100,7 +116,7 @@ const GoalRow = ({
       }
       
       if (data) {
-        const formattedData = data.map(goal => ({
+        const formattedData: Goal[] = data.map(goal => ({
           id: goal.id,
           title: goal.title,
           description: goal.description,
@@ -111,7 +127,7 @@ const GoalRow = ({
           timeline_row: goal.timeline_row,
           timeline_start: goal.timeline_start,
           timeline_duration: goal.timeline_duration,
-          timeline_category: goal.timeline_category,
+          timeline_category: parseTimelineCategory(goal.timeline_category),
           // Handle user_id properly with type assertion if it exists on the database record
           ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
         }));

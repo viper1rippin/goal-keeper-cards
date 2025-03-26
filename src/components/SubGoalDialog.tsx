@@ -154,6 +154,7 @@ const SubGoalDialog = ({
       description: values.description,
       startDate: values.startDate,
       endDate: values.endDate,
+      timeline_category: timelineCategory,
     });
   };
 

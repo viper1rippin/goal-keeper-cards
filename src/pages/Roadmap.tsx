@@ -14,7 +14,6 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
-import { format } from "date-fns";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -24,6 +23,22 @@ const Roadmap = () => {
   const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Helper function to safely convert string to TimelineCategory
+  const parseTimelineCategory = (category: string | null): TimelineCategory => {
+    if (!category) return 'default';
+    
+    // Check if the category is a valid TimelineCategory value
+    const validCategories: TimelineCategory[] = [
+      'research', 'design', 'development', 'testing', 
+      'marketing', 'feature', 'milestone', 'default',
+      'mobile', 'web', 'infrastructure', 'backend'
+    ];
+    
+    return validCategories.includes(category as TimelineCategory) 
+      ? (category as TimelineCategory) 
+      : 'default';
+  };
   
   useEffect(() => {
     const fetchParentGoals = async () => {
@@ -100,11 +115,7 @@ const Roadmap = () => {
             const row = subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3);
             const start = subGoal.timeline_start !== null ? subGoal.timeline_start : index * 3;
             const duration = subGoal.timeline_duration !== null ? subGoal.timeline_duration : 2;
-            const category = subGoal.timeline_category as TimelineCategory || 
-                           (index % 5 === 0 ? 'milestone' : 
-                            index % 4 === 0 ? 'research' : 
-                            index % 3 === 0 ? 'design' : 
-                            index % 2 === 0 ? 'development' : 'testing');
+            const category = parseTimelineCategory(subGoal.timeline_category);
             
             return {
               id: subGoal.id,
