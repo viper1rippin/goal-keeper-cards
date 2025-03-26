@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem } from './types';
+import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import {
   DialogHeader,
   DialogTitle,
@@ -34,6 +34,7 @@ interface SubGoalTimelineFormProps {
   onSave: (item: SubGoalTimelineItem) => void;
   onDelete: (id: string) => void;
   onCancel: () => void;
+  viewMode?: TimelineViewMode; // Added viewMode as an optional prop
 }
 
 const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
@@ -41,6 +42,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
   onSave,
   onDelete,
   onCancel,
+  viewMode, // Added viewMode to destructured props
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
