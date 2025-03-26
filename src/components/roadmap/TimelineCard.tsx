@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
@@ -67,6 +68,7 @@ const TimelineCard = ({
   };
   
   const getCardColors = () => {
+    // Ensure each card uses its own color property
     const color = item.color || 'emerald';
     
     switch (color) {
@@ -114,6 +116,7 @@ const TimelineCard = ({
   };
 
   const shouldShowExpandedDetails = isSelected || isHovered;
+  // Get color for this specific card
   const colorClass = getCardColors();
 
   return (
