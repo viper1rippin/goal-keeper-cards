@@ -138,6 +138,9 @@ const TimelineCard = ({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
+  // Determine if we should show the expanded view with full details
+  const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
+
   return (
     <div
       ref={setNodeRef}
@@ -198,8 +201,12 @@ const TimelineCard = ({
         )}>
           <h3 className="font-medium text-sm text-white line-clamp-1">{item.title}</h3>
           
-          {item.description && item.duration > 2 && (
-            <p className="text-xs text-white/80 flex-1 mt-1 line-clamp-2">{item.description}</p>
+          {shouldShowExpandedDetails && (
+            <div className="mt-1 space-y-0.5">
+              {item.description && (
+                <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
+              )}
+            </div>
           )}
           
           {/* Progress bar for items with longer duration */}

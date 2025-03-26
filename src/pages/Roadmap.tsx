@@ -105,10 +105,13 @@ const Roadmap = () => {
             title: subGoal.title,
             description: subGoal.description,
             row: Math.floor(index / 3), // Simple row distribution
-            start: index % 4, // Simple start distribution
+            start: index * 3, // Spread items out for better visibility
             duration: 2, // Default duration
             progress: subGoal.progress || 0,
-            category: 'default',
+            category: index % 5 === 0 ? 'milestone' : 
+                    index % 4 === 0 ? 'research' : 
+                    index % 3 === 0 ? 'design' : 
+                    index % 2 === 0 ? 'development' : 'testing',
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id
           }));
