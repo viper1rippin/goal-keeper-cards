@@ -1,5 +1,5 @@
 
-export type TimelineViewMode = "month" | "year";
+export type TimelineViewMode = "day" | "week" | "month" | "year";
 
 export type TimelineCategory = 
   | "research" 
