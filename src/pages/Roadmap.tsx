@@ -254,12 +254,48 @@ const Roadmap = () => {
               <p className="text-slate-400">Select a parent goal to view its roadmap</p>
             </div>
           ) : (
-            <RoadmapTimeline
-              roadmapId={selectedRoadmapId}
-              items={roadmapItems}
-              onItemsChange={handleItemsChange}
-              viewMode={selectedView}
-            />
+            <>
+              <RoadmapTimeline
+                roadmapId={selectedRoadmapId}
+                items={roadmapItems}
+                onItemsChange={handleItemsChange}
+                viewMode={selectedView}
+              />
+              
+              {/* Premium Details Section */}
+              <div className="mt-8 bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-6">
+                <h2 className="text-2xl font-bold text-gradient mb-4">Premium Details</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-slate-800/60 rounded-lg p-4 border border-slate-700">
+                    <h3 className="text-lg font-semibold text-slate-200 mb-2">Premium for Burma</h3>
+                    <p className="text-3xl font-bold text-amber-400 mb-1">1000 lakhs</p>
+                    <p className="text-sm text-slate-400">Target revenue from premium subscriptions</p>
+                  </div>
+                  
+                  <div className="bg-slate-800/60 rounded-lg p-4 border border-slate-700">
+                    <h3 className="text-lg font-semibold text-slate-200 mb-2">Timeline</h3>
+                    <p className="text-3xl font-bold text-emerald-400 mb-1">30 days</p>
+                    <p className="text-sm text-slate-400">Projected completion timeframe</p>
+                  </div>
+                  
+                  <div className="bg-slate-800/60 rounded-lg p-4 border border-slate-700">
+                    <h3 className="text-lg font-semibold text-slate-200 mb-2">Progress Overview</h3>
+                    <div className="w-full h-4 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400" style={{ width: '35%' }}></div>
+                    </div>
+                    <p className="text-sm text-slate-400 mt-2">35% complete - On target</p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 bg-slate-800/40 rounded-lg p-4 border border-slate-700/50">
+                  <h3 className="text-md font-semibold text-slate-300 mb-2">Additional Notes</h3>
+                  <p className="text-sm text-slate-400">
+                    The premium subscription rollout for Burma is a key initiative with a target of generating 1000 lakhs in revenue within 30 days of launch. 
+                    This strategic project includes marketing campaigns, localization efforts, and partnerships with local businesses to drive adoption.
+                  </p>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </AnimatedContainer>
