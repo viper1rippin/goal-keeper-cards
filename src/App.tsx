@@ -19,10 +19,10 @@ import GuestGoals from "./pages/GuestGoals";
 import Roadmap from "./pages/Roadmap";
 import { useState } from "react";
 
-const App = () => {
-  // Create queryClient inside component to prevent React hooks errors
-  const [queryClient] = useState(() => new QueryClient());
+// Create a client
+const queryClient = new QueryClient();
 
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
