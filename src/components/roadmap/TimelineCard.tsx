@@ -39,7 +39,8 @@ const TimelineCard = ({
     transform: CSS.Transform.toString(transform),
     transition,
     width: `${item.duration * monthWidth}px`,
-    zIndex: isDragging ? 100 : isSelected ? 10 : 1
+    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
+    left: `${item.start * monthWidth}px`
   };
   
   // Generate consistent gradients based on the title
@@ -51,15 +52,11 @@ const TimelineCard = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "absolute top-0 left-0 h-full rounded-lg transition-all duration-300",
+        "absolute top-0 h-full rounded-lg transition-all duration-300",
         isDragging ? "opacity-80 z-50" : "opacity-100",
         "transform-gpu cursor-grab select-none",
       )}
       {...attributes}
-      style={{
-        ...style,
-        left: `${item.start * monthWidth}px`,
-      }}
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

@@ -1,27 +1,12 @@
 
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { SubGoalTimelineItem } from "./types";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
-
-// Form validation schema
-const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
-  progress: z.number().min(0).max(100),
-  row: z.number().min(0),
-  start: z.number().min(0).max(11),
-  duration: z.number().min(1).max(12),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { SubGoalTimelineItem } from './types';
+import { useForm } from 'react-hook-form';
 
 interface SubGoalTimelineFormProps {
   item: SubGoalTimelineItem | null;
@@ -38,188 +23,140 @@ export const SubGoalTimelineForm = ({
   onSave,
   onCancel,
   generateId,
-  maxRows
+  maxRows,
 }: SubGoalTimelineFormProps) => {
-  // Setup the form with default values
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: item?.title || "",
-      description: item?.description || "",
-      progress: item?.progress || 0,
-      row: item?.row || 0,
-      start: item?.start || 0,
-      duration: item?.duration || 2,
-    },
-  });
-
-  // Handle form submission
-  const onSubmit = (values: FormValues) => {
-    const savedItem: SubGoalTimelineItem = {
-      id: item?.id || generateId(),
-      title: values.title,
-      description: values.description,
-      progress: values.progress,
-      row: values.row,
-      start: values.start,
-      duration: values.duration,
-      parentId: item?.parentId,
-      originalSubGoalId: item?.originalSubGoalId,
-    };
-    
-    onSave(savedItem);
+  const defaultValues = item || {
+    id: generateId(),
+    title: '',
+    description: '',
+    progress: 0,
+    row: 0,
+    start: 0,
+    duration: 2,
   };
-
+  
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+    defaultValues,
+  });
+  
+  const progress = watch('progress');
+  
+  const onSubmit = (data: any) => {
+    onSave(data as SubGoalTimelineItem);
+  };
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-300">Title</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter goal title"
-                  className="bg-slate-800 border-slate-700 text-white"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-red-400" />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
+      <div className="space-y-2">
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
+          placeholder="Goal title"
+          className="bg-slate-800 border-slate-700"
+          {...register('title', { required: 'Title is required' })}
         />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-300">Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter goal description"
-                  className="bg-slate-800 border-slate-700 text-white resize-none h-20"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-red-400" />
-            </FormItem>
-          )}
+        {errors.title && (
+          <p className="text-xs text-red-500">{errors.title.message as string}</p>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          placeholder="Goal description"
+          className="bg-slate-800 border-slate-700 min-h-[80px]"
+          {...register('description')}
         />
-        
-        <FormField
-          control={form.control}
-          name="progress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-300">
-                Progress: {field.value}%
-              </FormLabel>
-              <FormControl>
-                <Slider
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={[field.value]}
-                  onValueChange={(value) => field.onChange(value[0])}
-                  className="py-4"
-                />
-              </FormControl>
-              <FormMessage className="text-red-400" />
-            </FormItem>
-          )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="progress">Progress: {progress}%</Label>
+        <Slider
+          id="progress"
+          value={[progress]}
+          min={0}
+          max={100}
+          step={5}
+          onValueChange={(value) => setValue('progress', value[0])}
         />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="row"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-300">
-                  Row: {field.value + 1}
-                </FormLabel>
-                <FormControl>
-                  <Slider
-                    min={0}
-                    max={maxRows - 1}
-                    step={1}
-                    value={[field.value]}
-                    onValueChange={(value) => field.onChange(value[0])}
-                    className="py-4"
-                  />
-                </FormControl>
-                <FormMessage className="text-red-400" />
-              </FormItem>
-            )}
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="row">Row (0-{maxRows - 1})</Label>
+          <Input
+            id="row"
+            type="number"
+            min={0}
+            max={maxRows - 1}
+            className="bg-slate-800 border-slate-700"
+            {...register('row', {
+              valueAsNumber: true,
+              min: { value: 0, message: `Min value is 0` },
+              max: { value: maxRows - 1, message: `Max value is ${maxRows - 1}` },
+            })}
           />
-          
-          <FormField
-            control={form.control}
-            name="start"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-300">
-                  Start Month: {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][field.value]}
-                </FormLabel>
-                <FormControl>
-                  <Slider
-                    min={0}
-                    max={11}
-                    step={1}
-                    value={[field.value]}
-                    onValueChange={(value) => field.onChange(value[0])}
-                    className="py-4"
-                  />
-                </FormControl>
-                <FormMessage className="text-red-400" />
-              </FormItem>
-            )}
-          />
+          {errors.row && (
+            <p className="text-xs text-red-500">{errors.row.message as string}</p>
+          )}
         </div>
         
-        <FormField
-          control={form.control}
-          name="duration"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-300">
-                Duration: {field.value} month{field.value > 1 ? 's' : ''}
-              </FormLabel>
-              <FormControl>
-                <Slider
-                  min={1}
-                  max={12}
-                  step={1}
-                  value={[field.value]}
-                  onValueChange={(value) => field.onChange(value[0])}
-                  className="py-4"
-                />
-              </FormControl>
-              <FormMessage className="text-red-400" />
-            </FormItem>
+        <div className="space-y-2">
+          <Label htmlFor="start">Start Month (0-11)</Label>
+          <Input
+            id="start"
+            type="number"
+            min={0}
+            max={11}
+            className="bg-slate-800 border-slate-700"
+            {...register('start', {
+              valueAsNumber: true,
+              min: { value: 0, message: 'Min value is 0' },
+              max: { value: 11, message: 'Max value is 11' },
+            })}
+          />
+          {errors.start && (
+            <p className="text-xs text-red-500">{errors.start.message as string}</p>
           )}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="duration">Duration (months)</Label>
+        <Input
+          id="duration"
+          type="number"
+          min={1}
+          max={12}
+          className="bg-slate-800 border-slate-700"
+          {...register('duration', {
+            valueAsNumber: true,
+            min: { value: 1, message: 'Min duration is 1 month' },
+            max: { value: 12, message: 'Max duration is 12 months' },
+          })}
         />
-        
-        <DialogFooter className="pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="border-slate-700 text-slate-300 hover:bg-slate-800"
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            className="bg-emerald-600 text-white hover:bg-emerald-700"
-          >
-            {item ? "Update" : "Create"}
-          </Button>
-        </DialogFooter>
-      </form>
-    </Form>
+        {errors.duration && (
+          <p className="text-xs text-red-500">{errors.duration.message as string}</p>
+        )}
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          className="bg-transparent border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          className="bg-emerald hover:bg-emerald-dark"
+        >
+          {item ? 'Update' : 'Create'} Goal
+        </Button>
+      </div>
+    </form>
   );
 };

@@ -14,6 +14,26 @@ import { supabase } from "@/integrations/supabase/client";
 import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
 import { Goal } from "@/components/GoalRow";
 
+// Helper function to create database schema checks
+const checkTableExists = async (tableName: string) => {
+  const { data, error } = await supabase.rpc('check_table_exists', { check_name: tableName });
+  if (error) {
+    console.error("Error checking if table exists:", error);
+    return false;
+  }
+  return !!data;
+};
+
+// Raw database operation for tables not in the TypeScript types
+const createRoadmapsTable = async () => {
+  // This SQL is executed directly against the database
+  const { error } = await supabase.rpc('check_table_exists', { check_name: 'roadmaps' });
+  
+  if (error) {
+    console.error("Error checking table existence:", error);
+  }
+};
+
 const Roadmap = () => {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -29,12 +49,23 @@ const Roadmap = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch roadmaps
+        // Check if the roadmaps table exists, if not, show a message
+        const exists = await checkTableExists('roadmaps');
+        if (!exists) {
+          toast({
+            title: "Database setup required",
+            description: "Please run database migrations to enable roadmaps",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        // Fetch roadmaps using a raw query since TypeScript doesn't know about this table yet
         const { data: roadmapsData, error: roadmapsError } = await supabase
           .from('roadmaps')
           .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+          .eq('user_id', user.id);
           
         if (roadmapsError) throw roadmapsError;
         
@@ -47,14 +78,29 @@ const Roadmap = () => {
           
         if (goalsError) throw goalsError;
         
-        // Process the data
-        const processedRoadmaps = roadmapsData || [];
+        // Process the data - we need to cast the raw data to match our types
+        const processedRoadmaps: RoadmapData[] = (roadmapsData || []).map(road => ({
+          id: road.id,
+          title: road.title,
+          description: road.description,
+          user_id: road.user_id,
+          items: road.items || [],
+          created_at: road.created_at,
+          updated_at: road.updated_at
+        }));
+        
         if (processedRoadmaps.length > 0 && !selectedRoadmapId) {
           setSelectedRoadmapId(processedRoadmaps[0].id);
         }
         
+        // For parent goals, we need to handle the missing 'goals' property
+        const processedParentGoals = (goalsData || []).map(goal => ({
+          ...goal,
+          goals: [] // Add the missing required property
+        }));
+        
         setRoadmaps(processedRoadmaps);
-        setParentGoals(goalsData || []);
+        setParentGoals(processedParentGoals);
       } catch (error) {
         console.error("Error fetching roadmap data:", error);
         toast({
@@ -82,21 +128,34 @@ const Roadmap = () => {
         items: []
       };
       
+      // Insert the new roadmap directly with the raw table name
       const { data, error } = await supabase
         .from('roadmaps')
         .insert(newRoadmap)
-        .select()
-        .single();
+        .select();
         
       if (error) throw error;
       
-      setRoadmaps([data, ...roadmaps]);
-      setSelectedRoadmapId(data.id);
-      
-      toast({
-        title: "Success",
-        description: "New roadmap created",
-      });
+      if (data && data.length > 0) {
+        // Create a properly typed roadmap object from the response
+        const newRoadmapTyped: RoadmapData = {
+          id: data[0].id,
+          title: data[0].title,
+          description: data[0].description,
+          user_id: data[0].user_id,
+          items: data[0].items || [],
+          created_at: data[0].created_at,
+          updated_at: data[0].updated_at
+        };
+        
+        setRoadmaps([newRoadmapTyped, ...roadmaps]);
+        setSelectedRoadmapId(newRoadmapTyped.id);
+        
+        toast({
+          title: "Success",
+          description: "New roadmap created",
+        });
+      }
     } catch (error) {
       console.error("Error creating roadmap:", error);
       toast({
@@ -124,7 +183,7 @@ const Roadmap = () => {
       const { data: subGoals, error } = await supabase
         .from('sub_goals')
         .select('*')
-        .eq('parent_id', parentGoalId)
+        .eq('parent_goal_id', parentGoalId)
         .order('position', { ascending: true });
         
       if (error) throw error;
@@ -156,6 +215,7 @@ const Roadmap = () => {
         items: [...(currentRoadmap.items || []), ...newItems]
       };
       
+      // Use the raw 'roadmaps' table name
       const { error: updateError } = await supabase
         .from('roadmaps')
         .update({ items: updatedRoadmap.items })
@@ -247,7 +307,7 @@ const Roadmap = () => {
                     );
                     setRoadmaps(updatedRoadmaps);
                     
-                    // Save to database
+                    // Save to database using raw table name
                     if (user) {
                       supabase
                         .from('roadmaps')

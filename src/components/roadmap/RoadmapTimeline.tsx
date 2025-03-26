@@ -4,7 +4,14 @@ import { SubGoalTimelineItem } from "./types";
 import TimelineCard from "./TimelineCard";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { 
+  DndContext, 
+  DragEndEvent, 
+  DragStartEvent, 
+  PointerSensor, 
+  useSensor, 
+  useSensors 
+} from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import { Button } from "@/components/ui/button";
@@ -75,9 +82,10 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
     // In a real app, you'd calculate this based on the drag delta
     const draggedItem = {...newItems[overIndex]};
     
-    // For horizontal positioning, we can approximate based on the over item's position
-    if (active.rect.current && over.rect.current) {
-      const dragDeltaX = active.rect.current.left - over.rect.current.left;
+    // For horizontal positioning, approximate based on the over item's position
+    if (active.rect && over.rect) {
+      // Calculate drag delta
+      const dragDeltaX = active.delta.x;
       
       // Adjust start month based on horizontal delta
       // Calculate the number of months to shift based on drag distance
