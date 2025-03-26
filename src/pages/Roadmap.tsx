@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -95,7 +94,6 @@ const Roadmap = () => {
         
         if (subGoalsData) {
           const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
-            // Use the color from the database if available, otherwise assign a random one
             const colors = ['amber', 'blue', 'purple', 'pink', 'emerald', 'orange', 'red'];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
             
@@ -108,7 +106,7 @@ const Roadmap = () => {
               startDate: subGoal.start_date ? new Date(subGoal.start_date).toISOString() : undefined,
               endDate: subGoal.end_date ? new Date(subGoal.end_date).toISOString() : undefined,
               progress: subGoal.progress || 0,
-              color: subGoal.color || randomColor,
+              color: randomColor,
               parentId: selectedRoadmapId,
               originalSubGoalId: subGoal.id
             };
@@ -144,8 +142,7 @@ const Roadmap = () => {
               .update({ 
                 progress: item.progress,
                 start_date: item.startDate,
-                end_date: item.endDate,
-                color: item.color  // Save the color to the database
+                end_date: item.endDate 
               })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
