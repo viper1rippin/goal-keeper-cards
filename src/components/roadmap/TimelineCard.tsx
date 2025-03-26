@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -29,8 +30,6 @@ const TimelineCard = ({
   const [resizeStartX, setResizeStartX] = useState(0);
   const [initialDuration, setInitialDuration] = useState(item.duration);
   const [currentDuration, setCurrentDuration] = useState(item.duration);
-  
-  const resizeRef = useRef<HTMLDivElement>(null);
   
   // Setup sortable hook with resize-disable condition
   const {
@@ -97,7 +96,7 @@ const TimelineCard = ({
     document.addEventListener('mouseup', handleResizeEnd);
   };
   
-  // Handle resize move - simplified for direct feedback
+  // Handle resize move
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
@@ -126,14 +125,6 @@ const TimelineCard = ({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  const getDurationTooltip = () => {
-    if (viewMode === 'month') {
-      return `${currentDuration} day${currentDuration > 1 ? 's' : ''}`;
-    } else {
-      return `${currentDuration} month${currentDuration > 1 ? 's' : ''}`;
-    }
-  };
-
   return (
     <div
       ref={setNodeRef}
@@ -152,7 +143,7 @@ const TimelineCard = ({
         className={cn(
           "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
           isSelected
-            ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30 animate-emerald-pulse`
+            ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30`
             : isHovered
               ? `bg-gradient-to-r ${cardGradient} shadow-sm shadow-emerald/20 opacity-95`
               : `bg-gradient-to-r ${cardGradient} opacity-90`
@@ -202,13 +193,6 @@ const TimelineCard = ({
             <p className="mt-2 text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
           )}
           
-          {/* Display duration badge */}
-          {isHovered && (
-            <div className="absolute bottom-2 right-2 bg-black/30 text-white/90 text-xs px-2 py-1 rounded-full">
-              {getDurationTooltip()}
-            </div>
-          )}
-          
           {/* Progress bar for items with longer duration */}
           {currentDuration > 1 && (
             <div className="mt-auto select-none">
@@ -222,16 +206,13 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle - simplified for better interaction */}
+        {/* Right edge for resizing - using the entire right edge of the card */}
         {onResize && (
           <div 
-            ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize bg-white/10 hover:bg-white/30"
+            className="absolute top-0 right-0 w-4 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
             onMouseDown={handleResizeStart}
             aria-label="Resize card"
-          >
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-1 bg-white/60 rounded-full"></div>
-          </div>
+          />
         )}
       </div>
     </div>
