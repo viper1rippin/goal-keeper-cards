@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -38,7 +39,7 @@ const SubGoalDialog = ({
   onDelete
 }: SubGoalDialogProps) => {
   const { toast } = useToast();
-  const { user } = useAuth(); // Get the current authenticated user
+  const { user } = useAuth();
   
   // Initialize form with default values or editing values
   const form = useForm<SubGoalFormValues>({
@@ -102,7 +103,7 @@ const SubGoalDialog = ({
       title: values.title,
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
-      user_id: user.id // Associate sub-goal with user
+      user_id: user.id
     };
     
     // If editing, update the existing sub-goal
@@ -111,7 +112,7 @@ const SubGoalDialog = ({
         .from('sub_goals')
         .update(subGoalData)
         .eq('id', subGoalToEdit.id)
-        .eq('user_id', user.id); // Only update if user owns the sub-goal
+        .eq('user_id', user.id);
       
       if (error) throw error;
     } else {
@@ -123,10 +124,12 @@ const SubGoalDialog = ({
       if (error) throw error;
     }
     
-    // Call the onSave callback to update UI
+    // Call the onSave callback to update UI with the correct id
     onSave({
+      id: subGoalToEdit?.id || undefined,
       title: values.title,
       description: values.description,
+      progress: subGoalToEdit?.progress || 0
     });
   };
 

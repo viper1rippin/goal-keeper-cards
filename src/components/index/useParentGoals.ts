@@ -75,7 +75,10 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            progress: subGoal.progress
+            progress: subGoal.progress,
+            color: subGoal.color,
+            startDate: subGoal.start_date,
+            endDate: subGoal.end_date
           });
         }
       });

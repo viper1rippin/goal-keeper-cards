@@ -13,9 +13,11 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
+import { useNavigate } from "react-router-dom";
 
 const Roadmap = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null);
   const [selectedView, setSelectedView] = useState<TimelineViewMode>("month");
@@ -97,16 +99,20 @@ const Roadmap = () => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: Math.floor(index / 3),
-            start: index * 3,
-            duration: 2,
+            row: subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3),
+            start: subGoal.timeline_start !== null ? subGoal.timeline_start : index * 3,
+            duration: subGoal.timeline_duration !== null ? subGoal.timeline_duration : 2,
             progress: subGoal.progress || 0,
-            category: index % 5 === 0 ? 'milestone' : 
+            category: subGoal.timeline_category as TimelineCategory || 
+                    (index % 5 === 0 ? 'milestone' : 
                     index % 4 === 0 ? 'research' : 
                     index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing',
+                    index % 2 === 0 ? 'development' : 'testing'),
             parentId: selectedRoadmapId,
-            originalSubGoalId: subGoal.id
+            originalSubGoalId: subGoal.id,
+            color: subGoal.color,
+            startDate: subGoal.start_date,
+            endDate: subGoal.end_date
           }));
           
           setRoadmapItems(items);
@@ -127,47 +133,94 @@ const Roadmap = () => {
     fetchSubGoals();
   }, [selectedRoadmapId, user]);
   
-  const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
-    setRoadmapItems(updatedItems);
+  const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
+    if (!user || !selectedRoadmapId) return;
     
-    if (user && selectedRoadmapId) {
-      updatedItems.forEach(async (item) => {
+    try {
+      for (const item of updatedItems) {
         if (item.originalSubGoalId) {
-          try {
-            await supabase
-              .from('sub_goals')
-              .update({ progress: item.progress })
-              .eq('id', item.originalSubGoalId)
-              .eq('user_id', user.id);
-          } catch (error) {
-            console.error('Error updating sub-goal progress:', error);
+          await supabase
+            .from('sub_goals')
+            .update({
+              progress: item.progress,
+              timeline_row: item.row,
+              timeline_start: item.start,
+              timeline_duration: item.duration,
+              timeline_category: item.category,
+              color: item.color,
+              start_date: item.startDate,
+              end_date: item.endDate
+            })
+            .eq('id', item.originalSubGoalId)
+            .eq('user_id', user.id);
+        } else {
+          const { data, error } = await supabase
+            .from('sub_goals')
+            .insert({
+              parent_goal_id: selectedRoadmapId,
+              title: item.title,
+              description: item.description,
+              progress: item.progress,
+              timeline_row: item.row,
+              timeline_start: item.start,
+              timeline_duration: item.duration,
+              timeline_category: item.category,
+              color: item.color,
+              start_date: item.startDate,
+              end_date: item.endDate,
+              user_id: user.id
+            })
+            .select('id')
+            .single();
+            
+          if (!error && data) {
+            item.originalSubGoalId = data.id;
           }
         }
+      }
+      
+      const existingItemIds = roadmapItems
+        .filter(item => item.originalSubGoalId)
+        .map(item => item.originalSubGoalId);
+      
+      const updatedItemIds = updatedItems
+        .filter(item => item.originalSubGoalId)
+        .map(item => item.originalSubGoalId);
+      
+      const deletedItemIds = existingItemIds.filter(id => !updatedItemIds.includes(id));
+      
+      for (const id of deletedItemIds) {
+        if (id) {
+          await supabase
+            .from('sub_goals')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+        }
+      }
+      
+      setRoadmapItems(updatedItems);
+      
+      toast({
+        title: "Roadmap updated",
+        description: "Your changes have been saved.",
+      });
+    } catch (error) {
+      console.error('Error updating roadmap:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update roadmap. Please try again.',
+        variant: 'destructive',
       });
     }
-    
-    toast({
-      title: "Roadmap updated",
-      description: "Your changes have been saved.",
-    });
   };
   
   const handleCreateRoadmap = () => {
-    toast({
-      title: "Coming Soon",
-      description: "This feature will be available in the next update.",
-    });
+    navigate('/');
   };
   
   const handleViewChange = (view: "month" | "year") => {
     setSelectedView(view);
-  };
-  
-  const handleImportSubGoals = (parentId: string) => {
-    toast({
-      title: "Coming Soon",
-      description: "Importing sub-goals will be available in the next update.",
-    });
   };
   
   return (

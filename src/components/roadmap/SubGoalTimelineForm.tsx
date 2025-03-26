@@ -4,259 +4,271 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem, TimelineViewMode } from './types';
-import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SubGoalTimelineItem, TimelineCategory, TimelineViewMode } from './types';
 import { Slider } from '@/components/ui/slider';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
-  id: z.string(),
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().min(2, {
+    message: 'Title must be at least 2 characters.',
+  }),
   description: z.string().optional(),
-  row: z.number(),
-  start: z.number(),
+  category: z.string(),
+  progress: z.number().min(0).max(100),
+  duration: z.number().min(1).max(12),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  progress: z.number().min(0).max(100),
+  color: z.string().optional(),
 });
+
+type TimelineFormValues = z.infer<typeof formSchema>;
 
 interface SubGoalTimelineFormProps {
   item: SubGoalTimelineItem;
   onSave: (item: SubGoalTimelineItem) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (itemId: string) => void;
   onCancel: () => void;
   viewMode: TimelineViewMode;
 }
 
-const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
-  item,
-  onSave,
-  onDelete,
-  onCancel,
-  viewMode,
-}) => {
-  const form = useForm<z.infer<typeof formSchema>>({
+const timelineCategories: { value: TimelineCategory; label: string }[] = [
+  { value: 'research', label: 'Research' },
+  { value: 'design', label: 'Design' },
+  { value: 'development', label: 'Development' },
+  { value: 'testing', label: 'Testing' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'feature', label: 'Feature' },
+  { value: 'milestone', label: 'Milestone' },
+  { value: 'default', label: 'Default' },
+  { value: 'mobile', label: 'Mobile' },
+  { value: 'web', label: 'Web' },
+  { value: 'infrastructure', label: 'Infrastructure' },
+  { value: 'backend', label: 'Backend' },
+];
+
+const colorOptions = [
+  { value: 'bg-blue-500', label: 'Blue' },
+  { value: 'bg-green-500', label: 'Green' },
+  { value: 'bg-purple-500', label: 'Purple' },
+  { value: 'bg-yellow-500', label: 'Yellow' },
+  { value: 'bg-pink-500', label: 'Pink' },
+  { value: 'bg-red-500', label: 'Red' },
+  { value: 'bg-indigo-500', label: 'Indigo' },
+  { value: 'bg-emerald-500', label: 'Emerald' },
+];
+
+const SubGoalTimelineForm = ({ item, onSave, onDelete, onCancel, viewMode }: SubGoalTimelineFormProps) => {
+  const form = useForm<TimelineFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: item.id,
       title: item.title,
       description: item.description || '',
-      row: item.row,
-      start: item.start,
+      category: item.category || 'default',
+      progress: item.progress,
+      duration: item.duration,
       startDate: item.startDate || '',
       endDate: item.endDate || '',
-      progress: item.progress,
+      color: item.color || '',
     },
   });
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+  function onSubmit(values: TimelineFormValues) {
     const updatedItem: SubGoalTimelineItem = {
-      id: values.id,
+      ...item,
       title: values.title,
       description: values.description || '',
-      row: values.row,
-      start: values.start,
-      duration: item.duration, // Keep existing duration for now
+      category: values.category as TimelineCategory,
       progress: values.progress,
-      startDate: values.startDate,
-      endDate: values.endDate,
-      ...(item.parentId && { parentId: item.parentId }),
-      ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
+      duration: values.duration,
+      startDate: values.startDate || undefined,
+      endDate: values.endDate || undefined,
+      color: values.color || undefined,
     };
     
     onSave(updatedItem);
-  };
-
-  const getTimeUnitLabel = () => {
-    switch (viewMode) {
-      case 'month':
-        return 'months';
-      case 'year':
-        return 'quarters';
-      default:
-        return 'months';
-    }
-  };
+  }
 
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>
-          {item.id.startsWith('item-') ? 'Add New Item' : 'Edit Item'}
-        </DialogTitle>
-        <DialogDescription>
-          Modify the details of this timeline item
-        </DialogDescription>
-      </DialogHeader>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Title" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Description" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="title"
+            name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter title" {...field} />
-                </FormControl>
-                <FormMessage />
+                <FormLabel>Category</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {timelineCategories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormItem>
             )}
           />
-
+          
           <FormField
             control={form.control}
-            name="description"
+            name="color"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter description (optional)"
-                    {...field}
-                    rows={3}
-                  />
-                </FormControl>
-                <FormMessage />
+                <FormLabel>Color</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select color" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {colorOptions.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        <div className="flex items-center">
+                          <div className={`${color.value} w-4 h-4 rounded-full mr-2`}></div>
+                          {color.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormItem>
             )}
           />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Start Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(new Date(field.value), "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="endDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>End Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(new Date(field.value), "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="progress"
+            name="startDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Progress: {field.value}%</FormLabel>
+                <FormLabel>Start Date</FormLabel>
                 <FormControl>
-                  <Slider
-                    value={[field.value]}
-                    min={0}
-                    max={100}
-                    step={5}
-                    onValueChange={(value) => field.onChange(value[0])}
-                  />
+                  <Input type="date" {...field} />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
-
-          <div className="flex justify-between gap-2 pt-4">
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => onDelete(item.id)}
-            >
-              Delete
-            </Button>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
+          
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={form.control}
+          name="progress"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Progress: {field.value}%</FormLabel>
+              <FormControl>
+                <Slider
+                  defaultValue={[field.value]}
+                  min={0}
+                  max={100}
+                  step={5}
+                  onValueChange={(value) => field.onChange(value[0])}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration: {field.value} {viewMode === 'month' ? 'weeks' : 'months'}</FormLabel>
+              <FormControl>
+                <Slider
+                  defaultValue={[field.value]}
+                  min={1}
+                  max={12}
+                  step={1}
+                  onValueChange={(value) => field.onChange(value[0])}
+                />
+              </FormControl>
+              <FormDescription>
+                Duration in {viewMode === 'month' ? 'weeks' : 'months'}
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        
+        <div className="flex justify-between pt-4">
+          <div>
+            {onDelete && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => onDelete(item.id)}
+              >
+                Delete
               </Button>
-              <Button type="submit">Save</Button>
-            </div>
+            )}
           </div>
-        </form>
-      </Form>
-    </>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </div>
+      </form>
+    </Form>
   );
 };
 
