@@ -4,7 +4,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -82,11 +82,42 @@ const TimelineCard = ({
     }
   };
 
-  // Use a uniform emerald gradient like the home page sub-goal cards
-  const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
+  // FL Studio style gradient based on category
+  const getCategoryGradient = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return "from-yellow-400 to-amber-500 border-yellow-300";
+      case 'research':
+        return "from-indigo-400 to-indigo-500 border-indigo-300";
+      case 'design':
+        return "from-sky-400 to-blue-500 border-sky-300";
+      case 'development':
+        return "from-emerald-400 to-emerald-500 border-emerald-300";
+      case 'testing':
+        return "from-orange-400 to-orange-500 border-orange-300";
+      case 'marketing':
+        return "from-purple-400 to-purple-500 border-purple-300";
+      case 'feature':
+        return "from-pink-400 to-pink-500 border-pink-300";
+      case 'mobile':
+        return "from-cyan-400 to-cyan-500 border-cyan-300";
+      case 'web':
+        return "from-emerald-400 to-green-500 border-emerald-300";
+      case 'infrastructure':
+        return "from-slate-400 to-slate-500 border-slate-300";
+      case 'backend':
+        return "from-teal-400 to-teal-500 border-teal-300";
+      default:
+        return "from-emerald-400 to-emerald-500 border-emerald-300";
+    }
+  };
+  
+  const cardGradient = getCategoryGradient();
   const categoryIcon = getCategoryIcon();
   
-  // Handle resize start
+  // FL Studio-style resize handling
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -99,7 +130,7 @@ const TimelineCard = ({
     document.addEventListener('mouseup', handleResizeEnd);
   };
   
-  // Handle resize move
+  // FL Studio-like resize behavior with exact cell rounding
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
@@ -112,7 +143,6 @@ const TimelineCard = ({
     }
   };
   
-  // Handle resize end
   const handleResizeEnd = () => {
     setIsResizing(false);
     document.removeEventListener('mousemove', handleResizeMove);
@@ -143,7 +173,7 @@ const TimelineCard = ({
               : `bg-gradient-to-r ${cardGradient} opacity-90`
         )}
       >
-        {/* Drag handle */}
+        {/* FL Studio style drag handle - more prominent */}
         <div 
           className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
           {...listeners}
@@ -179,7 +209,7 @@ const TimelineCard = ({
         )}>
           <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
-          {/* Always display description with better contrast */}
+          {/* Description with better contrast */}
           <div className="mt-2 space-y-1">
             {item.description && (
               <p className="text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
@@ -199,13 +229,16 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle */}
+        {/* FL Studio-style resize handle - more visible */}
         {onResize && (
           <div 
             ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
+            className="absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/20 active:bg-white/30"
             onMouseDown={handleResizeStart}
-          />
+            title="Drag to resize"
+          >
+            <div className="absolute right-1 top-0 bottom-0 w-[2px] bg-white/30"></div>
+          </div>
         )}
       </div>
     </div>
