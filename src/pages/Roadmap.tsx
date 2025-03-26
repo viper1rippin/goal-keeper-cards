@@ -1,156 +1,81 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
-import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
-import { SubGoalTimelineItem, TimelineViewMode } from "@/components/roadmap/types";
+import { SubGoalTimelineItem } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { ParentGoal } from "@/components/index/IndexPageTypes";
-import { Goal } from "@/components/GoalRow";
 
 const Roadmap = () => {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null);
-  const [selectedView, setSelectedView] = useState<TimelineViewMode>("month");
-  const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
-  const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>("demo");
+  const [selectedView, setSelectedView] = useState<"day" | "week" | "month" | "year">("month");
   
-  // Fetch parent goals
-  useEffect(() => {
-    const fetchParentGoals = async () => {
-      if (!user) {
-        setParentGoals([]);
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        setIsLoading(true);
-        
-        // Fetch parent goals
-        const { data: parentGoalsData, error: parentGoalsError } = await supabase
-          .from('parent_goals')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('position', { ascending: true });
-        
-        if (parentGoalsError) throw parentGoalsError;
-        
-        if (parentGoalsData && parentGoalsData.length > 0) {
-          const formattedParentGoals: ParentGoal[] = parentGoalsData.map(pg => ({
-            id: pg.id,
-            title: pg.title,
-            description: pg.description,
-            goals: [],
-            position: pg.position || 0
-          }));
-          
-          setParentGoals(formattedParentGoals);
-          
-          // Set first parent goal as selected by default if none is selected
-          if (!selectedRoadmapId) {
-            setSelectedRoadmapId(formattedParentGoals[0].id);
-          }
-        }
-        
-      } catch (error) {
-        console.error('Error fetching parent goals:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load parent goals. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchParentGoals();
-  }, [user]);
+  // Sample roadmap data - in real app this would come from API
+  const sampleItems: SubGoalTimelineItem[] = [
+    {
+      id: "1",
+      title: "Research Phase",
+      description: "Initial market research and competitor analysis",
+      row: 0,
+      start: 1,
+      duration: 3,
+      progress: 70,
+      category: "research"
+    },
+    {
+      id: "2",
+      title: "Design Prototypes",
+      description: "Create wireframes and interactive prototypes",
+      row: 1,
+      start: 3,
+      duration: 2,
+      progress: 40,
+      category: "design"
+    },
+    {
+      id: "3",
+      title: "MVP Development",
+      description: "Develop minimum viable product features",
+      row: 2,
+      start: 4,
+      duration: 4,
+      progress: 20,
+      category: "development"
+    },
+    {
+      id: "4",
+      title: "Alpha Testing",
+      description: "Internal testing phase",
+      row: 0,
+      start: 6,
+      duration: 2,
+      progress: 0,
+      category: "testing"
+    },
+    {
+      id: "5",
+      title: "Beta Release",
+      description: "Limited user testing",
+      row: 1,
+      start: 7,
+      duration: 3,
+      progress: 0,
+      category: "milestone"
+    }
+  ];
   
-  // Fetch sub-goals for the selected parent goal
-  useEffect(() => {
-    const fetchSubGoals = async () => {
-      if (!user || !selectedRoadmapId) {
-        setRoadmapItems([]);
-        return;
-      }
-      
-      try {
-        setIsLoading(true);
-        
-        // Fetch sub-goals for the selected parent goal
-        const { data: subGoalsData, error: subGoalsError } = await supabase
-          .from('sub_goals')
-          .select('*')
-          .eq('parent_goal_id', selectedRoadmapId)
-          .eq('user_id', user.id)
-          .order('display_order', { ascending: true });
-        
-        if (subGoalsError) throw subGoalsError;
-        
-        if (subGoalsData) {
-          // Convert sub-goals to timeline items
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
-            id: subGoal.id,
-            title: subGoal.title,
-            description: subGoal.description,
-            row: Math.floor(index / 3), // Simple row distribution
-            start: index % 4, // Simple start distribution
-            duration: 2, // Default duration
-            progress: subGoal.progress || 0,
-            category: 'default',
-            parentId: selectedRoadmapId,
-            originalSubGoalId: subGoal.id
-          }));
-          
-          setRoadmapItems(items);
-        }
-        
-      } catch (error) {
-        console.error('Error fetching sub-goals:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load sub-goals. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchSubGoals();
-  }, [selectedRoadmapId, user]);
+  const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>(sampleItems);
   
   const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
-    
-    // Update progress on sub-goals in the database
-    if (user && selectedRoadmapId) {
-      updatedItems.forEach(async (item) => {
-        if (item.originalSubGoalId) {
-          try {
-            await supabase
-              .from('sub_goals')
-              .update({ progress: item.progress })
-              .eq('id', item.originalSubGoalId)
-              .eq('user_id', user.id);
-          } catch (error) {
-            console.error('Error updating sub-goal progress:', error);
-          }
-        }
-      });
-    }
-    
+    // In a real app, we would save to database here
     toast({
       title: "Roadmap updated",
       description: "Your changes have been saved.",
@@ -166,14 +91,6 @@ const Roadmap = () => {
   
   const handleViewChange = (view: "day" | "week" | "month" | "year") => {
     setSelectedView(view);
-  };
-  
-  const handleImportSubGoals = (parentId: string) => {
-    // This function is for future use - importing goals from another parent
-    toast({
-      title: "Coming Soon",
-      description: "Importing sub-goals will be available in the next update.",
-    });
   };
   
   return (
@@ -213,7 +130,6 @@ const Roadmap = () => {
               <RoadmapSelector 
                 selectedRoadmapId={selectedRoadmapId} 
                 onSelectRoadmap={setSelectedRoadmapId}
-                parentGoals={parentGoals}
               />
               
               <div className="flex bg-slate-800/50 rounded-md p-1">
@@ -245,22 +161,12 @@ const Roadmap = () => {
             </div>
           </div>
           
-          {isLoading ? (
-            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
-              <p className="text-slate-400">Loading roadmap data...</p>
-            </div>
-          ) : !selectedRoadmapId ? (
-            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
-              <p className="text-slate-400">Select a parent goal to view its roadmap</p>
-            </div>
-          ) : (
-            <RoadmapTimeline
-              roadmapId={selectedRoadmapId}
-              items={roadmapItems}
-              onItemsChange={handleItemsChange}
-              viewMode={selectedView}
-            />
-          )}
+          <RoadmapTimeline
+            roadmapId={selectedRoadmapId || "demo"}
+            items={roadmapItems}
+            onItemsChange={handleItemsChange}
+            viewMode={selectedView}
+          />
         </div>
       </AnimatedContainer>
     </div>
