@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -24,7 +23,6 @@ const Roadmap = () => {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch parent goals
   useEffect(() => {
     const fetchParentGoals = async () => {
       if (!user) {
@@ -36,7 +34,6 @@ const Roadmap = () => {
       try {
         setIsLoading(true);
         
-        // Fetch parent goals
         const { data: parentGoalsData, error: parentGoalsError } = await supabase
           .from('parent_goals')
           .select('*')
@@ -56,7 +53,6 @@ const Roadmap = () => {
           
           setParentGoals(formattedParentGoals);
           
-          // Set first parent goal as selected by default if none is selected
           if (!selectedRoadmapId) {
             setSelectedRoadmapId(formattedParentGoals[0].id);
           }
@@ -77,7 +73,6 @@ const Roadmap = () => {
     fetchParentGoals();
   }, [user]);
   
-  // Fetch sub-goals for the selected parent goal
   useEffect(() => {
     const fetchSubGoals = async () => {
       if (!user || !selectedRoadmapId) {
@@ -88,7 +83,6 @@ const Roadmap = () => {
       try {
         setIsLoading(true);
         
-        // Fetch sub-goals for the selected parent goal
         const { data: subGoalsData, error: subGoalsError } = await supabase
           .from('sub_goals')
           .select('*')
@@ -99,14 +93,13 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          // Convert sub-goals to timeline items
           const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: Math.floor(index / 3), // Simple row distribution
-            start: index * 3, // Spread items out for better visibility
-            duration: 2, // Default duration
+            row: Math.floor(index / 3),
+            start: index * 3,
+            duration: 2,
             progress: subGoal.progress || 0,
             category: index % 5 === 0 ? 'milestone' : 
                     index % 4 === 0 ? 'research' : 
@@ -137,7 +130,6 @@ const Roadmap = () => {
   const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
     
-    // Update progress on sub-goals in the database
     if (user && selectedRoadmapId) {
       updatedItems.forEach(async (item) => {
         if (item.originalSubGoalId) {
@@ -167,12 +159,11 @@ const Roadmap = () => {
     });
   };
   
-  const handleViewChange = (view: "day" | "week" | "month" | "year") => {
+  const handleViewChange = (view: "month" | "year") => {
     setSelectedView(view);
   };
   
   const handleImportSubGoals = (parentId: string) => {
-    // This function is for future use - importing goals from another parent
     toast({
       title: "Coming Soon",
       description: "Importing sub-goals will be available in the next update.",
@@ -181,7 +172,6 @@ const Roadmap = () => {
   
   return (
     <div className="flex min-h-screen relative overflow-hidden">
-      {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <StarsBackground />
       </div>
@@ -193,55 +183,43 @@ const Roadmap = () => {
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
-        <div className="container max-w-[1600px] pt-8 pb-24 relative z-10"> {/* Increased max-width and padding */}
-          <div className="flex justify-between items-center mb-8"> {/* Increased margin */}
+        <div className="container max-w-[1600px] pt-8 pb-24 relative z-10">
+          <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-gradient">Project Roadmap</h1> {/* Larger heading */}
-              <p className="text-slate-400 mt-2 text-lg">Visualize your project timeline and milestones</p> {/* Larger text */}
+              <h1 className="text-4xl font-bold text-gradient">Project Roadmap</h1>
+              <p className="text-slate-400 mt-2 text-lg">Visualize your project timeline and milestones</p>
             </div>
             
-            <div className="flex gap-3"> {/* Increased gap */}
+            <div className="flex gap-3">
               <Button 
                 variant="secondary"
                 onClick={() => handleCreateRoadmap()}
-                className="text-base px-5 py-2.5" /* Larger button */
+                className="text-base px-5 py-2.5"
               >
-                <Plus size={18} className="mr-2" /> {/* Larger icon */}
+                <Plus size={18} className="mr-2" />
                 New Roadmap
               </Button>
             </div>
           </div>
           
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-5 mb-8"> {/* Enhanced container and increased spacing */}
-            <div className="flex flex-col md:flex-row justify-between gap-6 items-start md:items-center"> {/* Increased gap */}
+          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-5 mb-8">
+            <div className="flex flex-col md:flex-row justify-between gap-6 items-start md:items-center">
               <RoadmapSelector 
                 selectedRoadmapId={selectedRoadmapId} 
                 onSelectRoadmap={setSelectedRoadmapId}
                 parentGoals={parentGoals}
               />
               
-              <div className="flex bg-slate-800/50 rounded-md p-1.5"> {/* Increased padding */}
-                <button 
-                  onClick={() => handleViewChange("day")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
-                >
-                  Day
-                </button>
-                <button 
-                  onClick={() => handleViewChange("week")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
-                >
-                  Week
-                </button>
+              <div className="flex bg-slate-800/50 rounded-md p-1.5">
                 <button 
                   onClick={() => handleViewChange("month")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
                 >
                   Month
                 </button>
                 <button 
                   onClick={() => handleViewChange("year")}
-                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
                 >
                   Year
                 </button>
@@ -250,12 +228,12 @@ const Roadmap = () => {
           </div>
           
           {isLoading ? (
-            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl"> {/* Enhanced container */}
-              <p className="text-slate-400 text-lg">Loading roadmap data...</p> {/* Larger text */}
+            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl">
+              <p className="text-slate-400 text-lg">Loading roadmap data...</p>
             </div>
           ) : !selectedRoadmapId ? (
-            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl"> {/* Enhanced container */}
-              <p className="text-slate-400 text-lg">Select a parent goal to view its roadmap</p> {/* Larger text */}
+            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl">
+              <p className="text-slate-400 text-lg">Select a parent goal to view its roadmap</p>
             </div>
           ) : (
             <RoadmapTimeline

@@ -134,6 +134,31 @@
     @apply text-white/90 text-sm drop-shadow-sm;
     text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
   }
+
+  /* Space-themed scrollbar styles */
+  .scrollbar-space {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(30, 41, 59, 0.5) transparent;
+  }
+  
+  .scrollbar-space::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-space::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-space::-webkit-scrollbar-thumb {
+    background-color: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    border: 2px solid transparent;
+  }
+  
+  .scrollbar-space::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(30, 41, 59, 1);
+  }
 }
 
 @keyframes fade-in {

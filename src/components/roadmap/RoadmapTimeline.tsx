@@ -3,6 +3,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import SubGoalTimelineForm from './SubGoalTimelineForm';
 import TimelineCard from './TimelineCard';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   DndContext,
   DragEndEvent,
@@ -14,7 +15,6 @@ import {
   DragOverlay,
   DragMoveEvent,
   KeyboardSensor,
-  closestCenter,
   pointerWithin,
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -31,9 +31,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const [months] = useState([
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
-  const [quarters] = useState(['Q1', 'Q2', 'Q3', 'Q4']);
   const [days] = useState(Array.from({ length: 31 }, (_, i) => i + 1));
-  const [weeks] = useState(Array.from({ length: 52 }, (_, i) => i + 1));
   
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
@@ -45,14 +43,10 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const getTimeUnits = () => {
     switch (viewMode) {
-      case 'day':
-        return days.slice(0, 31);
-      case 'week':
-        return weeks.slice(0, 12);
       case 'month':
-        return months;
+        return days.slice(0, 31);
       case 'year':
-        return quarters;
+        return months;
       default:
         return months;
     }
@@ -196,14 +190,10 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const getHeaderLabel = () => {
     switch (viewMode) {
-      case 'day':
-        return 'Days';
-      case 'week':
-        return 'Weeks';
       case 'month':
-        return 'Months';
+        return 'Days';
       case 'year':
-        return 'Quarters';
+        return 'Months';
       default:
         return 'Months';
     }
@@ -250,95 +240,97 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         </div>
       </div>
       
-      <div 
-        className="relative overflow-x-auto p-2"
-        style={{ height: `${maxRow * ROW_HEIGHT + 60}px` }}
-        ref={timelineRef}
-      >
-        <div className="absolute inset-0 flex pointer-events-none">
-          {timeUnits.map((_, idx) => (
-            <div 
-              key={idx}
-              className="h-full border-r border-slate-800/50"
-              style={{ width: `${cellWidth}px` }}
-            ></div>
-          ))}
-        </div>
-        
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: maxRow }).map((_, idx) => (
-            <div 
-              key={idx}
-              className="w-full border-b border-slate-800/50"
-              style={{ height: `${ROW_HEIGHT}px` }}
-            ></div>
-          ))}
-        </div>
-        
-        <DndContext
-          sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragMove={handleDragMove}
-          onDragEnd={handleDragEnd}
-          collisionDetection={pointerWithin}
-          modifiers={[restrictToParentElement]}
+      <ScrollArea className="h-[calc(100vh-250px)]">
+        <div 
+          className="relative p-2"
+          style={{ height: `${maxRow * ROW_HEIGHT + 60}px`, minWidth: `${timeUnitCount * cellWidth}px` }}
+          ref={timelineRef}
         >
-          <div className="absolute inset-0">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="absolute"
-                style={{ 
-                  top: `${item.row * ROW_HEIGHT + 15}px`,
-                  left: `${item.start * cellWidth}px`,
-                }}
-              >
-                <TimelineCard
-                  item={item}
-                  isSelected={selectedItem?.id === item.id}
-                  onSelect={() => setSelectedItem(item)}
-                  onEdit={() => handleEditItem(item)}
-                  onResize={handleResizeItem}
-                  cellWidth={cellWidth}
-                  viewMode={viewMode}
-                />
-              </div>
+          <div className="absolute inset-0 flex pointer-events-none">
+            {timeUnits.map((_, idx) => (
+              <div 
+                key={idx}
+                className="h-full border-r border-slate-800/50"
+                style={{ width: `${cellWidth}px` }}
+              ></div>
             ))}
-            
-            <button
-              onClick={handleAddItem}
-              className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-            </button>
           </div>
           
-          <DragOverlay>
-            {draggingItemId ? (
-              <div className="opacity-80">
-                {items.map((item) => {
-                  if (item.id === draggingItemId) {
-                    return (
-                      <TimelineCard
-                        key={`overlay-${item.id}`}
-                        item={item}
-                        isSelected={true}
-                        onSelect={() => {}}
-                        cellWidth={cellWidth}
-                        viewMode={viewMode}
-                      />
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+          <div className="absolute inset-0 pointer-events-none">
+            {Array.from({ length: maxRow }).map((_, idx) => (
+              <div 
+                key={idx}
+                className="w-full border-b border-slate-800/50"
+                style={{ height: `${ROW_HEIGHT}px` }}
+              ></div>
+            ))}
+          </div>
+          
+          <DndContext
+            sensors={sensors}
+            onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
+            onDragEnd={handleDragEnd}
+            collisionDetection={pointerWithin}
+            modifiers={[restrictToParentElement]}
+          >
+            <div className="absolute inset-0">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="absolute"
+                  style={{ 
+                    top: `${item.row * ROW_HEIGHT + 15}px`,
+                    left: `${item.start * cellWidth}px`,
+                  }}
+                >
+                  <TimelineCard
+                    item={item}
+                    isSelected={selectedItem?.id === item.id}
+                    onSelect={() => setSelectedItem(item)}
+                    onEdit={() => handleEditItem(item)}
+                    onResize={handleResizeItem}
+                    cellWidth={cellWidth}
+                    viewMode={viewMode}
+                  />
+                </div>
+              ))}
+              
+              <button
+                onClick={handleAddItem}
+                className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+              </button>
+            </div>
+            
+            <DragOverlay>
+              {draggingItemId ? (
+                <div className="opacity-80">
+                  {items.map((item) => {
+                    if (item.id === draggingItemId) {
+                      return (
+                        <TimelineCard
+                          key={`overlay-${item.id}`}
+                          item={item}
+                          isSelected={true}
+                          onSelect={() => {}}
+                          cellWidth={cellWidth}
+                          viewMode={viewMode}
+                        />
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
+      </ScrollArea>
       
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-[500px]">
