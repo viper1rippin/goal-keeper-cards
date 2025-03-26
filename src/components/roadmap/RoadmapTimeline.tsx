@@ -14,6 +14,7 @@ import {
   DragOverlay,
   DragMoveEvent,
   KeyboardSensor,
+  closestCenter,
   pointerWithin,
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -41,7 +42,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
-  const [currentMousePosition, setCurrentMousePosition] = useState({ x: 0, y: 0 });
   
   const getTimeUnits = () => {
     switch (viewMode) {
@@ -73,12 +73,12 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {})
@@ -97,46 +97,47 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
-    if (event.activatorEvent instanceof MouseEvent) {
-      setCurrentMousePosition({
-        x: event.activatorEvent.clientX,
-        y: event.activatorEvent.clientY
-      });
-    } else if (event.activatorEvent instanceof TouchEvent) {
-      setCurrentMousePosition({
-        x: event.activatorEvent.touches[0].clientX,
-        y: event.activatorEvent.touches[0].clientY
-      });
-    }
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active } = event;
-    setDraggingItemId(null);
+    const { active, over } = event;
+    
+    if (!over) {
+      setDraggingItemId(null);
+      return;
+    }
     
     const draggedItem = items.find(item => item.id === active.id);
-    if (!draggedItem || !timelineRef.current) return;
+    if (!draggedItem) {
+      setDraggingItemId(null);
+      return;
+    }
     
-    const rect = timelineRef.current.getBoundingClientRect();
+    if (timelineRef.current) {
+      const rect = timelineRef.current.getBoundingClientRect();
+      const relativeX = event.activatorEvent instanceof MouseEvent ? 
+        event.activatorEvent.clientX - rect.left : 0;
+      const relativeY = event.activatorEvent instanceof MouseEvent ? 
+        event.activatorEvent.clientY - rect.top : 0;
+      
+      const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
+      const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
+      
+      const updatedItems = items.map(item => {
+        if (item.id === draggedItem.id) {
+          return {
+            ...item,
+            start: newCell,
+            row: newRow
+          };
+        }
+        return item;
+      });
+      
+      onItemsChange(updatedItems);
+    }
     
-    const relativeX = currentMousePosition.x - rect.left;
-    const relativeY = currentMousePosition.y - rect.top;
-    
-    const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
-    const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / (ROW_HEIGHT))));
-    
-    const updatedItems = items.map(item => {
-      if (item.id === draggedItem.id) {
-        return {
-          ...item,
-          start: newCell,
-          row: newRow
-        };
-      }
-      return item;
-    });
-    
-    onItemsChange(updatedItems);
+    setDraggingItemId(null);
   };
   
   const handleResizeItem = (itemId: string, newDuration: number) => {

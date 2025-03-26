@@ -32,7 +32,7 @@ const TimelineCard = ({
   
   const resizeRef = useRef<HTMLDivElement>(null);
   
-  // Setup sortable hook with enhanced drag accessibility
+  // Setup sortable hook
   const {
     attributes,
     listeners,
@@ -40,12 +40,7 @@ const TimelineCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: item.id,
-    data: {
-      item: item
-    }
-  });
+  } = useSortable({ id: item.id });
 
   // Calculate minimum width based on text length to ensure title visibility
   const calculateMinWidth = () => {
@@ -148,7 +143,7 @@ const TimelineCard = ({
               : `bg-gradient-to-r ${cardGradient} opacity-90`
         )}
       >
-        {/* Drag handle - Enhanced for better dragging */}
+        {/* Drag handle */}
         <div 
           className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
           {...listeners}
@@ -182,12 +177,12 @@ const TimelineCard = ({
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
         )}>
-          <h3 className="timeline-card-title line-clamp-2">{item.title}</h3>
+          <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
           {/* Always display description with better contrast */}
           <div className="mt-2 space-y-1">
             {item.description && (
-              <p className="timeline-card-description line-clamp-3">{item.description}</p>
+              <p className="text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
             )}
           </div>
           
