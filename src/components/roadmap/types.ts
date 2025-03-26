@@ -23,11 +23,12 @@ export interface SubGoalTimelineItem {
   start: number; // Starting position (day/week/month)
   duration: number; // Length in time units
   progress: number; // 0-100
-  category?: TimelineCategory;
+  category: TimelineCategory;
   parentId?: string; // Reference to parent goal
   originalSubGoalId?: string; // If imported from a sub-goal
   startDate?: string; // New field for start date
   endDate?: string; // New field for end date
+  color?: string; // New field for color
 }
 
 export interface RoadmapData {

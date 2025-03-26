@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -8,11 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
+import { TimelineCategory } from './roadmap/types';
 
 // Form validation schema
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
+  color: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  category: z.string().optional()
 });
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
@@ -46,6 +52,10 @@ const SubGoalDialog = ({
     defaultValues: {
       title: subGoalToEdit?.title || "",
       description: subGoalToEdit?.description || "",
+      color: subGoalToEdit?.color || "",
+      startDate: subGoalToEdit?.startDate || "",
+      endDate: subGoalToEdit?.endDate || "",
+      category: subGoalToEdit?.category || "default"
     },
   });
 
@@ -55,6 +65,10 @@ const SubGoalDialog = ({
       form.reset({
         title: subGoalToEdit?.title || "",
         description: subGoalToEdit?.description || "",
+        color: subGoalToEdit?.color || "",
+        startDate: subGoalToEdit?.startDate || "",
+        endDate: subGoalToEdit?.endDate || "",
+        category: subGoalToEdit?.category || "default"
       });
     }
   }, [isOpen, subGoalToEdit, form]);
@@ -70,6 +84,10 @@ const SubGoalDialog = ({
           title: values.title,
           description: values.description,
           progress: subGoalToEdit?.progress || 0,
+          color: values.color,
+          startDate: values.startDate,
+          endDate: values.endDate,
+          category: values.category as TimelineCategory
         };
         
         onSave(newSubGoal);
@@ -96,13 +114,25 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
+    // Calculate timeline values for roadmap integration
+    const timelineRow = 0; // Default row
+    const timelineStart = 0; // Default start position
+    const timelineDuration = 2; // Default duration
+
     // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
-      user_id: user.id // Associate sub-goal with user
+      user_id: user.id, // Associate sub-goal with user
+      color: values.color,
+      start_date: values.startDate,
+      end_date: values.endDate,
+      timeline_category: values.category || 'default',
+      timeline_row: timelineRow,
+      timeline_start: timelineStart,
+      timeline_duration: timelineDuration
     };
     
     // If editing, update the existing sub-goal
@@ -127,6 +157,10 @@ const SubGoalDialog = ({
     onSave({
       title: values.title,
       description: values.description,
+      color: values.color,
+      startDate: values.startDate,
+      endDate: values.endDate,
+      category: values.category as TimelineCategory
     });
   };
 
