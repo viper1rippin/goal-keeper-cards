@@ -11,18 +11,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-
-// Import the TimelineItem interface
-interface TimelineItem {
-  id: string;
-  title: string;
-  description: string;
-  progress: number;
-  startDate: Date | null;
-  endDate: Date | null;
-  parentGoalId: string;
-  parentGoalTitle: string;
-}
+import { TimelineItem } from "./RoadmapTimeline";
 
 interface TimelineSubGoalDialogProps {
   open: boolean;

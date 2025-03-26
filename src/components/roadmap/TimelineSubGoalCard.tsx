@@ -5,18 +5,7 @@ import { getCardGradient } from "@/components/GoalCardGradients";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-
-// Import the TimelineItem type from the parent component
-interface TimelineItem {
-  id: string;
-  title: string;
-  description: string;
-  progress: number;
-  startDate: Date | null;
-  endDate: Date | null;
-  parentGoalId: string;
-  parentGoalTitle: string;
-}
+import { TimelineItem } from "./RoadmapTimeline";
 
 interface TimelineSubGoalCardProps {
   item: TimelineItem;
