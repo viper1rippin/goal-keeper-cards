@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -93,21 +94,36 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
-            id: subGoal.id,
-            title: subGoal.title,
-            description: subGoal.description,
-            row: Math.floor(index / 3),
-            start: index * 3,
-            duration: 2,
-            progress: subGoal.progress || 0,
-            category: index % 5 === 0 ? 'milestone' : 
-                    index % 4 === 0 ? 'research' : 
-                    index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing',
-            parentId: selectedRoadmapId,
-            originalSubGoalId: subGoal.id
-          }));
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
+            // Use existing timeline fields if available, otherwise create default values
+            const rowValue = subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3);
+            const startValue = subGoal.timeline_start !== null ? subGoal.timeline_start : index * 3;
+            const durationValue = subGoal.timeline_duration !== null ? subGoal.timeline_duration : 2;
+            
+            // Pick a category based on index if none exists
+            const categoryValue = subGoal.timeline_category || (
+              index % 5 === 0 ? 'milestone' : 
+              index % 4 === 0 ? 'research' : 
+              index % 3 === 0 ? 'design' : 
+              index % 2 === 0 ? 'development' : 'testing'
+            ) as TimelineCategory;
+            
+            return {
+              id: subGoal.id,
+              title: subGoal.title,
+              description: subGoal.description,
+              row: rowValue,
+              start: startValue,
+              duration: durationValue,
+              progress: subGoal.progress || 0,
+              category: categoryValue,
+              parentId: selectedRoadmapId,
+              originalSubGoalId: subGoal.id,
+              startDate: subGoal.start_date,
+              endDate: subGoal.end_date,
+              color: subGoal.color
+            };
+          });
           
           setRoadmapItems(items);
         }
@@ -134,13 +150,23 @@ const Roadmap = () => {
       updatedItems.forEach(async (item) => {
         if (item.originalSubGoalId) {
           try {
+            // Update the database with the new timeline item data
             await supabase
               .from('sub_goals')
-              .update({ progress: item.progress })
+              .update({ 
+                progress: item.progress,
+                timeline_row: item.row,
+                timeline_start: item.start,
+                timeline_duration: item.duration,
+                timeline_category: item.category,
+                color: item.color,
+                start_date: item.startDate,
+                end_date: item.endDate
+              })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
           } catch (error) {
-            console.error('Error updating sub-goal progress:', error);
+            console.error('Error updating sub-goal data:', error);
           }
         }
       });
