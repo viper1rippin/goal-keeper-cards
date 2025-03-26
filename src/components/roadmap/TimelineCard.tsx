@@ -53,7 +53,7 @@ const TimelineCard = ({
   // Apply dnd-kit styles with width based on duration and cell width
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isResizing ? 'none' : transition,
+    transition,
     width: `${currentDuration * cellWidth}px`,
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
@@ -130,7 +130,7 @@ const TimelineCard = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "rounded-lg transition-all", 
+        "h-[120px] rounded-lg transition-all", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
         isResizing ? "cursor-ew-resize" : "transform-gpu cursor-grab",
         "select-none"
@@ -141,13 +141,12 @@ const TimelineCard = ({
     >
       <div 
         className={cn(
-          "rounded-lg px-4 py-3 transition-all relative overflow-visible border shadow-md", 
+          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
           isSelected
             ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30`
             : isHovered
               ? `bg-gradient-to-r ${cardGradient} shadow-sm shadow-emerald/20 opacity-95`
-              : `bg-gradient-to-r ${cardGradient} opacity-90`,
-          isResizing ? "resize-cursor" : ""
+              : `bg-gradient-to-r ${cardGradient} opacity-90`
         )}
       >
         {/* Drag handle */}
@@ -185,19 +184,19 @@ const TimelineCard = ({
         
         {/* Content */}
         <div className={cn(
-          "flex flex-col relative z-2 pt-4",
+          "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
         )}>
           <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
           {item.description && (
-            <p className="mt-2 text-sm text-white/90 break-words line-clamp-3 drop-shadow-sm">{item.description}</p>
+            <p className="mt-2 text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
           )}
           
           {/* Progress bar for items with longer duration */}
           {currentDuration > 1 && (
-            <div className="mt-3 select-none">
-              <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+            <div className="mt-auto select-none">
+              <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
                 <div 
                   className="h-full bg-white/80 transition-all duration-700 ease-out"
                   style={{ width: `${item.progress}%` }}
@@ -210,7 +209,7 @@ const TimelineCard = ({
         {/* Right edge for resizing - using the entire right edge of the card */}
         {onResize && (
           <div 
-            className="absolute top-0 right-0 w-6 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
+            className="absolute top-0 right-0 w-4 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
             onMouseDown={handleResizeStart}
             aria-label="Resize card"
           />
