@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -157,6 +158,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const handleResizeItem = (itemId: string, newDuration: number) => {
+    console.log(`Resizing item ${itemId} to duration ${newDuration}`);
+    
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
         return {

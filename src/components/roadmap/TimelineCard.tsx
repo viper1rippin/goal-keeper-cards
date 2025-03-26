@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+
+import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -28,6 +29,7 @@ const TimelineCard = ({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [initialDuration, setInitialDuration] = useState(item.duration);
+  const [currentWidth, setCurrentWidth] = useState(item.duration * cellWidth);
   
   const resizeRef = useRef<HTMLDivElement>(null);
   
@@ -39,25 +41,32 @@ const TimelineCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ 
+    id: item.id,
+    disabled: isResizing
+  });
 
   // Calculate minimum width based on text length to ensure title visibility
   const calculateMinWidth = () => {
     const titleLength = item.title?.length || 0;
     // Ensure at least 15px per character with a minimum of 180px
     const minTitleWidth = Math.max(titleLength * 15, 180);
-    const durationWidth = item.duration * cellWidth;
     
-    // Return the larger of the calculated width or the duration width
-    return Math.max(minTitleWidth, durationWidth);
+    // Return the larger of the calculated width or the minimum cell width
+    return Math.max(minTitleWidth, cellWidth);
   };
+
+  // Update current width when duration or cell width changes
+  useEffect(() => {
+    setCurrentWidth(item.duration * cellWidth);
+  }, [item.duration, cellWidth]);
 
   // Apply dnd-kit styles with minimum width calculation
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : transition,
-    width: `${item.duration * cellWidth}px`,
-    minWidth: `${calculateMinWidth()}px`, // Apply calculated min width
+    width: `${currentWidth}px`,
+    minWidth: `${calculateMinWidth()}px`,
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
   
@@ -90,8 +99,9 @@ const TimelineCard = ({
     setResizeStartX(e.clientX);
     setInitialDuration(item.duration);
     
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
+    // Add event listeners to window to capture mouse movements outside the element
+    window.addEventListener('mousemove', handleResizeMove);
+    window.addEventListener('mouseup', handleResizeEnd);
   };
   
   // Handle resize move
@@ -102,6 +112,10 @@ const TimelineCard = ({
     const deltaUnits = Math.round(deltaX / cellWidth);
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
+    // Update visual width immediately for smooth resizing
+    setCurrentWidth(newDuration * cellWidth);
+    
+    // Call the parent's resize handler
     if (onResize) {
       onResize(item.id, newDuration);
     }
@@ -110,8 +124,10 @@ const TimelineCard = ({
   // Handle resize end
   const handleResizeEnd = () => {
     setIsResizing(false);
-    document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('mouseup', handleResizeEnd);
+    
+    // Remove event listeners from window
+    window.removeEventListener('mousemove', handleResizeMove);
+    window.removeEventListener('mouseup', handleResizeEnd);
   };
 
   // Use a uniform emerald gradient like the home page sub-goal cards
@@ -123,7 +139,7 @@ const TimelineCard = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "h-[120px] rounded-lg transition-all duration-300", 
+        "h-[120px] rounded-lg transition-all", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
         "transform-gpu cursor-grab select-none",
       )}
@@ -134,7 +150,7 @@ const TimelineCard = ({
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
+          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
           isSelected
             ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30 animate-emerald-pulse`
             : isHovered
@@ -198,18 +214,22 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle - Always visible but more noticeable on hover */}
+        {/* Resize handle - Improved for better visibility and interaction */}
         {onResize && (
           <div 
             ref={resizeRef}
             className={cn(
               "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize",
-              isHovered || isResizing ? "bg-white/20" : "bg-white/10"
+              isResizing ? "bg-white/40" : isHovered ? "bg-white/20" : "bg-white/10",
+              "transition-colors"
             )}
             onMouseDown={handleResizeStart}
             title="Drag to resize"
           >
-            <div className="absolute inset-y-0 right-1.5 w-0.5 bg-white/40 my-2 rounded-full"></div>
+            <div className={cn(
+              "absolute inset-y-0 right-1.5 w-1 rounded-full my-2",
+              isResizing ? "bg-white/80" : "bg-white/40"
+            )}></div>
           </div>
         )}
       </div>
