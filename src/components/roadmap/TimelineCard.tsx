@@ -4,7 +4,7 @@ import { SubGoalTimelineItem } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor } from "lucide-react";
 import { getCardGradient, getProgressGradient } from "../GoalCardGradients";
 
 interface TimelineCardProps {
@@ -43,9 +43,48 @@ const TimelineCard = ({
     left: `${item.start * monthWidth}px`
   };
   
-  // Generate consistent gradients based on the title
-  const cardGradient = getCardGradient(item.title);
-  const progressGradient = getProgressGradient(item.title);
+  // Get category-based colors
+  const getCategoryColors = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return 'from-gray-500 to-gray-600 border-gray-400';
+      case 'feature':
+        return 'from-amber-500 to-amber-600 border-amber-400';
+      case 'mobile':
+        return 'from-rose-400 to-rose-500 border-rose-300';
+      case 'web':
+        return 'from-emerald-400 to-emerald-500 border-emerald-300';
+      case 'infrastructure':
+        return 'from-blue-400 to-blue-500 border-blue-300';
+      case 'backend':
+        return 'from-purple-400 to-purple-500 border-purple-300';
+      default:
+        return 'from-emerald-400 to-emerald-500 border-emerald-300';
+    }
+  };
+  
+  // Get category icon
+  const getCategoryIcon = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return <Star size={16} className="text-white" />;
+      case 'mobile':
+        return <Package size={16} className="text-white" />;
+      case 'infrastructure':
+        return <AlertTriangle size={16} className="text-white" />;
+      case 'web':
+        return <Monitor size={16} className="text-white" />;
+      default:
+        return null;
+    }
+  };
+
+  const colorClass = getCategoryColors();
+  const categoryIcon = getCategoryIcon();
 
   return (
     <div
@@ -63,21 +102,28 @@ const TimelineCard = ({
     >
       <div 
         className={cn(
-          "glass-card rounded-lg h-full p-3 transition-all duration-300 relative overflow-hidden border",
+          "rounded-lg h-full px-3 py-2 transition-all duration-300 relative overflow-hidden border",
           isSelected
-            ? `bg-gradient-to-br ${cardGradient} border-emerald/30 shadow-lg shadow-emerald/20`
+            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-slate-800/30`
             : isHovered
-              ? `bg-gradient-to-br ${cardGradient} border-emerald/15 shadow-sm shadow-emerald/10 opacity-90`
-              : "bg-slate-900/80 border-slate-800/60 opacity-75"
+              ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-slate-800/20 opacity-95`
+              : `bg-gradient-to-r ${colorClass} opacity-90`
         )}
       >
         {/* Drag handle */}
         <div 
-          className="absolute top-1 left-1 p-1 text-slate-500 hover:text-slate-300 hover:bg-slate-700 rounded opacity-0 group-hover:opacity-100 transition-all cursor-grab z-10"
+          className="absolute top-1 left-1 p-1 text-slate-100/70 hover:text-white hover:bg-white/10 rounded opacity-0 group-hover:opacity-100 transition-all cursor-grab z-10"
           {...listeners}
         >
           <GripHorizontal size={12} />
         </div>
+        
+        {/* Category icon */}
+        {categoryIcon && (
+          <div className="absolute left-2 top-2">
+            {categoryIcon}
+          </div>
+        )}
         
         {/* Edit button */}
         {onEdit && (isHovered || isSelected) && (
@@ -86,7 +132,7 @@ const TimelineCard = ({
               e.stopPropagation();
               onEdit();
             }}
-            className="absolute top-1 right-1 p-1 rounded-full bg-slate-800/70 text-emerald hover:bg-slate-700/80 transition-colors z-10"
+            className="absolute top-1 right-1 p-1 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
             aria-label="Edit goal"
           >
             <Edit2 size={12} />
@@ -94,39 +140,27 @@ const TimelineCard = ({
         )}
         
         {/* Content */}
-        <div className="flex flex-col h-full relative z-2 pt-3">
-          <h3 className={cn(
-            "font-medium text-sm mb-1 truncate",
-            isSelected 
-              ? "text-white" 
-              : (isHovered ? "text-slate-100" : "text-slate-400")
-          )}>{item.title}</h3>
+        <div className={cn(
+          "flex flex-col h-full relative z-2 pt-3",
+          categoryIcon ? "pl-6" : ""
+        )}>
+          <h3 className="font-medium text-sm text-white">{item.title}</h3>
           
-          <p className={cn(
-            "text-xs flex-1 mb-2 line-clamp-2",
-            isSelected 
-              ? "text-slate-200" 
-              : (isHovered ? "text-slate-300" : "text-slate-500")
-          )}>{item.description}</p>
+          {item.description && item.duration > 2 && (
+            <p className="text-xs text-white/80 flex-1 mt-1 line-clamp-2">{item.description}</p>
+          )}
           
-          {/* Progress bar */}
-          <div className="mt-auto select-none">
-            <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-              <span>Progress</span>
-              <span>{item.progress}%</span>
+          {/* Progress bar for items with longer duration */}
+          {item.duration > 1 && (
+            <div className="mt-auto select-none">
+              <div className="h-1 bg-black/30 rounded-full overflow-hidden mt-1">
+                <div 
+                  className="h-full bg-white/80 transition-all duration-700 ease-out"
+                  style={{ width: `${item.progress}%` }}
+                />
+              </div>
             </div>
-            <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className={cn(
-                  "h-full bg-gradient-to-r transition-all duration-700 ease-out",
-                  isSelected 
-                    ? progressGradient
-                    : (isHovered ? progressGradient : "from-emerald/40 to-emerald-light/40")
-                )}
-                style={{ width: `${item.progress}%` }}
-              />
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

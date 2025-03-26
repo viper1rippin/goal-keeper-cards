@@ -15,9 +15,12 @@ import {
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { AlertTriangle, Package, Plus, Star, Clock, Monitor, Database } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SubGoalTimelineForm } from "./SubGoalTimelineForm";
+
+// Quarters for the timeline
+const quarters = ["Q1", "Q2", "Q3", "Q4"];
 
 // Month names for the timeline
 const months = [
@@ -39,9 +42,9 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Timeline sizing
-  const monthWidth = 150; // Width of each month cell
-  const rowHeight = 100; // Height of each row
-  const numRows = 5; // Number of rows in the timeline
+  const monthWidth = 90; // Width of each month cell (smaller to fit more)
+  const rowHeight = 80; // Height of each row
+  const numRows = 6; // Number of rows in the timeline
   const totalMonths = 12; // Full year view
   
   // Configure drag sensors with lower activation constraint
@@ -78,21 +81,17 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
     let newItems = arrayMove(items, activeIndex, overIndex);
     
     // Then adjust the position of the moved item
-    // This is a simplified approximation of the drag position
-    // In a real app, you'd calculate this based on the drag delta
     const draggedItem = {...newItems[overIndex]};
     
-    // For horizontal positioning, approximate based on the over item's position
     if (active.rect && over.rect) {
-      // Calculate drag delta
+      // Calculate approximate horizontal position change
       const dragDeltaX = active.delta.x;
       
       // Adjust start month based on horizontal delta
-      // Calculate the number of months to shift based on drag distance
       const monthShift = Math.round(dragDeltaX / monthWidth);
       
       // Determine the new start position
-      const newStart = Math.max(0, overItem.start - monthShift);
+      const newStart = Math.max(0, activeItem.start + monthShift);
       const maxStart = totalMonths - draggedItem.duration;
       draggedItem.start = Math.min(newStart, maxStart);
       
@@ -106,16 +105,6 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
     }
     
     onItemsChange(newItems);
-  };
-  
-  // Handle modifying item duration (extend/shrink)
-  const handleResize = (itemId: string, newDuration: number) => {
-    const updatedItems = items.map(item => 
-      item.id === itemId 
-        ? { ...item, duration: Math.max(1, Math.min(12, newDuration)) } 
-        : item
-    );
-    onItemsChange(updatedItems);
   };
   
   // Handle selecting an item
@@ -159,70 +148,92 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
     return `timeline-item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   };
   
-  // Create background grid with random stars
-  const createStarField = () => {
-    const stars = [];
-    const numStars = 200;
-    
-    for (let i = 0; i < numStars; i++) {
-      const x = Math.random() * 100;
-      const y = Math.random() * 100;
-      const size = Math.random() * 1.5;
-      const opacity = Math.random() * 0.5 + 0.1;
-      const animationDuration = Math.random() * 10 + 5;
-      
-      stars.push(
-        <div 
-          key={i}
-          className="absolute rounded-full bg-white animate-pulse"
-          style={{
-            left: `${x}%`,
-            top: `${y}%`,
-            width: `${size}px`,
-            height: `${size}px`,
-            opacity,
-            animationDuration: `${animationDuration}s`,
-          }}
-        />
-      );
-    }
-    
-    return stars;
-  };
-  
   return (
-    <Card className="bg-slate-950 border-slate-800/40 overflow-hidden relative">
-      {/* Star field background */}
-      <div className="absolute inset-0 overflow-hidden opacity-30">
-        {createStarField()}
+    <Card className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800/40 overflow-hidden relative">
+      {/* Quarter headers */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800/60 relative z-10 bg-white/50 dark:bg-black/20">
+        {quarters.map((quarter, index) => (
+          <div 
+            key={quarter}
+            className="flex-shrink-0 py-3 font-bold text-center text-slate-700 dark:text-slate-300 border-r last:border-r-0 border-slate-200 dark:border-slate-800/60"
+            style={{ width: `${monthWidth * 3}px` }}
+          >
+            {quarter}
+          </div>
+        ))}
       </div>
       
       {/* Month headers */}
-      <div className="flex border-b border-slate-800/60 relative z-10">
+      <div className="flex border-b border-slate-200 dark:border-slate-800/60 relative z-10 bg-white/30 dark:bg-black/10">
         {months.map((month, index) => (
           <div 
             key={month}
-            className="flex-shrink-0 px-4 py-2 text-xs font-medium text-emerald/80"
+            className={cn(
+              "flex-shrink-0 px-2 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 border-r last:border-r-0 border-slate-200/50 dark:border-slate-800/30 text-center",
+              (index + 1) % 3 === 0 ? "border-r border-r-slate-300 dark:border-r-slate-700" : ""
+            )}
             style={{ width: `${monthWidth}px` }}
           >
-            {month}
+            {month.substring(0, 3)}
           </div>
         ))}
+      </div>
+      
+      {/* Legend */}
+      <div className="flex items-center gap-4 px-4 py-2 bg-white/50 dark:bg-black/20 border-b border-slate-200 dark:border-slate-800/60 text-xs">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-amber-500 to-amber-600"></div>
+          <span className="text-slate-700 dark:text-slate-300">Feature</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-rose-400 to-rose-500"></div>
+          <span className="text-slate-700 dark:text-slate-300">Mobile</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-emerald-400 to-emerald-500"></div>
+          <span className="text-slate-700 dark:text-slate-300">Web</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-blue-400 to-blue-500"></div>
+          <span className="text-slate-700 dark:text-slate-300">Infrastructure</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-purple-400 to-purple-500"></div>
+          <span className="text-slate-700 dark:text-slate-300">Backend</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-gray-500 to-gray-600"></div>
+          <span className="text-slate-700 dark:text-slate-300">Milestone</span>
+        </div>
       </div>
       
       {/* Timeline grid */}
       <div 
         ref={containerRef}
         className="relative overflow-x-auto"
-        style={{ height: `${rowHeight * numRows + 40}px` }}
+        style={{ height: `${rowHeight * numRows + 20}px` }}
       >
         {/* Grid lines */}
         <div className="absolute inset-0">
+          {/* Vertical quarter lines */}
+          {quarters.map((_, index) => (
+            <div 
+              key={index}
+              className="absolute top-0 bottom-0 border-l border-slate-300 dark:border-slate-700"
+              style={{ left: `${index * monthWidth * 3}px` }}
+            />
+          ))}
+          
           {/* Vertical month lines */}
           {months.map((_, index) => (
             <div 
               key={index}
-              className="absolute top-0 bottom-0 border-l border-slate-800/30"
+              className={cn(
+                "absolute top-0 bottom-0 border-l",
+                (index + 1) % 3 === 0
+                  ? "border-slate-300 dark:border-slate-700"
+                  : "border-slate-200/50 dark:border-slate-800/30"
+              )}
               style={{ left: `${index * monthWidth}px` }}
             />
           ))}
@@ -231,7 +242,12 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
           {Array.from({ length: numRows }).map((_, index) => (
             <div 
               key={index}
-              className="absolute left-0 right-0 border-t border-slate-800/30"
+              className={cn(
+                "absolute left-0 right-0 border-t",
+                index === 0
+                  ? "border-slate-300 dark:border-slate-700"
+                  : "border-slate-200/70 dark:border-slate-800/50"
+              )}
               style={{ top: `${index * rowHeight}px` }}
             />
           ))}
@@ -270,19 +286,19 @@ const RoadmapTimeline = ({ roadmapId, items, onItemsChange }: RoadmapTimelinePro
         {/* Add button (fixed at bottom right) */}
         <Button
           onClick={handleAddItem}
-          className="absolute bottom-4 right-4 bg-emerald/80 hover:bg-emerald text-white z-20"
+          className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white z-20"
         >
           <Plus size={16} className="mr-2" />
-          Add Goal
+          Add Item
         </Button>
       </div>
       
       {/* Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-800 text-white">
+        <DialogContent className="sm:max-w-[550px] bg-slate-900 border-slate-800 text-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
-              {editingItem ? "Edit Goal" : "Add New Goal"}
+              {editingItem ? "Edit Roadmap Item" : "Add New Roadmap Item"}
             </DialogTitle>
           </DialogHeader>
           

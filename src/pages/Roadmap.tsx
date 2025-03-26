@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
@@ -13,6 +13,7 @@ import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { supabase } from "@/integrations/supabase/client";
 import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
 import { Goal } from "@/components/GoalRow";
+import { getSampleRoadmapData } from "@/components/roadmap/sampleRoadmapData";
 
 // Helper function to create database schema checks
 const checkTableExists = async (tableName: string) => {
@@ -61,7 +62,7 @@ const Roadmap = () => {
           return;
         }
         
-        // Fetch roadmaps using a raw query since TypeScript doesn't know about this table yet
+        // Fetch roadmaps using supabase.from method with type assertion
         const { data: roadmapsData, error: roadmapsError } = await supabase
           .from('roadmaps')
           .select('*')
@@ -78,8 +79,8 @@ const Roadmap = () => {
           
         if (goalsError) throw goalsError;
         
-        // Process the data - we need to cast the raw data to match our types
-        const processedRoadmaps: RoadmapData[] = (roadmapsData || []).map(road => ({
+        // Process roadmaps with type assertion
+        const processedRoadmaps: RoadmapData[] = (roadmapsData || []).map((road: any) => ({
           id: road.id,
           title: road.title,
           description: road.description,
@@ -93,8 +94,8 @@ const Roadmap = () => {
           setSelectedRoadmapId(processedRoadmaps[0].id);
         }
         
-        // For parent goals, we need to handle the missing 'goals' property
-        const processedParentGoals = (goalsData || []).map(goal => ({
+        // Process parent goals
+        const processedParentGoals = (goalsData || []).map((goal: any) => ({
           ...goal,
           goals: [] // Add the missing required property
         }));
@@ -114,7 +115,7 @@ const Roadmap = () => {
     };
     
     fetchData();
-  }, [user]);
+  }, [user, selectedRoadmapId]);
 
   // Create a new roadmap
   const handleCreateRoadmap = async () => {
@@ -128,7 +129,7 @@ const Roadmap = () => {
         items: []
       };
       
-      // Insert the new roadmap directly with the raw table name
+      // Insert the new roadmap with type assertion
       const { data, error } = await supabase
         .from('roadmaps')
         .insert(newRoadmap)
@@ -161,6 +162,58 @@ const Roadmap = () => {
       toast({
         title: "Error",
         description: "Failed to create new roadmap",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Create a sample roadmap with example data
+  const handleCreateSampleRoadmap = async () => {
+    if (!user) return;
+    
+    try {
+      const sampleData = getSampleRoadmapData();
+      
+      const newRoadmap = {
+        title: "Product Roadmap 2024",
+        description: "Annual product roadmap with all development tracks",
+        user_id: user.id,
+        items: sampleData
+      };
+      
+      // Insert the new roadmap with type assertion
+      const { data, error } = await supabase
+        .from('roadmaps')
+        .insert(newRoadmap)
+        .select();
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Create a properly typed roadmap object from the response
+        const newRoadmapTyped: RoadmapData = {
+          id: data[0].id,
+          title: data[0].title,
+          description: data[0].description,
+          user_id: data[0].user_id,
+          items: data[0].items || [],
+          created_at: data[0].created_at,
+          updated_at: data[0].updated_at
+        };
+        
+        setRoadmaps([newRoadmapTyped, ...roadmaps]);
+        setSelectedRoadmapId(newRoadmapTyped.id);
+        
+        toast({
+          title: "Success",
+          description: "Sample roadmap created with example data",
+        });
+      }
+    } catch (error) {
+      console.error("Error creating sample roadmap:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create sample roadmap",
         variant: "destructive",
       });
     }
@@ -198,13 +251,14 @@ const Roadmap = () => {
       
       // Convert sub-goals to timeline items
       const newItems: SubGoalTimelineItem[] = subGoals.map((subGoal: Goal, index: number) => ({
-        id: subGoal.id,
+        id: subGoal.id || `sg-${Date.now()}-${index}`,
         title: subGoal.title,
         description: subGoal.description,
         progress: subGoal.progress,
         row: index % 3, // Distribute across 3 rows
         start: 0, // Start at beginning of timeline
         duration: 2, // Default to 2 month duration
+        category: 'feature',
         parentId: parentGoalId,
         originalSubGoalId: subGoal.id
       }));
@@ -215,7 +269,7 @@ const Roadmap = () => {
         items: [...(currentRoadmap.items || []), ...newItems]
       };
       
-      // Use the raw 'roadmaps' table name
+      // Use type assertion for supabase call
       const { error: updateError } = await supabase
         .from('roadmaps')
         .update({ items: updatedRoadmap.items })
@@ -250,17 +304,23 @@ const Roadmap = () => {
       <Sidebar onCollapseChange={setSidebarCollapsed} />
       <AnimatedContainer 
         animation="fade-in" 
-        className={`flex-1 min-h-screen pb-16 bg-slate-950 transition-all ${
+        className={`flex-1 min-h-screen pb-16 bg-slate-100 dark:bg-slate-950 transition-all ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
         <div className="container py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gradient">Project Roadmap</h1>
-            <Button onClick={handleCreateRoadmap} className="bg-emerald hover:bg-emerald-dark">
-              <Plus size={16} className="mr-2" />
-              New Roadmap
-            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={handleCreateSampleRoadmap} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+                <Upload size={16} className="mr-2" />
+                Create Example
+              </Button>
+              <Button onClick={handleCreateRoadmap} className="bg-emerald hover:bg-emerald-600">
+                <Plus size={16} className="mr-2" />
+                New Roadmap
+              </Button>
+            </div>
           </div>
           
           {loading ? (
@@ -268,13 +328,23 @@ const Roadmap = () => {
               <p className="text-lg text-slate-400">Loading roadmaps...</p>
             </div>
           ) : roadmaps.length === 0 ? (
-            <div className="glass-card p-8 rounded-lg text-center">
+            <div className="glass-card p-8 rounded-lg text-center bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
               <h3 className="text-xl font-medium mb-4">No Roadmaps Yet</h3>
-              <p className="mb-6 text-slate-400">Create your first roadmap to visualize your project timeline.</p>
-              <Button onClick={handleCreateRoadmap} className="bg-emerald hover:bg-emerald-dark">
-                <Plus size={16} className="mr-2" />
-                Create Roadmap
-              </Button>
+              <p className="mb-6 text-slate-600 dark:text-slate-400">Create your first roadmap to visualize your project timeline.</p>
+              <div className="flex justify-center gap-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleCreateSampleRoadmap} 
+                  className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                >
+                  <Upload size={16} className="mr-2" />
+                  Create Example
+                </Button>
+                <Button onClick={handleCreateRoadmap} className="bg-emerald hover:bg-emerald-600">
+                  <Plus size={16} className="mr-2" />
+                  Create Roadmap
+                </Button>
+              </div>
             </div>
           ) : (
             <>
@@ -307,7 +377,7 @@ const Roadmap = () => {
                     );
                     setRoadmaps(updatedRoadmaps);
                     
-                    // Save to database using raw table name
+                    // Save to database with type assertion
                     if (user) {
                       supabase
                         .from('roadmaps')
