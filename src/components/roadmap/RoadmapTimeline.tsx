@@ -19,6 +19,10 @@ import {
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { TimelineCategory } from "@/components/roadmap/types";
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -41,6 +45,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
   
+  const { user } = useAuth();
+
   const getExtendedTimeUnits = () => {
     if (viewMode === 'month') {
       return [
@@ -156,7 +162,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setDraggingItemId(null);
   };
   
-  const handleResizeItem = (itemId: string, newDuration: number) => {
+  const handleResizeItem = async (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
         return {
@@ -167,7 +173,29 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       return item;
     });
     
+    // Update UI immediately
     onItemsChange(updatedItems);
+    
+    // Save to database if it's a real sub-goal (not a temporary item)
+    const subGoal = updatedItems.find(item => item.id === itemId);
+    if (subGoal?.originalSubGoalId && user) {
+      try {
+        await supabase
+          .from('sub_goals')
+          .update({ 
+            timeline_duration: newDuration
+          })
+          .eq('id', subGoal.originalSubGoalId)
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Error updating sub-goal duration:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to save timeline changes',
+          variant: 'destructive',
+        });
+      }
+    }
   };
   
   const handleEditItem = (item: SubGoalTimelineItem) => {

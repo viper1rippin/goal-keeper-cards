@@ -93,18 +93,15 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal) => ({
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: Math.floor(index / 3),
-            start: index * 3,
-            duration: 2,
+            row: subGoal.timeline_row || Math.floor(Math.random() * 3),
+            start: subGoal.timeline_start || 0,
+            duration: subGoal.timeline_duration || 2,
             progress: subGoal.progress || 0,
-            category: index % 5 === 0 ? 'milestone' : 
-                    index % 4 === 0 ? 'research' : 
-                    index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing',
+            category: (subGoal.timeline_category as TimelineCategory) || 'default',
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id
           }));

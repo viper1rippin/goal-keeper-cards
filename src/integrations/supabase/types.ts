@@ -134,6 +134,10 @@ export type Database = {
           id: string
           parent_goal_id: string
           progress: number
+          timeline_category: string | null
+          timeline_duration: number | null
+          timeline_row: number | null
+          timeline_start: number | null
           title: string
           updated_at: string
           user_id: string | null
@@ -145,6 +149,10 @@ export type Database = {
           id?: string
           parent_goal_id: string
           progress?: number
+          timeline_category?: string | null
+          timeline_duration?: number | null
+          timeline_row?: number | null
+          timeline_start?: number | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -156,6 +164,10 @@ export type Database = {
           id?: string
           parent_goal_id?: string
           progress?: number
+          timeline_category?: string | null
+          timeline_duration?: number | null
+          timeline_row?: number | null
+          timeline_start?: number | null
           title?: string
           updated_at?: string
           user_id?: string | null

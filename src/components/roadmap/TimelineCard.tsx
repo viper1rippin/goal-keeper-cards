@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
@@ -31,7 +30,6 @@ const TimelineCard = ({
   const [initialDuration, setInitialDuration] = useState(item.duration);
   const [currentDuration, setCurrentDuration] = useState(item.duration);
   
-  // Setup sortable hook with resize-disable condition
   const {
     attributes,
     listeners,
@@ -45,20 +43,17 @@ const TimelineCard = ({
   });
 
   useEffect(() => {
-    // Update current duration when the item's duration changes from parent
     setCurrentDuration(item.duration);
     setInitialDuration(item.duration);
   }, [item.duration]);
 
-  // Apply dnd-kit styles with width based on duration and cell width
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     width: `${currentDuration * cellWidth}px`,
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
-  
-  // Get category icon
+
   const getCategoryIcon = () => {
     const category = item.category || 'default';
     
@@ -78,11 +73,9 @@ const TimelineCard = ({
     }
   };
 
-  // Use a uniform emerald gradient like the home page sub-goal cards
   const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
   const categoryIcon = getCategoryIcon();
-  
-  // Handle resize start
+
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -91,36 +84,29 @@ const TimelineCard = ({
     setResizeStartX(e.clientX);
     setInitialDuration(currentDuration);
     
-    // Add document event listeners
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
   };
-  
-  // Handle resize move
+
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
     const deltaUnits = Math.round(deltaX / cellWidth);
     
-    // Calculate new duration with a minimum of 1 cell
     const maxDuration = viewMode === 'month' ? 31 : 12;
     const newDuration = Math.max(1, Math.min(maxDuration, initialDuration + deltaUnits));
     
-    // Update local state for visual feedback
     setCurrentDuration(newDuration);
   };
-  
-  // Handle resize end
+
   const handleResizeEnd = () => {
     setIsResizing(false);
     
-    // Call parent callback if duration changed
     if (onResize && currentDuration !== item.duration) {
       onResize(item.id, currentDuration);
     }
     
-    // Remove document event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
@@ -128,11 +114,13 @@ const TimelineCard = ({
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        cursor: isResizing ? 'ew-resize' : isDragging ? 'grabbing' : 'grab',
+      }}
       className={cn(
         "h-[120px] rounded-lg transition-all", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
-        isResizing ? "cursor-ew-resize" : "transform-gpu cursor-grab",
         "select-none"
       )}
       onClick={onSelect}
@@ -141,7 +129,7 @@ const TimelineCard = ({
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
+          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md",
           isSelected
             ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30`
             : isHovered
@@ -149,7 +137,6 @@ const TimelineCard = ({
               : `bg-gradient-to-r ${cardGradient} opacity-90`
         )}
       >
-        {/* Drag handle */}
         <div 
           className={cn(
             "absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all z-10",
@@ -161,14 +148,12 @@ const TimelineCard = ({
           <GripHorizontal size={14} />
         </div>
         
-        {/* Category icon */}
         {categoryIcon && (
           <div className="absolute left-3 top-3">
             {categoryIcon}
           </div>
         )}
         
-        {/* Edit button */}
         {onEdit && (isHovered || isSelected) && !isResizing && (
           <button
             onClick={(e) => {
@@ -182,7 +167,6 @@ const TimelineCard = ({
           </button>
         )}
         
-        {/* Content */}
         <div className={cn(
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
@@ -193,7 +177,6 @@ const TimelineCard = ({
             <p className="mt-2 text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
           )}
           
-          {/* Progress bar for items with longer duration */}
           {currentDuration > 1 && (
             <div className="mt-auto select-none">
               <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
@@ -206,10 +189,14 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Right edge for resizing - using the entire right edge of the card */}
         {onResize && (
           <div 
-            className="absolute top-0 right-0 w-4 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
+            className={cn(
+              "absolute top-0 right-0 w-1 h-full cursor-ew-resize group",
+              "after:content-[''] after:absolute after:top-0 after:right-0 after:w-4 after:h-full after:bg-transparent",
+              "hover:after:bg-white/20 hover:after:backdrop-blur-sm",
+              isResizing && "after:bg-white/20 after:backdrop-blur-sm"
+            )}
             onMouseDown={handleResizeStart}
             aria-label="Resize card"
           />
