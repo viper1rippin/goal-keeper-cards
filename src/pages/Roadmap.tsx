@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import InfiniteTimeline from "@/components/roadmap/InfiniteTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
-import { SubGoalTimelineItem, TimelineViewMode, TimelineViewport } from "@/components/roadmap/types";
+import { SubGoalTimelineItem, TimelineViewMode, TimelineViewport, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
@@ -24,7 +23,6 @@ const Roadmap = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentViewport, setCurrentViewport] = useState<TimelineViewport | null>(null);
   
-  // Fetch parent goals
   useEffect(() => {
     const fetchParentGoals = async () => {
       if (!user) {
@@ -36,7 +34,6 @@ const Roadmap = () => {
       try {
         setIsLoading(true);
         
-        // Fetch parent goals
         const { data: parentGoalsData, error: parentGoalsError } = await supabase
           .from('parent_goals')
           .select('*')
@@ -56,7 +53,6 @@ const Roadmap = () => {
           
           setParentGoals(formattedParentGoals);
           
-          // Set first parent goal as selected by default if none is selected
           if (!selectedRoadmapId) {
             setSelectedRoadmapId(formattedParentGoals[0].id);
           }
@@ -77,7 +73,6 @@ const Roadmap = () => {
     fetchParentGoals();
   }, [user]);
   
-  // Fetch sub-goals for the selected parent goal
   useEffect(() => {
     const fetchSubGoals = async () => {
       if (!user || !selectedRoadmapId) {
@@ -88,7 +83,6 @@ const Roadmap = () => {
       try {
         setIsLoading(true);
         
-        // Fetch sub-goals for the selected parent goal
         const { data: subGoalsData, error: subGoalsError } = await supabase
           .from('sub_goals')
           .select('*')
@@ -99,10 +93,8 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          // Convert sub-goals to timeline items
           const today = new Date();
           const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
-            // Use database timeline values if they exist, otherwise use defaults
             const timelineRow = subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3);
             const timelineStart = subGoal.timeline_start !== null ? subGoal.timeline_start : index * 2;
             const timelineDuration = subGoal.timeline_duration || 2;
@@ -112,7 +104,6 @@ const Roadmap = () => {
                index % 3 === 0 ? 'design' : 
                index % 2 === 0 ? 'development' : 'testing');
             
-            // Use the database dates if they exist, otherwise calculate them
             const startDate = subGoal.start_date ? new Date(subGoal.start_date) : 
               new Date(today.getFullYear(), today.getMonth(), today.getDate() + index * 3);
             
@@ -156,12 +147,10 @@ const Roadmap = () => {
   const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
     
-    // Update subgoals in the database
     if (user && selectedRoadmapId) {
       try {
         const updatePromises = updatedItems.map(async (item) => {
           if (item.originalSubGoalId) {
-            // Update with timeline-specific data
             return supabase
               .from('sub_goals')
               .update({
@@ -170,8 +159,8 @@ const Roadmap = () => {
                 timeline_start: item.start,
                 timeline_duration: item.duration,
                 timeline_category: item.category,
-                start_date: item.date,
-                end_date: item.endDate
+                start_date: item.date ? item.date.toISOString() : null,
+                end_date: item.endDate ? item.endDate.toISOString() : null
               })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
@@ -180,8 +169,6 @@ const Roadmap = () => {
         });
         
         await Promise.all(updatePromises.filter(p => p !== null));
-        
-        // Don't show a toast for every update - it's distracting during drag operations
       } catch (error) {
         console.error('Error updating sub-goal timeline data:', error);
         toast({
@@ -210,7 +197,6 @@ const Roadmap = () => {
   
   return (
     <div className="flex min-h-screen relative overflow-hidden">
-      {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <StarsBackground />
       </div>

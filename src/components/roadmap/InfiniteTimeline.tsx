@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   SubGoalTimelineItem, 
@@ -24,53 +23,45 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
   onItemsChange,
   onViewportChange
 }) => {
-  // State for timeline rendering
   const today = new Date();
   const [centerDate, setCenterDate] = useState(today);
   const [visibleTimeUnits, setVisibleTimeUnits] = useState<Array<{ label: string, date: Date }>>([]);
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [maxRows, setMaxRows] = useState(5);
   
-  // Refs
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const timelineAreaRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   
-  // Constants for rendering
   const cellWidth = viewMode === 'year' ? 100 : 80;
   const cellHeight = 90;
-  const bufferUnits = 6; // Extra units to render on each side
+  const bufferUnits = 6;
   
-  // Set up DnD sensors
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 10, // Require some movement before activating drag
+        distance: 10,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250, // Delay for touch devices
-        tolerance: 5, // Tolerance for slight movements
+        delay: 250,
+        tolerance: 5,
       },
     })
   );
 
-  // Calculate time units based on view mode and center date
   useEffect(() => {
     let units: Array<{ label: string, date: Date }> = [];
     
     if (viewMode === 'month') {
-      // Generate days for month view
       const firstDay = startOfMonth(centerDate);
       const lastDay = endOfMonth(centerDate);
       const daysInMonth = differenceInDays(lastDay, firstDay) + 1;
       
-      // Include days from previous and next months for continuity
       const previousMonthDays = 3;
       const nextMonthDays = 3;
       
-      // Add days from previous month
       for (let i = previousMonthDays; i > 0; i--) {
         const date = addDays(firstDay, -i);
         units.push({
@@ -79,7 +70,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
         });
       }
       
-      // Add days for current month
       for (let i = 0; i < daysInMonth; i++) {
         const date = addDays(firstDay, i);
         units.push({
@@ -88,7 +78,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
         });
       }
       
-      // Add days from next month
       for (let i = 1; i <= nextMonthDays; i++) {
         const date = addDays(lastDay, i);
         units.push({
@@ -97,10 +86,8 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
         });
       }
     } else if (viewMode === 'year') {
-      // Generate months for year view
       const startYear = startOfYear(centerDate);
       
-      // Add months from previous, current, and next year
       for (let i = -6; i <= 18; i++) {
         const date = addMonths(startYear, i);
         units.push({
@@ -112,7 +99,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
     
     setVisibleTimeUnits(units);
     
-    // Calculate and update the viewport
     if (units.length > 0 && onViewportChange) {
       onViewportChange({
         startUnit: 0,
@@ -124,7 +110,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
     }
   }, [viewMode, centerDate, onViewportChange]);
 
-  // Handle scroll to update visible time units
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (!scrollContainerRef.current) return;
     
@@ -132,16 +117,13 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
     const containerWidth = scrollContainerRef.current.clientWidth;
     const totalWidth = visibleTimeUnits.length * cellWidth;
     
-    // If we're nearing the left or right edge, add more time units
     if (scrollLeft < containerWidth * 0.2) {
-      // Add more units to the left
       if (viewMode === 'month') {
         setCenterDate(addMonths(centerDate, -1));
       } else {
         setCenterDate(addYears(centerDate, -1));
       }
     } else if (scrollLeft > totalWidth - containerWidth * 1.2) {
-      // Add more units to the right
       if (viewMode === 'month') {
         setCenterDate(addMonths(centerDate, 1));
       } else {
@@ -149,35 +131,29 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
       }
     }
     
-    // Sync header scroll with main scroll
     if (headerRef.current) {
       headerRef.current.scrollLeft = scrollLeft;
     }
   };
 
-  // Calculate max rows based on items
   useEffect(() => {
     if (items.length === 0) return;
     const highestRow = Math.max(...items.map(item => item.row));
-    setMaxRows(Math.max(highestRow + 2, 5)); // Always show at least 5 rows
+    setMaxRows(Math.max(highestRow + 2, 5));
   }, [items]);
 
-  // Map items to their positions on the timeline
   const positionedItems = items.map(item => {
-    // Find the matching time unit for the item's start
     const itemStartUnit = visibleTimeUnits.findIndex(unit => 
       item.date ? 
         format(unit.date, 'yyyy-MM-dd') === format(new Date(item.date), 'yyyy-MM-dd') : 
         false
     );
     
-    // If we can't find the unit, position based on the item's start value
     const startPosition = itemStartUnit >= 0 ? itemStartUnit : item.start;
     
     return {
       ...item,
       startPosition,
-      // Adjust position based on view mode
       visualPosition: {
         left: startPosition * cellWidth,
         top: item.row * cellHeight,
@@ -187,35 +163,39 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
     };
   });
 
-  // Handle drag end to update item positions
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (!timelineAreaRef.current) return;
     
-    // Get the drag delta
     const dragOffset = event.delta;
     const draggedItemId = active.id as string;
     
-    // Find the dragged item
     const draggedItem = items.find(item => item.id === draggedItemId);
     if (!draggedItem) return;
     
-    // Calculate new position
     const rect = timelineAreaRef.current.getBoundingClientRect();
-    const pointer = { x: event.activatorEvent.clientX, y: event.activatorEvent.clientY };
     
-    const relativeX = pointer.x - rect.left;
-    const relativeY = pointer.y - rect.top;
+    let pointerX = 0;
+    let pointerY = 0;
     
-    // Convert to grid coordinates
+    if (event.activatorEvent instanceof MouseEvent) {
+      pointerX = event.activatorEvent.clientX;
+      pointerY = event.activatorEvent.clientY;
+    } else if ('clientX' in event.activatorEvent && 'clientY' in event.activatorEvent) {
+      const customEvent = event.activatorEvent as { clientX: number; clientY: number };
+      pointerX = customEvent.clientX;
+      pointerY = customEvent.clientY;
+    }
+    
+    const relativeX = pointerX - rect.left;
+    const relativeY = pointerY - rect.top;
+    
     const newStartUnit = Math.max(0, Math.floor(relativeX / cellWidth));
     const newRow = Math.max(0, Math.min(maxRows - 1, Math.floor(relativeY / cellHeight)));
     
-    // Update the item
     const updatedItems = items.map(item => {
       if (item.id === draggedItemId) {
-        // Get the new date based on the time unit
         const newDate = newStartUnit < visibleTimeUnits.length ? 
           visibleTimeUnits[newStartUnit].date : undefined;
         
@@ -232,11 +212,9 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
     onItemsChange(updatedItems);
   };
 
-  // Handle resizing an item
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
-        // Calculate end date based on new duration
         const startDate = item.date ? new Date(item.date) : undefined;
         const endDate = startDate ? 
           (viewMode === 'month' ? 
@@ -258,7 +236,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
 
   return (
     <div className="flex flex-col h-full border border-slate-800 rounded-lg overflow-hidden">
-      {/* Time unit header (fixed, synchronized with main scroll) */}
       <div 
         ref={headerRef}
         className="flex overflow-hidden bg-slate-800/50 border-b border-slate-700"
@@ -269,7 +246,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
               key={`header-${index}`}
               className={cn(
                 "text-center text-sm font-medium p-2 border-r border-slate-700",
-                // Today highlight
                 format(unit.date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd') ? 
                   "bg-emerald-800/20 text-emerald-400" : "text-slate-300"
               )}
@@ -291,7 +267,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
         </div>
       </div>
       
-      {/* Main timeline area with horizontal scroll */}
       <ScrollArea className="h-full relative" onWheel={e => e.stopPropagation()}>
         <div 
           ref={scrollContainerRef}
@@ -307,9 +282,7 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
               minHeight: '500px'
             }}
           >
-            {/* Grid lines */}
             <div className="absolute inset-0 pointer-events-none">
-              {/* Vertical grid lines */}
               {visibleTimeUnits.map((_, index) => (
                 <div 
                   key={`vgrid-${index}`}
@@ -322,7 +295,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
                 />
               ))}
               
-              {/* Horizontal grid lines */}
               {Array.from({ length: maxRows }).map((_, index) => (
                 <div 
                   key={`hgrid-${index}`}
@@ -331,7 +303,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
                 />
               ))}
               
-              {/* Today/current month indicator */}
               {visibleTimeUnits.map((unit, index) => {
                 if (format(unit.date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd') && viewMode === 'month') {
                   return (
@@ -355,7 +326,6 @@ const InfiniteTimeline: React.FC<InfiniteTimelineProps> = ({
               })}
             </div>
             
-            {/* Timeline items */}
             <DndContext
               sensors={sensors}
               onDragEnd={handleDragEnd}
