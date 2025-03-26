@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -114,28 +115,9 @@
       0 0 20px rgba(16, 185, 129, 0.05),
       inset 0 0 20px rgba(16, 185, 129, 0.025);
   }
-  
-  .timeline-card {
-    @apply bg-gradient-to-br from-emerald-400 to-emerald-500 border border-emerald-300 shadow-md;
-    transition: all 0.3s ease;
-  }
-  
-  .timeline-card.selected {
-    @apply shadow-lg shadow-emerald/30;
-    animation: emerald-pulse 2.5s infinite;
-  }
-  
-  .timeline-card-title {
-    @apply font-medium text-white text-base drop-shadow-md;
-    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
-  }
-  
-  .timeline-card-description {
-    @apply text-white/90 text-sm drop-shadow-sm;
-    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
-  }
 }
 
+/* Animations for our components */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -157,6 +139,7 @@
   100% { box-shadow: 0 0 5px rgba(52, 211, 153, 0.2); }
 }
 
+/* Enhanced glow effects - toned down for better eye comfort */
 @keyframes emerald-pulse {
   0% { box-shadow: 0 0 3px rgba(16, 185, 129, 0.1); }
   50% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
@@ -167,6 +150,13 @@
   0% { opacity: 0.3; filter: blur(10px); }
   50% { opacity: 0.4; filter: blur(8px); }
   100% { opacity: 0.3; filter: blur(10px); }
+}
+
+/* Card glow animation for when cards are clicked */
+@keyframes card-glow {
+  0% { box-shadow: 0 0 5px rgba(var(--glow-color), 0.4); }
+  50% { box-shadow: 0 0 20px rgba(var(--glow-color), 0.8); }
+  100% { box-shadow: 0 0 5px rgba(var(--glow-color), 0.4); }
 }
 
 .animate-fade-in {
@@ -191,4 +181,8 @@
 
 .animate-green-lantern {
   animation: green-lantern-pulse 4s infinite;
+}
+
+.animate-card-glow {
+  animation: card-glow 2s infinite;
 }
