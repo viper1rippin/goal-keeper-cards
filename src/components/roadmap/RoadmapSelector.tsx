@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { 
   Select,
   SelectContent,
@@ -7,52 +7,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
+import { ParentGoal } from "@/components/index/IndexPageTypes";
 
 interface RoadmapSelectorProps {
   selectedRoadmapId: string | null;
   onSelectRoadmap: (id: string) => void;
+  parentGoals: ParentGoal[];
 }
 
-const RoadmapSelector = ({ selectedRoadmapId, onSelectRoadmap }: RoadmapSelectorProps) => {
-  const { user } = useAuth();
-  const [parentGoals, setParentGoals] = useState<{ id: string; title: string }[]>([
-    { id: "demo", title: "Demo Roadmap" }
-  ]);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Fetch parent goals from database
-  useEffect(() => {
-    if (!user) return;
-    
-    const fetchParentGoals = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('parent_goals')
-          .select('id, title')
-          .eq('user_id', user.id)
-          .order('position', { ascending: true });
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Combine demo roadmap with actual parent goals
-          setParentGoals([
-            { id: "demo", title: "Demo Roadmap" },
-            ...data
-          ]);
-        }
-      } catch (error) {
-        console.error("Error fetching parent goals:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchParentGoals();
-  }, [user]);
+const RoadmapSelector = ({ selectedRoadmapId, onSelectRoadmap, parentGoals }: RoadmapSelectorProps) => {
+  if (parentGoals.length === 0) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-slate-400">Roadmap:</span>
+        <div className="text-sm text-slate-400 bg-slate-800 px-3 py-2 rounded">
+          No roadmaps available
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex items-center gap-2">
@@ -62,7 +35,7 @@ const RoadmapSelector = ({ selectedRoadmapId, onSelectRoadmap }: RoadmapSelector
         onValueChange={(value) => onSelectRoadmap(value)}
       >
         <SelectTrigger className="w-[220px] bg-slate-800 border-slate-700">
-          <SelectValue placeholder={isLoading ? "Loading..." : "Select a roadmap"} />
+          <SelectValue placeholder="Select a roadmap" />
         </SelectTrigger>
         <SelectContent>
           {parentGoals.map((goal) => (

@@ -208,9 +208,11 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   };
   
+  const ROW_HEIGHT = 150;
+  
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/70 backdrop-blur-sm overflow-hidden shadow-xl">
-      <div className="border-b border-slate-800 p-2 bg-slate-800/50">
+    <div className="rounded-xl border border-slate-700 bg-slate-900/90 backdrop-blur-sm overflow-hidden shadow-2xl">
+      <div className="border-b border-slate-800 p-3 bg-slate-800/70">
         <div className="flex">
           {timeUnits.map((unit, idx) => (
             <div 
@@ -225,15 +227,15 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       </div>
       
       <div 
-        className="relative overflow-x-auto"
-        style={{ height: `${maxRow * 100 + 50}px` }}
+        className="relative overflow-x-auto p-2"
+        style={{ height: `${maxRow * ROW_HEIGHT + 60}px` }}
         ref={timelineRef}
       >
         <div className="absolute inset-0 flex pointer-events-none">
           {timeUnits.map((_, idx) => (
             <div 
               key={idx}
-              className="h-full border-r border-slate-800/70"
+              className="h-full border-r border-slate-800/50"
               style={{ width: `${cellWidth}px` }}
             ></div>
           ))}
@@ -243,8 +245,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           {Array.from({ length: maxRow }).map((_, idx) => (
             <div 
               key={idx}
-              className="w-full border-b border-slate-800/70"
-              style={{ height: '100px' }}
+              className="w-full border-b border-slate-800/50"
+              style={{ height: `${ROW_HEIGHT}px` }}
             ></div>
           ))}
         </div>
@@ -263,7 +265,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
                 key={item.id}
                 className="absolute"
                 style={{ 
-                  top: `${item.row * 100 + 10}px`,
+                  top: `${item.row * ROW_HEIGHT + 15}px`,
                   left: `${item.start * cellWidth}px`,
                 }}
               >
@@ -281,7 +283,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
             
             <button
               onClick={handleAddItem}
-              className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
+              className="absolute bottom-6 right-6 bg-emerald hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
                 <path d="M5 12h14" />

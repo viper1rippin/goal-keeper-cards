@@ -5,207 +5,159 @@ import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
-import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
+import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
+import { SubGoalTimelineItem, TimelineViewMode } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ParentGoal } from "@/components/index/IndexPageTypes";
+import { Goal } from "@/components/GoalRow";
 
 const Roadmap = () => {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>("demo");
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null);
   const [selectedView, setSelectedView] = useState<TimelineViewMode>("month");
+  const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
+  const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Sample roadmap data - in real app this would come from API
-  const sampleItems: SubGoalTimelineItem[] = [
-    {
-      id: "1",
-      title: "Research Phase",
-      description: "Initial market research and competitor analysis",
-      row: 0,
-      start: 1,
-      duration: 3,
-      progress: 70,
-      category: "research",
-      startDate: new Date(new Date().setDate(new Date().getDate() - 10)),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 20))
-    },
-    {
-      id: "2",
-      title: "Design Prototypes",
-      description: "Create wireframes and interactive prototypes",
-      row: 1,
-      start: 3,
-      duration: 2,
-      progress: 40,
-      category: "design",
-      startDate: new Date(new Date().setDate(new Date().getDate() + 15)),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 30))
-    },
-    {
-      id: "3",
-      title: "MVP Development",
-      description: "Develop minimum viable product features",
-      row: 2,
-      start: 4,
-      duration: 4,
-      progress: 20,
-      category: "development",
-      startDate: new Date(new Date().setDate(new Date().getDate() + 25)),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 65))
-    },
-    {
-      id: "4",
-      title: "Alpha Testing",
-      description: "Internal testing phase",
-      row: 0,
-      start: 6,
-      duration: 2,
-      progress: 0,
-      category: "testing",
-      startDate: new Date(new Date().setDate(new Date().getDate() + 70)),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 85))
-    },
-    {
-      id: "5",
-      title: "Beta Release",
-      description: "Limited user testing",
-      row: 1,
-      start: 7,
-      duration: 3,
-      progress: 0,
-      category: "milestone",
-      startDate: new Date(new Date().setDate(new Date().getDate() + 90)),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 120))
-    }
-  ];
-  
-  const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>(sampleItems);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Load roadmap data from database
+  // Fetch parent goals
   useEffect(() => {
-    if (selectedRoadmapId && selectedRoadmapId !== "demo" && user) {
-      loadRoadmapData(selectedRoadmapId);
-    } else if (selectedRoadmapId === "demo") {
-      setRoadmapItems(sampleItems);
-    }
-  }, [selectedRoadmapId, user]);
-  
-  // Function to load roadmap data
-  const loadRoadmapData = async (roadmapId: string) => {
-    if (!user) return;
-    
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase
-        .from('sub_goals')
-        .select('*')
-        .eq('parent_goal_id', roadmapId)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        // Map database fields to timeline items
-        const items: SubGoalTimelineItem[] = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          row: item.timeline_row || 0,
-          start: item.timeline_start || 0,
-          duration: item.timeline_duration || 2,
-          progress: item.progress,
-          category: (item.timeline_category as TimelineCategory) || 'default',
-          parentId: item.parent_goal_id,
-          startDate: item.start_date ? new Date(item.start_date) : null,
-          endDate: item.end_date ? new Date(item.end_date) : null
-        }));
-        
-        setRoadmapItems(items);
-      } else {
-        // No items found, use empty array
-        setRoadmapItems([]);
+    const fetchParentGoals = async () => {
+      if (!user) {
+        setParentGoals([]);
+        setIsLoading(false);
+        return;
       }
       
-    } catch (error) {
-      console.error("Error loading roadmap data:", error);
-      toast({
-        title: "Error loading roadmap",
-        description: "There was a problem loading your roadmap data.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
-    setRoadmapItems(updatedItems);
-    
-    // In a real app, save to database here
-    if (user && selectedRoadmapId && selectedRoadmapId !== "demo") {
       try {
-        const updates = updatedItems.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          progress: item.progress,
-          parent_goal_id: selectedRoadmapId,
-          user_id: user.id,
-          timeline_row: item.row,
-          timeline_start: item.start,
-          timeline_duration: item.duration,
-          timeline_category: item.category,
-          start_date: item.startDate instanceof Date ? item.startDate.toISOString() : item.startDate,
-          end_date: item.endDate instanceof Date ? item.endDate.toISOString() : item.endDate
-        }));
+        setIsLoading(true);
         
-        // Batch update all items
-        for (const update of updates) {
-          if (update.id.startsWith('item-')) {
-            // New item - remove temp id and insert
-            const { id, ...newItem } = update;
-            const { error } = await supabase
-              .from('sub_goals')
-              .insert(newItem);
-              
-            if (error) throw error;
-          } else {
-            // Existing item - update
-            const { error } = await supabase
-              .from('sub_goals')
-              .update(update)
-              .eq('id', update.id)
-              .eq('user_id', user.id);
-              
-            if (error) throw error;
+        // Fetch parent goals
+        const { data: parentGoalsData, error: parentGoalsError } = await supabase
+          .from('parent_goals')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('position', { ascending: true });
+        
+        if (parentGoalsError) throw parentGoalsError;
+        
+        if (parentGoalsData && parentGoalsData.length > 0) {
+          const formattedParentGoals: ParentGoal[] = parentGoalsData.map(pg => ({
+            id: pg.id,
+            title: pg.title,
+            description: pg.description,
+            goals: [],
+            position: pg.position || 0
+          }));
+          
+          setParentGoals(formattedParentGoals);
+          
+          // Set first parent goal as selected by default if none is selected
+          if (!selectedRoadmapId) {
+            setSelectedRoadmapId(formattedParentGoals[0].id);
           }
         }
         
+      } catch (error) {
+        console.error('Error fetching parent goals:', error);
         toast({
-          title: "Roadmap updated",
-          description: "Your changes have been saved.",
+          title: 'Error',
+          description: 'Failed to load parent goals. Please try again.',
+          variant: 'destructive',
         });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchParentGoals();
+  }, [user]);
+  
+  // Fetch sub-goals for the selected parent goal
+  useEffect(() => {
+    const fetchSubGoals = async () => {
+      if (!user || !selectedRoadmapId) {
+        setRoadmapItems([]);
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        // Fetch sub-goals for the selected parent goal
+        const { data: subGoalsData, error: subGoalsError } = await supabase
+          .from('sub_goals')
+          .select('*')
+          .eq('parent_goal_id', selectedRoadmapId)
+          .eq('user_id', user.id)
+          .order('display_order', { ascending: true });
+        
+        if (subGoalsError) throw subGoalsError;
+        
+        if (subGoalsData) {
+          // Convert sub-goals to timeline items
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
+            id: subGoal.id,
+            title: subGoal.title,
+            description: subGoal.description,
+            row: Math.floor(index / 3), // Simple row distribution
+            start: index * 3, // Spread items out for better visibility
+            duration: 2, // Default duration
+            progress: subGoal.progress || 0,
+            category: index % 5 === 0 ? 'milestone' : 
+                    index % 4 === 0 ? 'research' : 
+                    index % 3 === 0 ? 'design' : 
+                    index % 2 === 0 ? 'development' : 'testing',
+            parentId: selectedRoadmapId,
+            originalSubGoalId: subGoal.id
+          }));
+          
+          setRoadmapItems(items);
+        }
         
       } catch (error) {
-        console.error("Error saving roadmap data:", error);
+        console.error('Error fetching sub-goals:', error);
         toast({
-          title: "Error saving roadmap",
-          description: "There was a problem saving your changes.",
-          variant: "destructive"
+          title: 'Error',
+          description: 'Failed to load sub-goals. Please try again.',
+          variant: 'destructive',
         });
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      // Demo mode - just show toast
-      toast({
-        title: "Roadmap updated",
-        description: "Your changes have been saved.",
+    };
+    
+    fetchSubGoals();
+  }, [selectedRoadmapId, user]);
+  
+  const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
+    setRoadmapItems(updatedItems);
+    
+    // Update progress on sub-goals in the database
+    if (user && selectedRoadmapId) {
+      updatedItems.forEach(async (item) => {
+        if (item.originalSubGoalId) {
+          try {
+            await supabase
+              .from('sub_goals')
+              .update({ progress: item.progress })
+              .eq('id', item.originalSubGoalId)
+              .eq('user_id', user.id);
+          } catch (error) {
+            console.error('Error updating sub-goal progress:', error);
+          }
+        }
       });
     }
+    
+    toast({
+      title: "Roadmap updated",
+      description: "Your changes have been saved.",
+    });
   };
   
   const handleCreateRoadmap = () => {
@@ -215,8 +167,16 @@ const Roadmap = () => {
     });
   };
   
-  const handleViewChange = (view: TimelineViewMode) => {
+  const handleViewChange = (view: "day" | "week" | "month" | "year") => {
     setSelectedView(view);
+  };
+  
+  const handleImportSubGoals = (parentId: string) => {
+    // This function is for future use - importing goals from another parent
+    toast({
+      title: "Coming Soon",
+      description: "Importing sub-goals will be available in the next update.",
+    });
   };
   
   return (
@@ -233,53 +193,55 @@ const Roadmap = () => {
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
-        <div className="container pt-8 pb-16 relative z-10">
-          <div className="flex justify-between items-center mb-6">
+        <div className="container max-w-[1600px] pt-8 pb-24 relative z-10"> {/* Increased max-width and padding */}
+          <div className="flex justify-between items-center mb-8"> {/* Increased margin */}
             <div>
-              <h1 className="text-3xl font-bold text-gradient">Project Roadmap</h1>
-              <p className="text-slate-400 mt-1">Visualize your project timeline and milestones</p>
+              <h1 className="text-4xl font-bold text-gradient">Project Roadmap</h1> {/* Larger heading */}
+              <p className="text-slate-400 mt-2 text-lg">Visualize your project timeline and milestones</p> {/* Larger text */}
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-3"> {/* Increased gap */}
               <Button 
                 variant="secondary"
                 onClick={() => handleCreateRoadmap()}
+                className="text-base px-5 py-2.5" /* Larger button */
               >
-                <Plus size={16} className="mr-1" />
+                <Plus size={18} className="mr-2" /> {/* Larger icon */}
                 New Roadmap
               </Button>
             </div>
           </div>
           
-          <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-lg p-4 mb-6">
-            <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-5 mb-8"> {/* Enhanced container and increased spacing */}
+            <div className="flex flex-col md:flex-row justify-between gap-6 items-start md:items-center"> {/* Increased gap */}
               <RoadmapSelector 
                 selectedRoadmapId={selectedRoadmapId} 
                 onSelectRoadmap={setSelectedRoadmapId}
+                parentGoals={parentGoals}
               />
               
-              <div className="flex bg-slate-800/50 rounded-md p-1">
+              <div className="flex bg-slate-800/50 rounded-md p-1.5"> {/* Increased padding */}
                 <button 
                   onClick={() => handleViewChange("day")}
-                  className={`px-3 py-1 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "day" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Day
                 </button>
                 <button 
                   onClick={() => handleViewChange("week")}
-                  className={`px-3 py-1 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "week" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Week
                 </button>
                 <button 
                   onClick={() => handleViewChange("month")}
-                  className={`px-3 py-1 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "month" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Month
                 </button>
                 <button 
                   onClick={() => handleViewChange("year")}
-                  className={`px-3 py-1 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`}
+                  className={`px-4 py-1.5 text-sm rounded ${selectedView === "year" ? "bg-slate-700" : "hover:bg-slate-800/80"}`} /* Increased size */
                 >
                   Year
                 </button>
@@ -288,12 +250,16 @@ const Roadmap = () => {
           </div>
           
           {isLoading ? (
-            <div className="flex justify-center items-center p-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald"></div>
+            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl"> {/* Enhanced container */}
+              <p className="text-slate-400 text-lg">Loading roadmap data...</p> {/* Larger text */}
+            </div>
+          ) : !selectedRoadmapId ? (
+            <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-xl p-10 text-center shadow-xl"> {/* Enhanced container */}
+              <p className="text-slate-400 text-lg">Select a parent goal to view its roadmap</p> {/* Larger text */}
             </div>
           ) : (
             <RoadmapTimeline
-              roadmapId={selectedRoadmapId || "demo"}
+              roadmapId={selectedRoadmapId}
               items={roadmapItems}
               onItemsChange={handleItemsChange}
               viewMode={selectedView}
