@@ -89,6 +89,8 @@ const Roadmap = () => {
   useEffect(() => {
     if (selectedRoadmapId && selectedRoadmapId !== "demo" && user) {
       loadRoadmapData(selectedRoadmapId);
+    } else if (selectedRoadmapId === "demo") {
+      setRoadmapItems(sampleItems);
     }
   }, [selectedRoadmapId, user]);
   

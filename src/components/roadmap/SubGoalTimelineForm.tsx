@@ -14,14 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem, TimelineCategory, TimelineViewMode } from './types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import {
   Popover,
   PopoverContent,
@@ -40,8 +33,6 @@ const formSchema = z.object({
   description: z.string().optional(),
   row: z.number(),
   start: z.number(),
-  duration: z.number().min(1, 'Duration must be at least 1'),
-  category: z.string(),
   progress: z.number().min(0).max(100),
   startDate: z.date().nullable().optional(),
   endDate: z.date().nullable().optional(),
@@ -70,8 +61,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: item.description || '',
       row: item.row,
       start: item.start,
-      duration: item.duration,
-      category: item.category || 'default',
       progress: item.progress,
       startDate: item.startDate ? new Date(item.startDate) : null,
       endDate: item.endDate ? new Date(item.endDate) : null,
@@ -85,9 +74,9 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: values.description || '',
       row: values.row,
       start: values.start,
-      duration: values.duration,
+      duration: item.duration, // Keep existing duration
       progress: values.progress,
-      category: values.category as TimelineCategory,
+      category: item.category, // Keep existing category
       startDate: values.startDate,
       endDate: values.endDate,
       ...(item.parentId && { parentId: item.parentId }),
@@ -95,21 +84,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
     };
     
     onSave(updatedItem);
-  };
-
-  const getTimeUnitLabel = () => {
-    switch (viewMode) {
-      case 'day':
-        return 'days';
-      case 'week':
-        return 'weeks';
-      case 'month':
-        return 'months';
-      case 'year':
-        return 'quarters';
-      default:
-        return 'months';
-    }
   };
 
   return (
@@ -231,63 +205,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Duration ({getTimeUnitLabel()})</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={50}
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="milestone">Milestone</SelectItem>
-                      <SelectItem value="feature">Feature</SelectItem>
-                      <SelectItem value="research">Research</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="development">Development</SelectItem>
-                      <SelectItem value="testing">Testing</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="mobile">Mobile</SelectItem>
-                      <SelectItem value="web">Web</SelectItem>
-                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                      <SelectItem value="backend">Backend</SelectItem>
-                      <SelectItem value="default">Default</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
