@@ -5,7 +5,7 @@ import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
 import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
-import { SubGoalTimelineItem, TimelineViewMode } from "@/components/roadmap/types";
+import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -93,24 +93,21 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
-            const colors = ['amber', 'blue', 'purple', 'pink', 'emerald', 'orange', 'red'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            
-            return {
-              id: subGoal.id,
-              title: subGoal.title,
-              description: subGoal.description,
-              row: Math.floor(index / 3),
-              start: index * 3,
-              startDate: subGoal.start_date ? new Date(subGoal.start_date).toISOString() : undefined,
-              endDate: subGoal.end_date ? new Date(subGoal.end_date).toISOString() : undefined,
-              progress: subGoal.progress || 0,
-              color: randomColor,
-              parentId: selectedRoadmapId,
-              originalSubGoalId: subGoal.id
-            };
-          });
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
+            id: subGoal.id,
+            title: subGoal.title,
+            description: subGoal.description,
+            row: Math.floor(index / 3),
+            start: index * 3,
+            duration: 2,
+            progress: subGoal.progress || 0,
+            category: index % 5 === 0 ? 'milestone' : 
+                    index % 4 === 0 ? 'research' : 
+                    index % 3 === 0 ? 'design' : 
+                    index % 2 === 0 ? 'development' : 'testing',
+            parentId: selectedRoadmapId,
+            originalSubGoalId: subGoal.id
+          }));
           
           setRoadmapItems(items);
         }
@@ -139,15 +136,11 @@ const Roadmap = () => {
           try {
             await supabase
               .from('sub_goals')
-              .update({ 
-                progress: item.progress,
-                start_date: item.startDate,
-                end_date: item.endDate 
-              })
+              .update({ progress: item.progress })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
           } catch (error) {
-            console.error('Error updating sub-goal:', error);
+            console.error('Error updating sub-goal progress:', error);
           }
         }
       });

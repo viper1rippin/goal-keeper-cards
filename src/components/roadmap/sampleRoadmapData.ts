@@ -2,9 +2,6 @@
 import { SubGoalTimelineItem } from './types';
 
 export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
-  const currentDate = new Date();
-  const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
-  
   return [
     {
       id: "sample-1",
@@ -12,10 +9,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "Market analysis and competitor research",
       row: 0,
       start: 0,
-      startDate: new Date(currentDate.getTime()).toISOString(),
-      endDate: new Date(currentDate.getTime() + 14 * oneDay).toISOString(),
+      duration: 2,
       progress: 100,
-      color: "amber"
+      category: "research"
     },
     {
       id: "sample-2",
@@ -23,10 +19,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "User interface and experience design",
       row: 0,
       start: 2,
-      startDate: new Date(currentDate.getTime() + 15 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 29 * oneDay).toISOString(),
+      duration: 2,
       progress: 70,
-      color: "blue"
+      category: "design"
     },
     {
       id: "sample-3",
@@ -34,10 +29,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "First alpha version milestone",
       row: 0,
       start: 4,
-      startDate: new Date(currentDate.getTime() + 30 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 37 * oneDay).toISOString(),
+      duration: 1,
       progress: 0,
-      color: "purple"
+      category: "milestone"
     },
     {
       id: "sample-4",
@@ -45,10 +39,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "API and database development",
       row: 1,
       start: 1,
-      startDate: new Date(currentDate.getTime() + 7 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 28 * oneDay).toISOString(),
+      duration: 3,
       progress: 50,
-      color: "emerald"
+      category: "backend"
     },
     {
       id: "sample-5",
@@ -56,10 +49,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "Core features for mobile platform",
       row: 1,
       start: 4,
-      startDate: new Date(currentDate.getTime() + 30 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 44 * oneDay).toISOString(),
+      duration: 2,
       progress: 0,
-      color: "pink"
+      category: "mobile"
     },
     {
       id: "sample-6",
@@ -67,10 +59,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "Frontend development for the web platform",
       row: 2,
       start: 3,
-      startDate: new Date(currentDate.getTime() + 21 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 42 * oneDay).toISOString(),
+      duration: 3,
       progress: 30,
-      color: "orange"
+      category: "web"
     },
     {
       id: "sample-7",
@@ -78,10 +69,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "Cloud infrastructure and CI/CD pipeline",
       row: 2,
       start: 0,
-      startDate: new Date(currentDate.getTime()).toISOString(),
-      endDate: new Date(currentDate.getTime() + 21 * oneDay).toISOString(),
+      duration: 3,
       progress: 90,
-      color: "red"
+      category: "infrastructure"
     },
     {
       id: "sample-8",
@@ -89,10 +79,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "Public beta launch",
       row: 1,
       start: 6,
-      startDate: new Date(currentDate.getTime() + 45 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 52 * oneDay).toISOString(),
+      duration: 1,
       progress: 0,
-      color: "purple"
+      category: "milestone"
     },
     {
       id: "sample-9",
@@ -100,10 +89,9 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       description: "Quality assurance and bug fixing",
       row: 2,
       start: 6,
-      startDate: new Date(currentDate.getTime() + 43 * oneDay).toISOString(),
-      endDate: new Date(currentDate.getTime() + 57 * oneDay).toISOString(),
+      duration: 2,
       progress: 0,
-      color: "blue"
+      category: "testing"
     }
   ];
 };

@@ -21,12 +21,13 @@ export interface SubGoalTimelineItem {
   description: string;
   row: number; // Vertical position in timeline
   start: number; // Starting position (day/week/month)
-  startDate?: string;
-  endDate?: string;
+  duration: number; // Length in time units
   progress: number; // 0-100
-  color?: string; // Custom color for the card
+  category?: TimelineCategory;
   parentId?: string; // Reference to parent goal
   originalSubGoalId?: string; // If imported from a sub-goal
+  startDate?: string; // New field for start date
+  endDate?: string; // New field for end date
 }
 
 export interface RoadmapData {

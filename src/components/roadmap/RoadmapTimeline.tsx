@@ -19,7 +19,6 @@ import {
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
-import { addMonths, startOfMonth, endOfMonth, differenceInDays, format, startOfQuarter, endOfQuarter, differenceInMonths } from 'date-fns';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -33,9 +32,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
   const [quarters] = useState(['Q1', 'Q2', 'Q3', 'Q4']);
-  
-  // Get current year for date calculations
-  const currentYear = new Date().getFullYear();
   
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
@@ -92,25 +88,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     const maxRowValue = Math.max(...items.map(item => item.row));
     setMaxRow(Math.max(maxRowValue + 1, 3)); // Ensure at least 3 rows
   }, [items]);
-
-  // Calculate position for an item based on its start date
-  const calculateItemPosition = (item: SubGoalTimelineItem) => {
-    if (!item.startDate) {
-      return { left: `${item.start * cellWidth}px` };
-    }
-
-    const startDate = new Date(item.startDate);
-    
-    if (viewMode === 'month') {
-      // For month view, calculate position based on the month
-      const monthIndex = startDate.getMonth();
-      return { left: `${monthIndex * cellWidth}px` };
-    } else {
-      // For year view, calculate position based on quarter
-      const quarterIndex = Math.floor(startDate.getMonth() / 3);
-      return { left: `${quarterIndex * cellWidth}px` };
-    }
-  };
   
   // Handle drag start
   const handleDragStart = (event: DragStartEvent) => {
@@ -163,50 +140,13 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
-      // Update the item's position and dates based on the view mode
+      // Update the item's position
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
-          let newStartDate = item.startDate ? new Date(item.startDate) : new Date();
-          let newEndDate = item.endDate ? new Date(item.endDate) : new Date();
-          
-          if (viewMode === 'month') {
-            // In month view, update to the new month
-            newStartDate.setMonth(newCell);
-            
-            // If end date exists, maintain the same duration
-            if (item.endDate) {
-              const oldStart = new Date(item.startDate!);
-              const oldEnd = new Date(item.endDate);
-              const duration = differenceInDays(oldEnd, oldStart);
-              newEndDate = new Date(newStartDate);
-              newEndDate.setDate(newStartDate.getDate() + duration);
-            } else {
-              // Default to end of month if no end date
-              newEndDate = endOfMonth(newStartDate);
-            }
-          } else {
-            // In year view, update to the new quarter
-            const quarterMonth = newCell * 3;
-            newStartDate = new Date(currentYear, quarterMonth, 1);
-            
-            // If end date exists, maintain the same duration in months
-            if (item.endDate) {
-              const oldStart = new Date(item.startDate!);
-              const oldEnd = new Date(item.endDate);
-              const durationMonths = differenceInMonths(oldEnd, oldStart);
-              newEndDate = addMonths(newStartDate, durationMonths);
-            } else {
-              // Default to end of quarter if no end date
-              newEndDate = endOfQuarter(newStartDate);
-            }
-          }
-
           return {
             ...item,
             start: newCell,
-            row: newRow,
-            startDate: newStartDate.toISOString(),
-            endDate: newEndDate.toISOString()
+            row: newRow
           };
         }
         return item;
@@ -218,6 +158,21 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setDraggingItemId(null);
   };
   
+  // Handle resizing an item
+  const handleResizeItem = (itemId: string, newDuration: number) => {
+    const updatedItems = items.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          duration: newDuration
+        };
+      }
+      return item;
+    });
+    
+    onItemsChange(updatedItems);
+  };
+  
   // Open item form for editing
   const handleEditItem = (item: SubGoalTimelineItem) => {
     setSelectedItem(item);
@@ -226,16 +181,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   // Open form for new item
   const handleAddItem = () => {
-    // Create default dates based on view mode
-    let startDate = new Date();
-    let endDate = new Date();
-    
-    if (viewMode === 'month') {
-      endDate = endOfMonth(startDate);
-    } else {
-      endDate = endOfQuarter(startDate);
-    }
-    
     const newItem: SubGoalTimelineItem = {
       id: `item-${Date.now()}`,
       title: 'New Item',
@@ -243,9 +188,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       progress: 0,
       row: 0,
       start: 0,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      color: 'emerald' // Default color
+      duration: 2,
+      category: 'default'
     };
     
     setSelectedItem(newItem);
@@ -342,29 +286,26 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         >
           {/* Timeline items */}
           <div className="absolute inset-0">
-            {items.map((item) => {
-              const position = calculateItemPosition(item);
-              
-              return (
-                <div
-                  key={item.id}
-                  className="absolute"
-                  style={{ 
-                    top: `${item.row * 100 + 10}px`,
-                    left: position.left,
-                  }}
-                >
-                  <TimelineCard
-                    item={item}
-                    isSelected={selectedItem?.id === item.id}
-                    onSelect={() => setSelectedItem(item)}
-                    onEdit={() => handleEditItem(item)}
-                    cellWidth={cellWidth}
-                    viewMode={viewMode}
-                  />
-                </div>
-              );
-            })}
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="absolute"
+                style={{ 
+                  top: `${item.row * 100 + 10}px`,
+                  left: `${item.start * cellWidth}px`,
+                }}
+              >
+                <TimelineCard
+                  item={item}
+                  isSelected={selectedItem?.id === item.id}
+                  onSelect={() => setSelectedItem(item)}
+                  onEdit={() => handleEditItem(item)}
+                  onResize={handleResizeItem}
+                  cellWidth={cellWidth}
+                  viewMode={viewMode}
+                />
+              </div>
+            ))}
             
             {/* Add button at the bottom */}
             <button
