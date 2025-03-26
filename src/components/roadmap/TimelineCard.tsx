@@ -1,11 +1,9 @@
-
 import React, { useState, useRef } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft, BeakerIcon } from "lucide-react";
-import { format } from "date-fns";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -47,20 +45,6 @@ const TimelineCard = ({
     transition,
     width: `${item.duration * cellWidth}px`,
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
-  };
-  
-  // Format dates for display
-  const formatDateRange = () => {
-    if (!item.startDate || !item.endDate) return "";
-    
-    const startDate = new Date(item.startDate);
-    const endDate = new Date(item.endDate);
-    
-    if (viewMode === "month") {
-      return `${format(startDate, "MMM d")} - ${format(endDate, "MMM d")}`;
-    } else {
-      return `${format(startDate, "MMM yyyy")} - ${format(endDate, "MMM yyyy")}`;
-    }
   };
   
   const getCategoryColors = () => {
@@ -207,10 +191,7 @@ const TimelineCard = ({
           {shouldShowExpandedDetails && (
             <div className="mt-1 space-y-0.5">
               {item.description && (
-                <p className="text-xs text-white/80 line-clamp-1">{item.description}</p>
-              )}
-              {item.startDate && item.endDate && (
-                <p className="text-xs text-white/90 font-medium">{formatDateRange()}</p>
+                <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
               )}
             </div>
           )}
