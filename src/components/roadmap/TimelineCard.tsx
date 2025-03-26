@@ -3,7 +3,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft, BeakerIcon } from "lucide-react";
+import { Edit2, GripHorizontal, Star } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -27,7 +27,6 @@ const TimelineCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
-  const [initialDuration, setInitialDuration] = useState(item.duration);
   
   const resizeRef = useRef<HTMLDivElement>(null);
   
@@ -40,65 +39,55 @@ const TimelineCard = ({
     isDragging,
   } = useSortable({ id: item.id });
 
+  // Calculate width based on start/end dates if available
+  const getCardWidth = () => {
+    if (item.startDate && item.endDate) {
+      const start = new Date(item.startDate);
+      const end = new Date(item.endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (viewMode === 'month') {
+        // If in month view, calculate based on days
+        return `${Math.max(diffDays, 1) * (cellWidth / 30)}px`;
+      } else {
+        // If in year view, calculate based on quarter (approx 90 days)
+        return `${Math.max(diffDays, 1) * (cellWidth / 90)}px`;
+      }
+    }
+    // Fallback if no dates
+    return `${item.start * cellWidth}px`;
+  };
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    width: `${item.duration * cellWidth}px`,
+    width: getCardWidth(),
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
-  const getCategoryColors = () => {
-    const category = item.category || 'default';
+  const getCardColors = () => {
+    const color = item.color || 'emerald';
     
-    switch (category) {
-      case 'milestone':
+    switch (color) {
+      case 'amber':
         return 'from-amber-500 to-amber-600 border-amber-400';
-      case 'feature':
+      case 'blue':
         return 'from-blue-400 to-blue-500 border-blue-300';
-      case 'research':
+      case 'purple':
         return 'from-purple-400 to-purple-500 border-purple-300';
-      case 'design':
+      case 'pink':
         return 'from-pink-400 to-pink-500 border-pink-300';
-      case 'development':
+      case 'emerald':
         return 'from-emerald-400 to-emerald-500 border-emerald-300';
-      case 'testing':
+      case 'orange':
         return 'from-orange-400 to-orange-500 border-orange-300';
-      case 'marketing':
+      case 'red':
         return 'from-red-400 to-red-500 border-red-300';
-      case 'mobile':
-        return 'from-rose-400 to-rose-500 border-rose-300';
-      case 'web':
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-      case 'infrastructure':
-        return 'from-purple-400 to-purple-500 border-purple-300';
-      case 'backend':
-        return 'from-slate-500 to-slate-600 border-slate-400';
       default:
         return 'from-emerald-400 to-emerald-500 border-emerald-300';
     }
   };
-  
-  const getCategoryIcon = () => {
-    const category = item.category || 'default';
-    
-    switch (category) {
-      case 'milestone':
-        return <Star size={16} className="text-white" />;
-      case 'research':
-        return <AlertTriangle size={16} className="text-white" />;
-      case 'design':
-        return <Package size={16} className="text-white" />;
-      case 'development':
-        return <Monitor size={16} className="text-white" />;
-      case 'testing':
-        return <Cpu size={16} className="text-white" />;
-      default:
-        return null;
-    }
-  };
-
-  const colorClass = getCategoryColors();
-  const categoryIcon = getCategoryIcon();
   
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -106,7 +95,6 @@ const TimelineCard = ({
     
     setIsResizing(true);
     setResizeStartX(e.clientX);
-    setInitialDuration(item.duration);
     
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
@@ -115,13 +103,8 @@ const TimelineCard = ({
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
-    const deltaX = e.clientX - resizeStartX;
-    const deltaUnits = Math.round(deltaX / cellWidth);
-    const newDuration = Math.max(1, initialDuration + deltaUnits);
-    
-    if (onResize) {
-      onResize(item.id, newDuration);
-    }
+    // Resizing logic will need to be updated to handle date ranges
+    // For now, we'll keep this as a placeholder
   };
   
   const handleResizeEnd = () => {
@@ -130,7 +113,8 @@ const TimelineCard = ({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
+  const shouldShowExpandedDetails = isSelected || isHovered;
+  const colorClass = getCardColors();
 
   return (
     <div
@@ -163,12 +147,6 @@ const TimelineCard = ({
           <GripHorizontal size={12} />
         </div>
         
-        {categoryIcon && (
-          <div className="absolute left-2 top-2">
-            {categoryIcon}
-          </div>
-        )}
-        
         {onEdit && (isHovered || isSelected) && (
           <button
             onClick={(e) => {
@@ -182,10 +160,7 @@ const TimelineCard = ({
           </button>
         )}
         
-        <div className={cn(
-          "flex flex-col h-full relative z-2 pt-3",
-          categoryIcon ? "pl-6" : ""
-        )}>
+        <div className="flex flex-col h-full relative z-2 pt-3">
           <h3 className="font-medium text-sm text-white line-clamp-1">{item.title}</h3>
           
           {shouldShowExpandedDetails && (
@@ -196,16 +171,14 @@ const TimelineCard = ({
             </div>
           )}
           
-          {item.duration > 1 && (
-            <div className="mt-auto select-none">
-              <div className="h-1 bg-black/30 rounded-full overflow-hidden mt-1">
-                <div 
-                  className="h-full bg-white/80 transition-all duration-700 ease-out"
-                  style={{ width: `${item.progress}%` }}
-                />
-              </div>
+          <div className="mt-auto select-none">
+            <div className="h-1 bg-black/30 rounded-full overflow-hidden mt-1">
+              <div 
+                className="h-full bg-white/80 transition-all duration-700 ease-out"
+                style={{ width: `${item.progress}%` }}
+              />
             </div>
-          )}
+          </div>
         </div>
         
         {onResize && (

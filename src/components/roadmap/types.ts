@@ -21,9 +21,10 @@ export interface SubGoalTimelineItem {
   description: string;
   row: number; // Vertical position in timeline
   start: number; // Starting position (day/week/month)
-  duration: number; // Length in time units
+  startDate?: Date | string;
+  endDate?: Date | string;
   progress: number; // 0-100
-  category?: TimelineCategory;
+  color?: string; // Custom color for the card
   parentId?: string; // Reference to parent goal
   originalSubGoalId?: string; // If imported from a sub-goal
 }
