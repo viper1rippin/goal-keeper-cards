@@ -15,7 +15,6 @@ import {
   DragOverlay,
   DragMoveEvent,
   KeyboardSensor,
-  closestCenter,
   pointerWithin,
 } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -33,8 +32,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
   const [quarters] = useState(['Q1', 'Q2', 'Q3', 'Q4']);
-  const [days] = useState(Array.from({ length: 31 }, (_, i) => i + 1));
-  const [weeks] = useState(Array.from({ length: 52 }, (_, i) => i + 1));
   
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
@@ -47,10 +44,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   // Get time units based on view mode
   const getTimeUnits = () => {
     switch (viewMode) {
-      case 'day':
-        return days.slice(0, 31);
-      case 'week':
-        return weeks.slice(0, 12);
       case 'month':
         return months;
       case 'year':
@@ -126,10 +119,22 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     // Calculate new position
     if (timelineRef.current) {
       const rect = timelineRef.current.getBoundingClientRect();
-      const relativeX = event.activatorEvent instanceof MouseEvent ? 
-        event.activatorEvent.clientX - rect.left : 0;
-      const relativeY = event.activatorEvent instanceof MouseEvent ? 
-        event.activatorEvent.clientY - rect.top : 0;
+      
+      // Safely access clientX and clientY
+      const clientX = event.activatorEvent instanceof MouseEvent 
+        ? event.activatorEvent.clientX 
+        : event.activatorEvent instanceof TouchEvent 
+          ? event.activatorEvent.touches[0].clientX 
+          : 0;
+          
+      const clientY = event.activatorEvent instanceof MouseEvent 
+        ? event.activatorEvent.clientY 
+        : event.activatorEvent instanceof TouchEvent 
+          ? event.activatorEvent.touches[0].clientY 
+          : 0;
+      
+      const relativeX = clientX - rect.left;
+      const relativeY = clientY - rect.top;
       
       // Calculate new position
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
@@ -215,10 +220,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   // Get header label based on view mode
   const getHeaderLabel = () => {
     switch (viewMode) {
-      case 'day':
-        return 'Days';
-      case 'week':
-        return 'Weeks';
       case 'month':
         return 'Months';
       case 'year':

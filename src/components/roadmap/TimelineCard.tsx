@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
@@ -32,7 +31,6 @@ const TimelineCard = ({
   
   const resizeRef = useRef<HTMLDivElement>(null);
   
-  // Setup sortable hook
   const {
     attributes,
     listeners,
@@ -42,7 +40,6 @@ const TimelineCard = ({
     isDragging,
   } = useSortable({ id: item.id });
 
-  // Apply dnd-kit styles
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -50,7 +47,6 @@ const TimelineCard = ({
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
-  // Get category-based colors
   const getCategoryColors = () => {
     const category = item.category || 'default';
     
@@ -82,7 +78,6 @@ const TimelineCard = ({
     }
   };
   
-  // Get category icon
   const getCategoryIcon = () => {
     const category = item.category || 'default';
     
@@ -105,7 +100,6 @@ const TimelineCard = ({
   const colorClass = getCategoryColors();
   const categoryIcon = getCategoryIcon();
   
-  // Handle resize start
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -118,7 +112,6 @@ const TimelineCard = ({
     document.addEventListener('mouseup', handleResizeEnd);
   };
   
-  // Handle resize move
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
@@ -131,14 +124,12 @@ const TimelineCard = ({
     }
   };
   
-  // Handle resize end
   const handleResizeEnd = () => {
     setIsResizing(false);
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  // Determine if we should show the expanded view with full details
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
 
   return (
@@ -165,7 +156,6 @@ const TimelineCard = ({
               : `bg-gradient-to-r ${colorClass} opacity-90`
         )}
       >
-        {/* Drag handle */}
         <div 
           className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
           {...listeners}
@@ -173,14 +163,12 @@ const TimelineCard = ({
           <GripHorizontal size={12} />
         </div>
         
-        {/* Category icon */}
         {categoryIcon && (
           <div className="absolute left-2 top-2">
             {categoryIcon}
           </div>
         )}
         
-        {/* Edit button */}
         {onEdit && (isHovered || isSelected) && (
           <button
             onClick={(e) => {
@@ -194,7 +182,6 @@ const TimelineCard = ({
           </button>
         )}
         
-        {/* Content */}
         <div className={cn(
           "flex flex-col h-full relative z-2 pt-3",
           categoryIcon ? "pl-6" : ""
@@ -209,7 +196,6 @@ const TimelineCard = ({
             </div>
           )}
           
-          {/* Progress bar for items with longer duration */}
           {item.duration > 1 && (
             <div className="mt-auto select-none">
               <div className="h-1 bg-black/30 rounded-full overflow-hidden mt-1">
@@ -222,7 +208,6 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle */}
         {onResize && (
           <div 
             ref={resizeRef}
