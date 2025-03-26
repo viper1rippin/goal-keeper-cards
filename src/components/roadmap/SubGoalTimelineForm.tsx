@@ -83,10 +83,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
 
   const getTimeUnitLabel = () => {
     switch (viewMode) {
-      case 'day':
-        return 'days';
-      case 'week':
-        return 'weeks';
       case 'month':
         return 'months';
       case 'year':
