@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 
 const formSchema = z.object({
   id: z.string(),
@@ -82,6 +83,20 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       progress: item.progress || 0,
     },
   });
+
+  // Update form if item changes
+  useEffect(() => {
+    form.reset({
+      id: item.id,
+      title: item.title,
+      description: item.description || '',
+      row: item.row,
+      start: item.start,
+      duration: item.duration || 2,
+      category: item.category || 'default',
+      progress: item.progress || 0,
+    });
+  }, [item, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const updatedItem: SubGoalTimelineItem = {
@@ -187,6 +202,27 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
               )}
             />
           </div>
+          
+          <FormField
+            control={form.control}
+            name="progress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Progress: {field.value}%</FormLabel>
+                <FormControl>
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={[field.value]}
+                    onValueChange={(value) => field.onChange(value[0])}
+                    className="py-4"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
           <FormField
             control={form.control}

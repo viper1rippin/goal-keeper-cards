@@ -238,7 +238,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({
             timeline_row: item.row,
             timeline_start: item.start,
             timeline_duration: item.duration,
-            timeline_category: item.category
+            timeline_category: item.category,
+            display_order: item.row * 100 + item.start // For proper ordering
           })
           .select()
           .single();

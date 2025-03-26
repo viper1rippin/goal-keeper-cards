@@ -99,11 +99,11 @@ const Roadmap = () => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: subGoal.timeline_row || Math.floor(Math.random() * 3),
-            start: subGoal.timeline_start || 0,
-            duration: subGoal.timeline_duration || 2,
-            progress: subGoal.progress || 0,
-            category: (subGoal.timeline_category as TimelineCategory) || 'default',
+            row: subGoal.timeline_row ?? Math.floor(Math.random() * 3),
+            start: subGoal.timeline_start ?? 0,
+            duration: subGoal.timeline_duration ?? 2,
+            progress: subGoal.progress ?? 0,
+            category: (subGoal.timeline_category as TimelineCategory) ?? 'default',
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id
           }));
@@ -139,22 +139,33 @@ const Roadmap = () => {
         .filter(item => item.originalSubGoalId)
         .map(item => ({
           id: item.originalSubGoalId,
+          title: item.title,
+          description: item.description,
           progress: item.progress,
           timeline_row: item.row,
           timeline_start: item.start,
           timeline_duration: item.duration,
           timeline_category: item.category,
-          title: item.title,
-          description: item.description
+          display_order: item.row * 100 + item.start, // Use a composite value for ordering
+          parent_goal_id: selectedRoadmapId,
+          user_id: user.id
         }));
       
-      // Process updates in batches
-      for (const update of updates) {
-        await supabase
-          .from('sub_goals')
-          .update(update)
-          .eq('id', update.id)
-          .eq('user_id', user.id);
+      // Process updates in batches to avoid timeouts
+      const batchSize = 10;
+      for (let i = 0; i < updates.length; i += batchSize) {
+        const batch = updates.slice(i, i + batchSize);
+        
+        // Process each update in the batch as a separate query for stability
+        const updatePromises = batch.map(update => {
+          return supabase
+            .from('sub_goals')
+            .update(update)
+            .eq('id', update.id)
+            .eq('user_id', user.id);
+        });
+        
+        await Promise.all(updatePromises);
       }
       
       toast({
@@ -165,7 +176,7 @@ const Roadmap = () => {
       console.error('Error updating sub-goals:', error);
       toast({
         title: "Error",
-        description: "Failed to save changes. Please try again.",
+        description: "Failed to save some changes. Please try again.",
         variant: "destructive"
       });
     } finally {

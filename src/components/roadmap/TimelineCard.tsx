@@ -229,6 +229,9 @@ const TimelineCard = ({
                   style={{ width: `${item.progress}%` }}
                 />
               </div>
+              <div className="text-white/90 text-xs mt-1 font-medium">
+                {item.progress}% complete
+              </div>
             </div>
           )}
         </div>
