@@ -1,10 +1,10 @@
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -29,9 +29,10 @@ const TimelineCard = ({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [initialDuration, setInitialDuration] = useState(item.duration);
-  const [currentDuration, setCurrentDuration] = useState(item.duration);
   
-  // Setup sortable hook with resize-disable condition
+  const resizeRef = useRef<HTMLDivElement>(null);
+  
+  // Setup sortable hook
   const {
     attributes,
     listeners,
@@ -39,23 +40,26 @@ const TimelineCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: item.id,
-    disabled: isResizing
-  });
+  } = useSortable({ id: item.id });
 
-  useEffect(() => {
-    // Update current duration when the item's duration changes from parent
-    setCurrentDuration(item.duration);
-    setInitialDuration(item.duration);
-  }, [item.duration]);
+  // Calculate minimum width based on text length to ensure title visibility
+  const calculateMinWidth = () => {
+    const titleLength = item.title?.length || 0;
+    // Ensure at least 10px per character with a minimum of 150px
+    const minTitleWidth = Math.max(titleLength * 12, 150);
+    const durationWidth = item.duration * cellWidth;
+    
+    // Return the larger of the calculated width or the duration width
+    return Math.max(minTitleWidth, durationWidth);
+  };
 
-  // Apply dnd-kit styles with width based on duration and cell width
+  // Apply dnd-kit styles with minimum width calculation
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    width: `${currentDuration * cellWidth}px`,
-    zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
+    width: `${item.duration * cellWidth}px`,
+    minWidth: `${calculateMinWidth()}px`, // Apply calculated min width
+    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
   // Get category icon
@@ -89,9 +93,8 @@ const TimelineCard = ({
     
     setIsResizing(true);
     setResizeStartX(e.clientX);
-    setInitialDuration(currentDuration);
+    setInitialDuration(item.duration);
     
-    // Add document event listeners
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
   };
@@ -102,25 +105,16 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     const deltaUnits = Math.round(deltaX / cellWidth);
+    const newDuration = Math.max(1, initialDuration + deltaUnits);
     
-    // Calculate new duration with a minimum of 1 cell
-    const maxDuration = viewMode === 'month' ? 31 : 12;
-    const newDuration = Math.max(1, Math.min(maxDuration, initialDuration + deltaUnits));
-    
-    // Update local state for visual feedback
-    setCurrentDuration(newDuration);
+    if (onResize) {
+      onResize(item.id, newDuration);
+    }
   };
   
   // Handle resize end
   const handleResizeEnd = () => {
     setIsResizing(false);
-    
-    // Call parent callback if duration changed
-    if (onResize && currentDuration !== item.duration) {
-      onResize(item.id, currentDuration);
-    }
-    
-    // Remove document event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
@@ -130,20 +124,20 @@ const TimelineCard = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "h-[120px] rounded-lg transition-all", 
+        "h-[120px] rounded-lg transition-all duration-300", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
-        isResizing ? "cursor-ew-resize" : "transform-gpu cursor-grab",
-        "select-none"
+        "transform-gpu cursor-grab select-none",
       )}
+      {...attributes}
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-4 py-3 transition-all relative overflow-hidden border shadow-md", 
+          "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
           isSelected
-            ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30`
+            ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30 animate-emerald-pulse`
             : isHovered
               ? `bg-gradient-to-r ${cardGradient} shadow-sm shadow-emerald/20 opacity-95`
               : `bg-gradient-to-r ${cardGradient} opacity-90`
@@ -151,12 +145,8 @@ const TimelineCard = ({
       >
         {/* Drag handle */}
         <div 
-          className={cn(
-            "absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all z-10",
-            isResizing ? "cursor-ew-resize" : "cursor-grab"
-          )}
-          {...(isResizing ? {} : listeners)}
-          {...attributes}
+          className="absolute top-2 left-2 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+          {...listeners}
         >
           <GripHorizontal size={14} />
         </div>
@@ -169,7 +159,7 @@ const TimelineCard = ({
         )}
         
         {/* Edit button */}
-        {onEdit && (isHovered || isSelected) && !isResizing && (
+        {onEdit && (isHovered || isSelected) && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -182,19 +172,22 @@ const TimelineCard = ({
           </button>
         )}
         
-        {/* Content */}
+        {/* Content - Enhanced for better visibility */}
         <div className={cn(
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
         )}>
           <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
-          {item.description && (
-            <p className="mt-2 text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
-          )}
+          {/* Always display description with better contrast */}
+          <div className="mt-2 space-y-1">
+            {item.description && (
+              <p className="text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
+            )}
+          </div>
           
           {/* Progress bar for items with longer duration */}
-          {currentDuration > 1 && (
+          {item.duration > 1 && (
             <div className="mt-auto select-none">
               <div className="h-2 bg-black/30 rounded-full overflow-hidden mt-2">
                 <div 
@@ -206,12 +199,12 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Right edge for resizing - using the entire right edge of the card */}
+        {/* Resize handle */}
         {onResize && (
           <div 
-            className="absolute top-0 right-0 w-4 h-full cursor-ew-resize hover:bg-white/20 transition-colors"
+            ref={resizeRef}
+            className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20"
             onMouseDown={handleResizeStart}
-            aria-label="Resize card"
           />
         )}
       </div>

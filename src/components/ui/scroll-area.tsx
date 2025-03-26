@@ -40,8 +40,6 @@ const ScrollBar = React.forwardRef<
         "h-full w-2.5 border-l border-l-transparent p-[1px]",
       orientation === "horizontal" &&
         "h-2.5 w-full flex-col border-t border-t-transparent p-[1px]",
-      // Remove the data-state="hidden" class to make scrollbar always visible
-      "data-[state=visible]:opacity-100 data-[state=hidden]:opacity-100",
       className
     )}
     {...props}
