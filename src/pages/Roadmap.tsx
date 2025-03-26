@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -24,11 +23,9 @@ const Roadmap = () => {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Helper function to safely convert string to TimelineCategory
   const parseTimelineCategory = (category: string | null): TimelineCategory => {
     if (!category) return 'default';
     
-    // Check if the category is a valid TimelineCategory value
     const validCategories: TimelineCategory[] = [
       'research', 'design', 'development', 'testing', 
       'marketing', 'feature', 'milestone', 'default',
@@ -104,17 +101,15 @@ const Roadmap = () => {
           .from('sub_goals')
           .select('*')
           .eq('parent_goal_id', selectedRoadmapId)
-          .eq('user_id', user.id)
-          .order('display_order', { ascending: true });
+          .eq('user_id', user.id);
         
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
           const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
-            // Use existing timeline data or create default values
-            const row = subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3);
-            const start = subGoal.timeline_start !== null ? subGoal.timeline_start : index * 3;
-            const duration = subGoal.timeline_duration !== null ? subGoal.timeline_duration : 2;
+            const row = typeof subGoal.timeline_row === 'number' ? subGoal.timeline_row : Math.floor(index / 3);
+            const start = typeof subGoal.timeline_start === 'number' ? subGoal.timeline_start : index * 3;
+            const duration = typeof subGoal.timeline_duration === 'number' ? subGoal.timeline_duration : 2;
             const category = parseTimelineCategory(subGoal.timeline_category);
             
             return {
@@ -155,11 +150,9 @@ const Roadmap = () => {
     setRoadmapItems(updatedItems);
     
     if (user && selectedRoadmapId) {
-      // Update each item in the database
       for (const item of updatedItems) {
         try {
           if (item.originalSubGoalId) {
-            // Update existing sub-goal
             await supabase
               .from('sub_goals')
               .update({
@@ -176,7 +169,6 @@ const Roadmap = () => {
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
           } else {
-            // Create new sub-goal from timeline item
             const { data, error } = await supabase
               .from('sub_goals')
               .insert({
@@ -195,11 +187,9 @@ const Roadmap = () => {
               .select();
               
             if (!error && data && data.length > 0) {
-              // Update the item with the new ID from the database
               const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
               if (newItemIndex >= 0) {
                 updatedItems[newItemIndex].originalSubGoalId = data[0].id;
-                // Now update the roadmap items with the new ID
                 setRoadmapItems([...updatedItems]);
               }
             }
@@ -209,7 +199,6 @@ const Roadmap = () => {
         }
       }
       
-      // Handle deleted items - find items that were in the original list but not in the updated list
       const originalIds = roadmapItems.map(item => item.originalSubGoalId).filter(Boolean);
       const updatedIds = updatedItems.map(item => item.originalSubGoalId).filter(Boolean);
       

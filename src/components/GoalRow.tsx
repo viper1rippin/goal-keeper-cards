@@ -104,6 +104,7 @@ const GoalRow = ({
         return;
       }
 
+      console.log('Fetching sub-goals for parent goal:', id);
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
@@ -116,6 +117,7 @@ const GoalRow = ({
       }
       
       if (data) {
+        console.log('Fetched sub-goals:', data);
         const formattedData: Goal[] = data.map(goal => ({
           id: goal.id,
           title: goal.title,
