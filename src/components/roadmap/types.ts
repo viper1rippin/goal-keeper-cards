@@ -21,8 +21,8 @@ export interface SubGoalTimelineItem {
   description: string;
   row: number; // Vertical position in timeline
   start: number; // Starting position (day/week/month)
-  startDate?: Date | string;
-  endDate?: Date | string;
+  startDate?: string;
+  endDate?: string;
   progress: number; // 0-100
   color?: string; // Custom color for the card
   parentId?: string; // Reference to parent goal
