@@ -1,12 +1,12 @@
 
-import { SubGoalTimelineItem } from "./types";
+import { SubGoalTimelineItem } from './types';
 
 export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
   return [
     {
-      id: "1",
-      title: "User Research",
-      description: "Conduct interviews and surveys with target users",
+      id: "sample-1",
+      title: "New Product Research",
+      description: "Market analysis and competitor research",
       row: 0,
       start: 0,
       duration: 2,
@@ -14,114 +14,84 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       category: "research"
     },
     {
-      id: "2",
-      title: "Wireframing",
-      description: "Create low-fidelity wireframes for key screens",
+      id: "sample-2",
+      title: "UI/UX Design",
+      description: "User interface and experience design",
       row: 0,
       start: 2,
-      duration: 1,
-      progress: 100,
-      category: "design"
-    },
-    {
-      id: "3",
-      title: "UI Design",
-      description: "Create high-fidelity mockups and design system",
-      row: 0,
-      start: 3,
       duration: 2,
-      progress: 85,
-      category: "design"
-    },
-    {
-      id: "4",
-      title: "Authentication System",
-      description: "Implement user authentication and authorization",
-      row: 1,
-      start: 1,
-      duration: 3,
-      progress: 90,
-      category: "backend"
-    },
-    {
-      id: "5",
-      title: "Database Schema",
-      description: "Design and implement database models and relations",
-      row: 2,
-      start: 0,
-      duration: 2,
-      progress: 100,
-      category: "infrastructure"
-    },
-    {
-      id: "6",
-      title: "API Development",
-      description: "Build RESTful API endpoints for core features",
-      row: 2,
-      start: 2,
-      duration: 3,
       progress: 70,
-      category: "backend"
+      category: "design"
     },
     {
-      id: "7",
+      id: "sample-3",
       title: "Alpha Release",
-      description: "Internal testing milestone",
-      row: 1,
-      start: 5,
+      description: "First alpha version milestone",
+      row: 0,
+      start: 4,
       duration: 1,
       progress: 0,
       category: "milestone"
     },
     {
-      id: "8",
-      title: "Mobile UI Implementation",
-      description: "Develop core UI components for mobile app",
+      id: "sample-4",
+      title: "Backend Development",
+      description: "API and database development",
       row: 1,
-      start: 6,
+      start: 1,
       duration: 3,
+      progress: 50,
+      category: "backend"
+    },
+    {
+      id: "sample-5",
+      title: "Mobile App MVP",
+      description: "Core features for mobile platform",
+      row: 1,
+      start: 4,
+      duration: 2,
       progress: 0,
       category: "mobile"
     },
     {
-      id: "9",
-      title: "Web Dashboard",
-      description: "Implement admin dashboard and analytics views",
-      row: 0,
-      start: 6,
-      duration: 4,
-      progress: 15,
+      id: "sample-6",
+      title: "Web App Development",
+      description: "Frontend development for the web platform",
+      row: 2,
+      start: 3,
+      duration: 3,
+      progress: 30,
       category: "web"
     },
     {
-      id: "10",
-      title: "Integration Testing",
-      description: "Test full system integration and fix bugs",
+      id: "sample-7",
+      title: "Infrastructure Setup",
+      description: "Cloud infrastructure and CI/CD pipeline",
       row: 2,
-      start: 7,
-      duration: 2,
-      progress: 0,
-      category: "testing"
+      start: 0,
+      duration: 3,
+      progress: 90,
+      category: "infrastructure"
     },
     {
-      id: "11",
+      id: "sample-8",
       title: "Beta Release",
-      description: "Limited public beta with key users",
-      row: 0,
-      start: 10,
+      description: "Public beta launch",
+      row: 1,
+      start: 6,
       duration: 1,
       progress: 0,
       category: "milestone"
     },
     {
-      id: "12",
-      title: "Performance Optimization",
-      description: "Optimize app performance and loading times",
+      id: "sample-9",
+      title: "Testing & QA",
+      description: "Quality assurance and bug fixing",
       row: 2,
-      start: 9,
+      start: 6,
       duration: 2,
       progress: 0,
-      category: "development"
+      category: "testing"
     }
   ];
 };

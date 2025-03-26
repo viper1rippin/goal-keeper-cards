@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -66,13 +65,22 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSave({
-      ...values,
+    const updatedItem: SubGoalTimelineItem = {
+      id: values.id,
+      title: values.title,
+      description: values.description || '',
+      row: values.row,
+      start: values.start,
+      duration: values.duration,
+      progress: values.progress,
       category: values.category as TimelineCategory,
-    });
+      ...(item.parentId && { parentId: item.parentId }),
+      ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
+    };
+    
+    onSave(updatedItem);
   };
 
-  // Get time unit label based on view mode
   const getTimeUnitLabel = () => {
     switch (viewMode) {
       case 'day':
