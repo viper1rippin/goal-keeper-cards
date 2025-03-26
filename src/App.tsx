@@ -17,19 +17,18 @@ import Pricing from "./pages/Pricing";
 import IndexPage from "./pages/IndexPage";
 import GuestGoals from "./pages/GuestGoals";
 import Roadmap from "./pages/Roadmap";
-import { useState } from "react";
 
 // Create a client
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <Routes>
               {/* Landing page route */}
               <Route path="/" element={<Landing />} />
@@ -71,10 +70,10 @@ const App = () => {
               
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 };
 

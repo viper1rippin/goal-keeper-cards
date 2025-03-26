@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
-import { SubGoalTimelineItem } from "@/components/roadmap/types";
+import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -15,7 +16,7 @@ const Roadmap = () => {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>("demo");
-  const [selectedView, setSelectedView] = useState<"day" | "week" | "month" | "year">("month");
+  const [selectedView, setSelectedView] = useState<TimelineViewMode>("month");
   
   // Sample roadmap data - in real app this would come from API
   const sampleItems: SubGoalTimelineItem[] = [
@@ -118,8 +119,8 @@ const Roadmap = () => {
           progress: item.progress,
           category: (item.timeline_category as TimelineCategory) || 'default',
           parentId: item.parent_goal_id,
-          startDate: item.start_date,
-          endDate: item.end_date
+          startDate: item.start_date ? new Date(item.start_date) : null,
+          endDate: item.end_date ? new Date(item.end_date) : null
         }));
         
         setRoadmapItems(items);
@@ -157,8 +158,8 @@ const Roadmap = () => {
           timeline_start: item.start,
           timeline_duration: item.duration,
           timeline_category: item.category,
-          start_date: item.startDate,
-          end_date: item.endDate
+          start_date: item.startDate instanceof Date ? item.startDate.toISOString() : item.startDate,
+          end_date: item.endDate instanceof Date ? item.endDate.toISOString() : item.endDate
         }));
         
         // Batch update all items
@@ -212,7 +213,7 @@ const Roadmap = () => {
     });
   };
   
-  const handleViewChange = (view: "day" | "week" | "month" | "year") => {
+  const handleViewChange = (view: TimelineViewMode) => {
     setSelectedView(view);
   };
   
