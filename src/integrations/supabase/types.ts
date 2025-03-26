@@ -128,7 +128,6 @@ export type Database = {
       }
       sub_goals: {
         Row: {
-          color: string | null
           created_at: string
           description: string
           display_order: number | null
@@ -146,7 +145,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          color?: string | null
           created_at?: string
           description: string
           display_order?: number | null
@@ -164,7 +162,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          color?: string | null
           created_at?: string
           description?: string
           display_order?: number | null

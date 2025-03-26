@@ -7,9 +7,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { UseFormReturn } from "react-hook-form";
 import { Goal } from '../GoalRow';
 import { SubGoalFormValues } from '../SubGoalDialog';
-import { Trash2, Calendar } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TimelineCategory } from '../roadmap/types';
+import { Trash2 } from "lucide-react";
 
 interface SubGoalFormProps {
   form: UseFormReturn<SubGoalFormValues>;
@@ -36,22 +34,6 @@ export const SubGoalForm = ({
     }
   };
   
-  // Categories for timeline
-  const categories: TimelineCategory[] = [
-    "default",
-    "research",
-    "design",
-    "development",
-    "testing",
-    "marketing",
-    "feature",
-    "milestone",
-    "mobile",
-    "web",
-    "infrastructure",
-    "backend"
-  ];
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -91,98 +73,6 @@ export const SubGoalForm = ({
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-200">Color</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="color"
-                    className="bg-slate-800 border-slate-700 text-white h-10 w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-200">Category</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value || "default"}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-200">Start Date</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input 
-                      {...field} 
-                      type="date"
-                      className="bg-slate-800 border-slate-700 text-white pl-10"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-200">End Date</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <Input 
-                      {...field} 
-                      type="date"
-                      className="bg-slate-800 border-slate-700 text-white pl-10"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         <div className="flex justify-between pt-4">
           {/* Delete button shown only when editing existing sub-goals */}

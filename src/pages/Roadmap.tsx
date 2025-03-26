@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -98,20 +97,16 @@ const Roadmap = () => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: subGoal.timeline_row || Math.floor(index / 3),
-            start: subGoal.timeline_start || index * 3,
-            duration: subGoal.timeline_duration || 2,
+            row: Math.floor(index / 3),
+            start: index * 3,
+            duration: 2,
             progress: subGoal.progress || 0,
-            category: (subGoal.timeline_category as TimelineCategory) || 
-                     (index % 5 === 0 ? 'milestone' : 
-                     index % 4 === 0 ? 'research' : 
-                     index % 3 === 0 ? 'design' : 
-                     index % 2 === 0 ? 'development' : 'testing'),
+            category: index % 5 === 0 ? 'milestone' : 
+                    index % 4 === 0 ? 'research' : 
+                    index % 3 === 0 ? 'design' : 
+                    index % 2 === 0 ? 'development' : 'testing',
             parentId: selectedRoadmapId,
-            originalSubGoalId: subGoal.id,
-            startDate: subGoal.start_date || undefined,
-            endDate: subGoal.end_date || undefined,
-            color: subGoal.color || undefined
+            originalSubGoalId: subGoal.id
           }));
           
           setRoadmapItems(items);
@@ -132,36 +127,23 @@ const Roadmap = () => {
     fetchSubGoals();
   }, [selectedRoadmapId, user]);
   
-  const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
-    if (!user || !selectedRoadmapId) return;
-    
+  const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
     
-    // Update all items in Supabase with their new positions/properties
-    for (const item of updatedItems) {
-      if (item.originalSubGoalId) {
-        try {
-          const updateData = {
-            progress: item.progress,
-            timeline_row: item.row,
-            timeline_start: item.start,
-            timeline_duration: item.duration,
-            timeline_category: item.category,
-            start_date: item.startDate,
-            end_date: item.endDate,
-            color: item.color
-          };
-          
-          await supabase
-            .from('sub_goals')
-            .update(updateData)
-            .eq('id', item.originalSubGoalId)
-            .eq('user_id', user.id);
-            
-        } catch (error) {
-          console.error('Error updating sub-goal:', error);
+    if (user && selectedRoadmapId) {
+      updatedItems.forEach(async (item) => {
+        if (item.originalSubGoalId) {
+          try {
+            await supabase
+              .from('sub_goals')
+              .update({ progress: item.progress })
+              .eq('id', item.originalSubGoalId)
+              .eq('user_id', user.id);
+          } catch (error) {
+            console.error('Error updating sub-goal progress:', error);
+          }
         }
-      }
+      });
     }
     
     toast({
