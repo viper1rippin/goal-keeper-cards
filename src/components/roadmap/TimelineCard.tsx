@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
@@ -52,23 +51,11 @@ const TimelineCard = ({
     setInitialDuration(item.duration);
   }, [item.duration]);
 
-  // Calculate minimum width based on text length to ensure title visibility
-  const calculateMinWidth = () => {
-    const titleLength = item.title?.length || 0;
-    // Ensure at least 10px per character with a minimum of 150px
-    const minTitleWidth = Math.max(titleLength * 12, 150);
-    const durationWidth = currentDuration * cellWidth;
-    
-    // Return the larger of the calculated width or the duration width
-    return Math.max(minTitleWidth, durationWidth);
-  };
-
-  // Apply dnd-kit styles with minimum width calculation
+  // Apply dnd-kit styles with width based on duration and cell width
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     width: `${currentDuration * cellWidth}px`,
-    minWidth: `${calculateMinWidth()}px`, // Apply calculated min width
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
   
@@ -110,46 +97,35 @@ const TimelineCard = ({
     document.addEventListener('mouseup', handleResizeEnd);
   };
   
-  // Handle resize move - enhanced to snap to grid
+  // Handle resize move - simplified for direct feedback
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
-    
-    // Calculate how many cells to adjust by, rounding to nearest grid cell
     const deltaUnits = Math.round(deltaX / cellWidth);
     
     // Calculate new duration with a minimum of 1 cell
-    let newDuration = Math.max(1, initialDuration + deltaUnits);
-    
-    // For month view, max out at 31 (days in a month)
-    // For year view, max out at 12 (months in a year)
     const maxDuration = viewMode === 'month' ? 31 : 12;
+    const newDuration = Math.max(1, Math.min(maxDuration, initialDuration + deltaUnits));
     
-    // Cap the maximum duration based on view mode
-    if (newDuration > maxDuration) {
-      newDuration = maxDuration;
-    }
-    
-    // Update local state for smoother UI feedback
+    // Update local state for visual feedback
     setCurrentDuration(newDuration);
   };
   
   // Handle resize end
   const handleResizeEnd = () => {
-    if (isResizing && onResize && currentDuration !== item.duration) {
-      // Only call parent callback if duration actually changed
+    setIsResizing(false);
+    
+    // Call parent callback if duration changed
+    if (onResize && currentDuration !== item.duration) {
       onResize(item.id, currentDuration);
     }
-    
-    setIsResizing(false);
     
     // Remove document event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  // Add a tooltip to show duration information based on view mode
   const getDurationTooltip = () => {
     if (viewMode === 'month') {
       return `${currentDuration} day${currentDuration > 1 ? 's' : ''}`;
@@ -215,19 +191,16 @@ const TimelineCard = ({
           </button>
         )}
         
-        {/* Content - Enhanced for better visibility */}
+        {/* Content */}
         <div className={cn(
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
         )}>
           <h3 className="font-medium text-base text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
           
-          {/* Always display description with better contrast */}
-          <div className="mt-2 space-y-1">
-            {item.description && (
-              <p className="text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
-            )}
-          </div>
+          {item.description && (
+            <p className="mt-2 text-sm text-white/90 line-clamp-3 drop-shadow-sm">{item.description}</p>
+          )}
           
           {/* Display duration badge */}
           {isHovered && (
@@ -249,19 +222,14 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle with improved visibility */}
+        {/* Resize handle - simplified for better interaction */}
         {onResize && (
           <div 
             ref={resizeRef}
-            className={cn(
-              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/30 transition-all",
-              isResizing ? "bg-white/40" : "bg-white/10"
-            )}
+            className="absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize bg-white/10 hover:bg-white/30"
             onMouseDown={handleResizeStart}
-            title="Drag to resize"
             aria-label="Resize card"
           >
-            {/* Visual indicator for resize handle */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-1 bg-white/60 rounded-full"></div>
           </div>
         )}
