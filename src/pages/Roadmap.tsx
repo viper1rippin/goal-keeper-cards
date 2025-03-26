@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
-import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
 import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,9 @@ import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
-import { Goal } from "@/components/GoalRow";
-import { useNavigate } from "react-router-dom";
 
 const Roadmap = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null);
   const [selectedView, setSelectedView] = useState<TimelineViewMode>("month");
@@ -99,18 +96,18 @@ const Roadmap = () => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            row: subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3),
-            start: subGoal.timeline_start !== null ? subGoal.timeline_start : index * 3,
-            duration: subGoal.timeline_duration !== null ? subGoal.timeline_duration : 2,
+            row: subGoal.timeline_row ?? Math.floor(index / 3),
+            start: subGoal.timeline_start ?? index * 3,
+            duration: subGoal.timeline_duration ?? 2,
             progress: subGoal.progress || 0,
-            category: subGoal.timeline_category as TimelineCategory || 
-                    (index % 5 === 0 ? 'milestone' : 
-                    index % 4 === 0 ? 'research' : 
-                    index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing'),
+            category: (subGoal.timeline_category as TimelineCategory) || 
+                     (index % 5 === 0 ? 'milestone' : 
+                     index % 4 === 0 ? 'research' : 
+                     index % 3 === 0 ? 'design' : 
+                     index % 2 === 0 ? 'development' : 'testing'),
+            color: subGoal.color,
             parentId: selectedRoadmapId,
             originalSubGoalId: subGoal.id,
-            color: subGoal.color,
             startDate: subGoal.start_date,
             endDate: subGoal.end_date
           }));
@@ -134,11 +131,14 @@ const Roadmap = () => {
   }, [selectedRoadmapId, user]);
   
   const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
+    setRoadmapItems(updatedItems);
+    
     if (!user || !selectedRoadmapId) return;
     
     try {
       for (const item of updatedItems) {
         if (item.originalSubGoalId) {
+          // Update existing sub-goal
           await supabase
             .from('sub_goals')
             .update({
@@ -147,80 +147,103 @@ const Roadmap = () => {
               timeline_start: item.start,
               timeline_duration: item.duration,
               timeline_category: item.category,
-              color: item.color,
               start_date: item.startDate,
-              end_date: item.endDate
+              end_date: item.endDate,
+              color: item.color
             })
             .eq('id', item.originalSubGoalId)
             .eq('user_id', user.id);
         } else {
-          const { data, error } = await supabase
+          // This is a new item created directly in the timeline
+          // Create a new sub-goal in the database and link it to the parent goal
+          const { data: newSubGoal, error } = await supabase
             .from('sub_goals')
             .insert({
-              parent_goal_id: selectedRoadmapId,
               title: item.title,
               description: item.description,
-              progress: item.progress,
+              progress: item.progress || 0,
+              parent_goal_id: selectedRoadmapId,
+              user_id: user.id,
               timeline_row: item.row,
               timeline_start: item.start,
               timeline_duration: item.duration,
-              timeline_category: item.category,
-              color: item.color,
+              timeline_category: item.category || 'default',
               start_date: item.startDate,
               end_date: item.endDate,
-              user_id: user.id
+              color: item.color
             })
-            .select('id')
+            .select('*')
             .single();
-            
-          if (!error && data) {
-            item.originalSubGoalId = data.id;
+          
+          if (error) throw error;
+          
+          // Update the item with the new ID from the database
+          if (newSubGoal) {
+            const updatedItemsWithNewId = roadmapItems.map(mapItem => 
+              mapItem.id === item.id ? { ...mapItem, id: newSubGoal.id, originalSubGoalId: newSubGoal.id } : mapItem
+            );
+            setRoadmapItems(updatedItemsWithNewId);
           }
         }
       }
-      
-      const existingItemIds = roadmapItems
-        .filter(item => item.originalSubGoalId)
-        .map(item => item.originalSubGoalId);
-      
-      const updatedItemIds = updatedItems
-        .filter(item => item.originalSubGoalId)
-        .map(item => item.originalSubGoalId);
-      
-      const deletedItemIds = existingItemIds.filter(id => !updatedItemIds.includes(id));
-      
-      for (const id of deletedItemIds) {
-        if (id) {
-          await supabase
-            .from('sub_goals')
-            .delete()
-            .eq('id', id)
-            .eq('user_id', user.id);
-        }
-      }
-      
-      setRoadmapItems(updatedItems);
       
       toast({
         title: "Roadmap updated",
         description: "Your changes have been saved.",
       });
     } catch (error) {
-      console.error('Error updating roadmap:', error);
+      console.error('Error updating roadmap items:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to update roadmap. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive"
       });
     }
   };
   
   const handleCreateRoadmap = () => {
-    navigate('/');
+    toast({
+      title: "Coming Soon",
+      description: "This feature will be available in the next update.",
+    });
   };
   
   const handleViewChange = (view: "month" | "year") => {
     setSelectedView(view);
+  };
+  
+  const handleDeleteItem = async (itemId: string) => {
+    if (!user) return;
+    
+    try {
+      // Find the item to delete
+      const itemToDelete = roadmapItems.find(item => item.id === itemId);
+      
+      if (itemToDelete?.originalSubGoalId) {
+        // Delete from database
+        await supabase
+          .from('sub_goals')
+          .delete()
+          .eq('id', itemToDelete.originalSubGoalId)
+          .eq('user_id', user.id);
+      }
+      
+      // Update local state
+      const updatedItems = roadmapItems.filter(item => item.id !== itemId);
+      setRoadmapItems(updatedItems);
+      
+      toast({
+        title: "Item deleted",
+        description: "The item has been removed from the roadmap.",
+      });
+    } catch (error) {
+      console.error('Error deleting roadmap item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete item. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
@@ -292,6 +315,7 @@ const Roadmap = () => {
               roadmapId={selectedRoadmapId}
               items={roadmapItems}
               onItemsChange={handleItemsChange}
+              onDeleteItem={handleDeleteItem}
               viewMode={selectedView}
             />
           )}

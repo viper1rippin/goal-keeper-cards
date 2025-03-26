@@ -3,7 +3,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft, BeakerIcon } from "lucide-react";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -48,6 +48,10 @@ const TimelineCard = ({
   };
   
   const getCategoryColors = () => {
+    if (item.color) {
+      return `from-[${item.color}] to-[${item.color}] border-[${item.color}]`;
+    }
+    
     const category = item.category || 'default';
     
     switch (category) {
@@ -132,6 +136,16 @@ const TimelineCard = ({
 
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
 
+  const getCardStyle = () => {
+    if (item.color) {
+      return {
+        background: `linear-gradient(to right, ${item.color}, ${item.color})`,
+        borderColor: item.color
+      };
+    }
+    return {};
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -150,11 +164,12 @@ const TimelineCard = ({
         className={cn(
           "rounded-lg h-full px-3 py-2 transition-all duration-300 relative overflow-hidden border shadow-md",
           isSelected
-            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
+            ? item.color ? "" : `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
             : isHovered
-              ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
-              : `bg-gradient-to-r ${colorClass} opacity-90`
+              ? item.color ? "" : `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
+              : item.color ? "" : `bg-gradient-to-r ${colorClass} opacity-90`
         )}
+        style={getCardStyle()}
       >
         <div 
           className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"

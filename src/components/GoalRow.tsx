@@ -1,166 +1,115 @@
+import React, { useState } from 'react';
+import { Progress } from "@/components/ui/progress";
+import { MoreHorizontal, Pencil, Trash2, Timer, Eye } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import AnimatedContainer from "./AnimatedContainer";
-import { useState, useEffect } from "react";
-import { CSS } from "@dnd-kit/utilities";
-import { useSortable } from "@dnd-kit/sortable";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import GoalRowHeader from "./GoalRowHeader";
-import SubGoalsSection from "./SubGoalsSection";
-import { useAuth } from "@/context/AuthContext";
 
+// Assuming the Goal type is defined in this file
 export interface Goal {
-  id?: string;
+  id: string;
   title: string;
   description: string;
   progress: number;
-  user_id?: string;
-  display_order?: number;
   color?: string;
-  startDate?: string;
-  endDate?: string;
+  timeline_row?: number;
+  timeline_start?: number;
+  timeline_duration?: number;
+  timeline_category?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
-interface GoalRowProps {
+interface GoalCardProps {
   title: string;
   description: string;
-  goals: Goal[];
+  progress: number;
   index: number;
-  activeGoal?: {rowIndex: number, goalIndex: number} | null;
-  onGoalFocus: (goal: Goal, rowIndex: number, goalIndex: number) => void;
-  onUpdateSubGoals: (parentIndex: number, updatedGoals: Goal[]) => void;
-  onDeleteSubGoal: (subGoalId: string) => Promise<void>;
-  id: string;
+  isFocused: boolean;
+  onFocus: () => void;
+  isActiveFocus: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  isDragging?: boolean;
+  onViewDetail?: () => void;
 }
 
-const GoalRow = ({ 
-  title, 
-  description, 
-  goals, 
-  index: rowIndex,
-  activeGoal,
-  onGoalFocus,
-  onUpdateSubGoals,
-  onDeleteSubGoal,
-  id
-}: GoalRowProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id });
-
-  const { toast } = useToast();
-  const { user } = useAuth();
-
-  const [subGoals, setSubGoals] = useState<Goal[]>(goals);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  const rowDelay = rowIndex * 100;
-
-  const fetchSubGoals = async () => {
-    try {
-      setIsLoading(true);
-
-      if (!user) {
-        setSubGoals([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('sub_goals')
-        .select('*')
-        .eq('parent_goal_id', id)
-        .eq('user_id', user.id)
-        .order('display_order', { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        const formattedData = data.map(goal => ({
-          id: goal.id,
-          title: goal.title,
-          description: goal.description,
-          progress: goal.progress,
-          display_order: goal.display_order,
-          ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
-        }));
-
-        setSubGoals(formattedData);
-        onUpdateSubGoals(rowIndex, formattedData);
-      }
-    } catch (error) {
-      console.error("Error fetching sub-goals:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load sub-goals. Please refresh the page.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSubGoals();
-  }, [id, user]);
-
-  const handleUpdateSubGoals = (updatedGoals: Goal[]) => {
-    fetchSubGoals();
-  };
-
-  const handleDeleteSubGoal = async (subGoalId: string) => {
-    if (!subGoalId) return;
-
-    await onDeleteSubGoal(subGoalId);
-    fetchSubGoals();
-  };
-
+const GoalCard: React.FC<GoalCardProps> = ({
+  title,
+  description,
+  progress,
+  index,
+  isFocused,
+  onFocus,
+  isActiveFocus,
+  onEdit,
+  onDelete,
+  isDragging,
+  onViewDetail
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
   return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
-      className="mb-12 last:mb-0 relative"
+    <div
+      className={cn(
+        "bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-lg p-4 relative transition-all duration-200",
+        isFocused && "ring-2 ring-blue-500",
+        isDragging && "opacity-50"
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <AnimatedContainer 
-        animation="fade-in" 
-        delay={rowDelay}
-      >
-        <GoalRowHeader 
-          title={title}
-          description={description}
-          attributes={attributes}
-          listeners={listeners}
-        />
-        
-        <div className="pl-8">
-          <SubGoalsSection 
-            subGoals={subGoals}
-            parentTitle={title}
-            parentId={id}
-            rowIndex={rowIndex}
-            activeGoal={activeGoal}
-            onGoalFocus={onGoalFocus}
-            onUpdateSubGoals={handleUpdateSubGoals}
-            onDeleteSubGoal={handleDeleteSubGoal}
-            isLoading={isLoading}
-          />
+      {/* Goal Content */}
+      <div className="flex flex-col h-full">
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold text-white">{title}</h3>
+            <p className="text-sm text-slate-400 mt-1">{description}</p>
+          </div>
+          
+          {/* Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button aria-label="Open menu" className={cn("p-1 rounded-sm inline-flex items-center justify-center hover:bg-slate-700/50 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity", isActiveFocus && "opacity-100")}>
+                <MoreHorizontal className="h-4 w-4 text-slate-500" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-slate-900 border-slate-800 text-white" align="end" forceMount>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={onFocus}>
+                <Timer className="h-4 w-4 mr-2" />
+                Focus
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onViewDetail}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Detail
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </AnimatedContainer>
+        
+        <div className="mt-auto">
+          <Progress value={progress} className="h-2 bg-slate-700/50" />
+          <p className="text-xs text-right text-slate-400 mt-1">{progress}%</p>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default GoalRow;
+export default GoalCard;
