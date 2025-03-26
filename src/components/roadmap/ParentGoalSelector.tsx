@@ -1,51 +1,44 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React from "react";
 import { 
-  Card, 
-  CardContent, 
-  CardDescription 
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ParentGoal } from "@/components/index/IndexPageTypes";
 
 interface ParentGoalSelectorProps {
-  parentGoals: { id: string; title: string }[];
-  onSelect: (parentGoalId: string) => void;
+  parentGoals: ParentGoal[];
+  onSelect: (id: string) => void;
 }
 
-const ParentGoalSelector: React.FC<ParentGoalSelectorProps> = ({ 
-  parentGoals, 
-  onSelect 
-}) => {
+const ParentGoalSelector = ({ parentGoals, onSelect }: ParentGoalSelectorProps) => {
+  if (parentGoals.length === 0) {
+    return (
+      <div className="text-sm text-slate-400">
+        No parent goals available to import
+      </div>
+    );
+  }
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {parentGoals.map((goal) => (
-        <Card 
-          key={goal.id} 
-          className={cn(
-            "border-slate-800 bg-slate-900/70 cursor-pointer hover:bg-slate-800/90 transition-colors"
-          )}
-          onClick={() => onSelect(goal.id)}
-        >
-          <CardContent className="p-4">
-            <h3 className="font-medium text-white mb-1 line-clamp-1">{goal.title}</h3>
-            <CardDescription className="text-xs text-slate-400">
-              Import sub-goals from this parent
-            </CardDescription>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full mt-2 text-xs" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(goal.id);
-              }}
-            >
-              Import
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="flex items-center gap-2">
+      <Select
+        onValueChange={(value) => onSelect(value)}
+      >
+        <SelectTrigger className="w-[220px]">
+          <SelectValue placeholder="Select a parent goal" />
+        </SelectTrigger>
+        <SelectContent>
+          {parentGoals.map((goal) => (
+            <SelectItem key={goal.id} value={goal.id}>
+              {goal.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

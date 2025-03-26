@@ -1,18 +1,30 @@
 
 import React, { useState, useRef } from "react";
-import { SubGoalTimelineItem } from "./types";
+import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
+import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft, BeakerIcon } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
+  isSelected: boolean;
+  onSelect: () => void;
   onEdit?: () => void;
   onResize?: (itemId: string, newDuration: number) => void;
   cellWidth: number;
+  viewMode: TimelineViewMode;
 }
 
-const TimelineCard = ({ item, onEdit, onResize, cellWidth }: TimelineCardProps) => {
+const TimelineCard = ({ 
+  item, 
+  isSelected, 
+  onSelect, 
+  onEdit,
+  onResize,
+  cellWidth,
+  viewMode
+}: TimelineCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
@@ -35,7 +47,7 @@ const TimelineCard = ({ item, onEdit, onResize, cellWidth }: TimelineCardProps) 
     transform: CSS.Transform.toString(transform),
     transition,
     width: `${item.duration * cellWidth}px`,
-    zIndex: isDragging ? 100 : isHovered ? 10 : 1,
+    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
   // Get category-based colors
@@ -44,25 +56,54 @@ const TimelineCard = ({ item, onEdit, onResize, cellWidth }: TimelineCardProps) 
     
     switch (category) {
       case 'milestone':
-        return 'bg-amber-500 border-amber-400';
+        return 'from-amber-500 to-amber-600 border-amber-400';
       case 'feature':
-        return 'bg-blue-500 border-blue-400';
+        return 'from-blue-400 to-blue-500 border-blue-300';
       case 'research':
-        return 'bg-purple-500 border-purple-400';
+        return 'from-purple-400 to-purple-500 border-purple-300';
       case 'design':
-        return 'bg-pink-500 border-pink-400';
+        return 'from-pink-400 to-pink-500 border-pink-300';
       case 'development':
-        return 'bg-emerald-500 border-emerald-400';
+        return 'from-emerald-400 to-emerald-500 border-emerald-300';
       case 'testing':
-        return 'bg-orange-500 border-orange-400';
+        return 'from-orange-400 to-orange-500 border-orange-300';
       case 'marketing':
-        return 'bg-red-500 border-red-400';
+        return 'from-red-400 to-red-500 border-red-300';
+      case 'mobile':
+        return 'from-rose-400 to-rose-500 border-rose-300';
+      case 'web':
+        return 'from-emerald-400 to-emerald-500 border-emerald-300';
+      case 'infrastructure':
+        return 'from-purple-400 to-purple-500 border-purple-300';
+      case 'backend':
+        return 'from-slate-500 to-slate-600 border-slate-400';
       default:
-        return 'bg-emerald-500 border-emerald-400';
+        return 'from-emerald-400 to-emerald-500 border-emerald-300';
+    }
+  };
+  
+  // Get category icon
+  const getCategoryIcon = () => {
+    const category = item.category || 'default';
+    
+    switch (category) {
+      case 'milestone':
+        return <Star size={16} className="text-white" />;
+      case 'research':
+        return <AlertTriangle size={16} className="text-white" />;
+      case 'design':
+        return <Package size={16} className="text-white" />;
+      case 'development':
+        return <Monitor size={16} className="text-white" />;
+      case 'testing':
+        return <Cpu size={16} className="text-white" />;
+      default:
+        return null;
     }
   };
 
   const colorClass = getCategoryColors();
+  const categoryIcon = getCategoryIcon();
   
   // Handle resize start
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -104,22 +145,40 @@ const TimelineCard = ({ item, onEdit, onResize, cellWidth }: TimelineCardProps) 
       className={cn(
         "h-[80px] rounded-lg transition-all duration-300",
         isDragging ? "opacity-80 z-50" : "opacity-100",
-        "transform-gpu"
+        "transform-gpu cursor-grab select-none",
       )}
       {...attributes}
-      {...listeners}
+      onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-3 py-2 transition-all duration-300 relative overflow-hidden border",
-          colorClass,
-          isHovered ? "shadow-lg" : "shadow-md"
+          "rounded-lg h-full px-3 py-2 transition-all duration-300 relative overflow-hidden border shadow-md",
+          isSelected
+            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
+            : isHovered
+              ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
+              : `bg-gradient-to-r ${colorClass} opacity-90`
         )}
       >
+        {/* Drag handle */}
+        <div 
+          className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+          {...listeners}
+        >
+          <GripHorizontal size={12} />
+        </div>
+        
+        {/* Category icon */}
+        {categoryIcon && (
+          <div className="absolute left-2 top-2">
+            {categoryIcon}
+          </div>
+        )}
+        
         {/* Edit button */}
-        {onEdit && isHovered && (
+        {onEdit && (isHovered || isSelected) && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -128,14 +187,15 @@ const TimelineCard = ({ item, onEdit, onResize, cellWidth }: TimelineCardProps) 
             className="absolute top-1 right-1 p-1 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
             aria-label="Edit goal"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-            </svg>
+            <Edit2 size={12} />
           </button>
         )}
         
         {/* Content */}
-        <div className="flex flex-col h-full relative z-2">
+        <div className={cn(
+          "flex flex-col h-full relative z-2 pt-3",
+          categoryIcon ? "pl-6" : ""
+        )}>
           <h3 className="font-medium text-sm text-white line-clamp-1">{item.title}</h3>
           
           {item.description && item.duration > 2 && (

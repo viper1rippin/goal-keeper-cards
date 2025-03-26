@@ -1,87 +1,97 @@
 
-import { SubGoalTimelineItem } from "./types";
+import { SubGoalTimelineItem } from './types';
 
 export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
   return [
     {
-      id: "item-1",
-      title: "Project Planning",
-      description: "Initial project planning and requirements gathering",
-      progress: 100,
+      id: "sample-1",
+      title: "New Product Research",
+      description: "Market analysis and competitor research",
       row: 0,
       start: 0,
-      duration: 1,
-      category: "milestone"
+      duration: 2,
+      progress: 100,
+      category: "research"
     },
     {
-      id: "item-2",
-      title: "UI Design",
-      description: "Create wireframes and design system",
-      progress: 80,
-      row: 1,
-      start: 1,
+      id: "sample-2",
+      title: "UI/UX Design",
+      description: "User interface and experience design",
+      row: 0,
+      start: 2,
       duration: 2,
+      progress: 70,
       category: "design"
     },
     {
-      id: "item-3",
-      title: "Frontend Development",
-      description: "Implement user interface components",
-      progress: 60,
+      id: "sample-3",
+      title: "Alpha Release",
+      description: "First alpha version milestone",
+      row: 0,
+      start: 4,
+      duration: 1,
+      progress: 0,
+      category: "milestone"
+    },
+    {
+      id: "sample-4",
+      title: "Backend Development",
+      description: "API and database development",
       row: 1,
+      start: 1,
+      duration: 3,
+      progress: 50,
+      category: "backend"
+    },
+    {
+      id: "sample-5",
+      title: "Mobile App MVP",
+      description: "Core features for mobile platform",
+      row: 1,
+      start: 4,
+      duration: 2,
+      progress: 0,
+      category: "mobile"
+    },
+    {
+      id: "sample-6",
+      title: "Web App Development",
+      description: "Frontend development for the web platform",
+      row: 2,
       start: 3,
       duration: 3,
-      category: "development"
-    },
-    {
-      id: "item-4",
-      title: "Backend Setup",
-      description: "Configure server and database",
-      progress: 70,
-      row: 2,
-      start: 2,
-      duration: 2,
-      category: "development"
-    },
-    {
-      id: "item-5",
-      title: "API Integration",
-      description: "Connect frontend to backend services",
       progress: 30,
-      row: 2,
-      start: 4,
-      duration: 3,
-      category: "development"
+      category: "web"
     },
     {
-      id: "item-6",
-      title: "Testing Phase",
-      description: "Unit and integration testing",
-      progress: 20,
-      row: 0,
+      id: "sample-7",
+      title: "Infrastructure Setup",
+      description: "Cloud infrastructure and CI/CD pipeline",
+      row: 2,
+      start: 0,
+      duration: 3,
+      progress: 90,
+      category: "infrastructure"
+    },
+    {
+      id: "sample-8",
+      title: "Beta Release",
+      description: "Public beta launch",
+      row: 1,
+      start: 6,
+      duration: 1,
+      progress: 0,
+      category: "milestone"
+    },
+    {
+      id: "sample-9",
+      title: "Testing & QA",
+      description: "Quality assurance and bug fixing",
+      row: 2,
       start: 6,
       duration: 2,
-      category: "testing"
-    },
-    {
-      id: "item-7",
-      title: "Launch Preparation",
-      description: "Final polishing and deployment preparation",
-      progress: 10,
-      row: 0,
-      start: 8,
-      duration: 2,
-      category: "marketing"
-    },
-    {
-      id: "item-8",
-      title: "Product Launch",
-      description: "Official release",
       progress: 0,
-      row: 0,
-      start: 10,
-      duration: 1,
-      category: "milestone"
+      category: "testing"
     }
   ];
 };

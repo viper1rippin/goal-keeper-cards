@@ -1,84 +1,95 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
-const StarsBackground: React.FC = () => {
+const StarsBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
     
-    // Set canvas to full window size
-    const handleResize = () => {
+    // Set canvas dimensions
+    const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      drawStars();
     };
     
-    window.addEventListener('resize', handleResize);
-    handleResize();
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
     
-    // Generate stars
-    const stars: { x: number; y: number; size: number; opacity: number; twinkleSpeed: number; twinkleDirection: number }[] = [];
-    
-    for (let i = 0; i < 200; i++) {
-      stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 1.5 + 0.5,
-        opacity: Math.random() * 0.5 + 0.3,
-        twinkleSpeed: Math.random() * 0.01 + 0.005,
-        twinkleDirection: Math.random() > 0.5 ? 1 : -1
-      });
+    // Create stars
+    class Star {
+      x: number;
+      y: number;
+      size: number;
+      opacity: number;
+      speedOpacity: number;
+      
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5;
+        this.opacity = Math.random() * 0.5 + 0.1;
+        this.speedOpacity = Math.random() * 0.01;
+      }
+      
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.fill();
+      }
+      
+      update() {
+        this.opacity += this.speedOpacity;
+        
+        if (this.opacity > 0.8 || this.opacity < 0.1) {
+          this.speedOpacity = -this.speedOpacity;
+        }
+        
+        this.draw();
+      }
     }
     
-    // Draw stars
-    const drawStars = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0)'; // Transparent background
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      for (const star of stars) {
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
-        ctx.fill();
-        
-        // Update star twinkle
-        star.opacity += star.twinkleSpeed * star.twinkleDirection;
-        
-        // Reverse direction if opacity gets too high or low
-        if (star.opacity > 0.8 || star.opacity < 0.2) {
-          star.twinkleDirection *= -1;
-        }
-      }
-    };
+    // Create array of stars
+    const stars: Star[] = [];
+    const starCount = Math.min(window.innerWidth * 0.1, 200); // Adjust star count based on screen size
+    
+    for (let i = 0; i < starCount; i++) {
+      stars.push(new Star());
+    }
     
     // Animation loop
-    let animationId: number;
-    
     const animate = () => {
-      drawStars();
-      animationId = requestAnimationFrame(animate);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw a gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#0a0a0a");
+      gradient.addColorStop(1, "#111827");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw stars
+      stars.forEach(star => star.update());
+      
+      requestAnimationFrame(animate);
     };
     
     animate();
     
-    // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
   
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 z-0"
-      style={{ background: 'linear-gradient(180deg, rgba(2,6,23,1) 0%, rgba(15,23,42,1) 100%)' }}
+    <canvas 
+      ref={canvasRef} 
+      className="w-full h-full absolute inset-0 z-0"
     />
   );
 };

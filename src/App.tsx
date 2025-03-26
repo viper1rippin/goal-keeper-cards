@@ -17,62 +17,65 @@ import Pricing from "./pages/Pricing";
 import IndexPage from "./pages/IndexPage";
 import GuestGoals from "./pages/GuestGoals";
 import Roadmap from "./pages/Roadmap";
+import { useState } from "react";
 
-// Create QueryClient outside of component to prevent re-creation on render
+// Create a client
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Landing page route */}
-            <Route path="/" element={<Landing />} />
-            
-            {/* Guest route */}
-            <Route path="/guest" element={<GuestGoals />} />
-            
-            {/* Auth routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/pricing" element={<Pricing />} />
-            
-            {/* Protected routes */}
-            <Route path="/projects" element={
-              <ProtectedRoute>
-                <IndexPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:id" element={
-              <ProtectedRoute>
-                <ProjectDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/progress" element={
-              <ProtectedRoute>
-                <ProgressTracker />
-              </ProtectedRoute>
-            } />
-            <Route path="/roadmap" element={
-              <ProtectedRoute>
-                <Roadmap />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Landing page route */}
+              <Route path="/" element={<Landing />} />
+              
+              {/* Guest route */}
+              <Route path="/guest" element={<GuestGoals />} />
+              
+              {/* Auth routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/pricing" element={<Pricing />} />
+              
+              {/* Protected routes */}
+              <Route path="/projects" element={
+                <ProtectedRoute>
+                  <IndexPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:id" element={
+                <ProtectedRoute>
+                  <ProjectDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/progress" element={
+                <ProtectedRoute>
+                  <ProgressTracker />
+                </ProtectedRoute>
+              } />
+              <Route path="/roadmap" element={
+                <ProtectedRoute>
+                  <Roadmap />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

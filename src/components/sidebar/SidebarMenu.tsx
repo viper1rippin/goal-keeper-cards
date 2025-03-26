@@ -10,7 +10,7 @@ import {
   Sun, 
   Sparkles,
   Award,
-  MapPin
+  Map
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import SidebarMenuItem from "./SidebarMenuItem";
@@ -48,7 +48,7 @@ const SidebarMenu = ({ collapsed, darkMode, toggleDarkMode }: SidebarMenuProps) 
           onClick={() => navigate('/progress')} 
         />
         <SidebarMenuItem 
-          icon={<MapPin size={20} strokeWidth={1.5} />} 
+          icon={<Map size={20} strokeWidth={1.5} />} 
           label="Roadmap" 
           collapsed={collapsed} 
           onClick={() => navigate('/roadmap')} 
