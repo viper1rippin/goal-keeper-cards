@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -13,26 +14,15 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { SubGoalTimelineItem, TimelineCategory, TimelineViewMode } from './types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Slider } from '@/components/ui/slider';
+import { SubGoalTimelineItem } from './types';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Trash2 } from 'lucide-react';
 
+// Simplified schema - only title and description
 const formSchema = z.object({
   id: z.string(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  row: z.number(),
-  start: z.number(),
-  duration: z.number().min(1, 'Duration must be at least 1'),
-  category: z.string(),
-  progress: z.number().min(0).max(100),
 });
 
 interface SubGoalTimelineFormProps {
@@ -40,7 +30,6 @@ interface SubGoalTimelineFormProps {
   onSave: (item: SubGoalTimelineItem) => void;
   onDelete: (id: string) => void;
   onCancel: () => void;
-  viewMode: TimelineViewMode;
 }
 
 const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
@@ -48,7 +37,6 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
   onSave,
   onDelete,
   onCancel,
-  viewMode,
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,55 +44,26 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       id: item.id,
       title: item.title,
       description: item.description || '',
-      row: item.row,
-      start: item.start,
-      duration: item.duration,
-      category: item.category || 'default',
-      progress: item.progress,
     },
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    // Preserve the original timeline properties
     const updatedItem: SubGoalTimelineItem = {
-      id: values.id,
+      ...item,
       title: values.title,
       description: values.description || '',
-      row: values.row,
-      start: values.start,
-      duration: values.duration,
-      progress: values.progress,
-      category: values.category as TimelineCategory,
-      ...(item.parentId && { parentId: item.parentId }),
-      ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
     };
     
     onSave(updatedItem);
-  };
-
-  const getTimeUnitLabel = () => {
-    switch (viewMode) {
-      case 'day':
-        return 'days';
-      case 'week':
-        return 'weeks';
-      case 'month':
-        return 'months';
-      case 'year':
-        return 'quarters';
-      default:
-        return 'months';
-    }
   };
 
   return (
     <>
       <DialogHeader>
         <DialogTitle>
-          {item.id.startsWith('item-') ? 'Add New Item' : 'Edit Item'}
+          {item.id.startsWith('item-') ? 'New Timeline Item' : 'Edit Timeline Item'}
         </DialogTitle>
-        <DialogDescription>
-          Modify the details of this timeline item
-        </DialogDescription>
       </DialogHeader>
 
       <Form {...form}>
@@ -114,9 +73,13 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel className="text-slate-200">Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter title" {...field} />
+                  <Input 
+                    {...field} 
+                    placeholder="Enter item title"
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,12 +91,12 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel className="text-slate-200">Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Enter description (optional)"
-                    {...field}
-                    rows={3}
+                  <Textarea 
+                    {...field} 
+                    placeholder="Enter item description"
+                    className="bg-slate-800 border-slate-700 text-white min-h-[100px]"
                   />
                 </FormControl>
                 <FormMessage />
@@ -141,96 +104,31 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Duration ({getTimeUnitLabel()})</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={50}
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="milestone">Milestone</SelectItem>
-                      <SelectItem value="feature">Feature</SelectItem>
-                      <SelectItem value="research">Research</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="development">Development</SelectItem>
-                      <SelectItem value="testing">Testing</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="mobile">Mobile</SelectItem>
-                      <SelectItem value="web">Web</SelectItem>
-                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                      <SelectItem value="backend">Backend</SelectItem>
-                      <SelectItem value="default">Default</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="progress"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Progress: {field.value}%</FormLabel>
-                <FormControl>
-                  <Slider
-                    value={[field.value]}
-                    min={0}
-                    max={100}
-                    step={5}
-                    onValueChange={(value) => field.onChange(value[0])}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-between gap-2 pt-4">
-            <Button
-              type="button"
-              variant="destructive"
+          <div className="flex justify-between pt-4">
+            <Button 
+              type="button" 
+              variant="ghost" 
               onClick={() => onDelete(item.id)}
+              className="text-red-400 hover:bg-red-900/20 hover:text-red-300"
             >
+              <Trash2 size={16} className="mr-1" />
               Delete
             </Button>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={onCancel}>
+            <div className="flex gap-2 ml-auto">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={onCancel}
+                className="text-slate-400 hover:bg-slate-800/20 hover:text-slate-300"
+              >
                 Cancel
               </Button>
-              <Button type="submit">Save</Button>
+              <Button 
+                type="submit" 
+                className="bg-emerald hover:bg-emerald-dark"
+              >
+                {item.id.startsWith('item-') ? 'Create' : 'Update'} Item
+              </Button>
             </div>
           </div>
         </form>
