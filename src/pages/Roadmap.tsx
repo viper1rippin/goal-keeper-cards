@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -5,7 +6,7 @@ import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
 import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
-import { SubGoalTimelineItem, TimelineViewMode } from "@/components/roadmap/types";
+import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
