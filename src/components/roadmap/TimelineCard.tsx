@@ -110,13 +110,26 @@ const TimelineCard = ({
     document.addEventListener('mouseup', handleResizeEnd);
   };
   
-  // Handle resize move
+  // Handle resize move - enhanced to snap to grid
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
+    
+    // Calculate how many cells to adjust by, rounding to nearest grid cell
     const deltaUnits = Math.round(deltaX / cellWidth);
-    const newDuration = Math.max(1, initialDuration + deltaUnits);
+    
+    // Calculate new duration with a minimum of 1 cell
+    let newDuration = Math.max(1, initialDuration + deltaUnits);
+    
+    // For month view, max out at 31 (days in a month)
+    // For year view, max out at 12 (months in a year)
+    const maxDuration = viewMode === 'month' ? 31 : 12;
+    
+    // Cap the maximum duration based on view mode
+    if (newDuration > maxDuration) {
+      newDuration = maxDuration;
+    }
     
     // Update local state for smoother UI feedback
     setCurrentDuration(newDuration);
@@ -134,6 +147,15 @@ const TimelineCard = ({
     // Remove document event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
+  };
+
+  // Add a tooltip to show duration information based on view mode
+  const getDurationTooltip = () => {
+    if (viewMode === 'month') {
+      return `${currentDuration} day${currentDuration > 1 ? 's' : ''}`;
+    } else {
+      return `${currentDuration} month${currentDuration > 1 ? 's' : ''}`;
+    }
   };
 
   return (
@@ -207,6 +229,13 @@ const TimelineCard = ({
             )}
           </div>
           
+          {/* Display duration badge */}
+          {isHovered && (
+            <div className="absolute bottom-2 right-2 bg-black/30 text-white/90 text-xs px-2 py-1 rounded-full">
+              {getDurationTooltip()}
+            </div>
+          )}
+          
           {/* Progress bar for items with longer duration */}
           {currentDuration > 1 && (
             <div className="mt-auto select-none">
@@ -220,17 +249,21 @@ const TimelineCard = ({
           )}
         </div>
         
-        {/* Resize handle */}
+        {/* Resize handle with improved visibility */}
         {onResize && (
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/20",
-              isResizing && "bg-white/30"
+              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/30 transition-all",
+              isResizing ? "bg-white/40" : "bg-white/10"
             )}
             onMouseDown={handleResizeStart}
+            title="Drag to resize"
             aria-label="Resize card"
-          />
+          >
+            {/* Visual indicator for resize handle */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-1 bg-white/60 rounded-full"></div>
+          </div>
         )}
       </div>
     </div>
