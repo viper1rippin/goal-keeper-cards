@@ -26,8 +26,6 @@ export interface SubGoalTimelineItem {
   category?: TimelineCategory;
   parentId?: string; // Reference to parent goal
   originalSubGoalId?: string; // If imported from a sub-goal
-  startDate?: Date; // Actual start date 
-  endDate?: Date; // Actual end date
 }
 
 export interface RoadmapData {
