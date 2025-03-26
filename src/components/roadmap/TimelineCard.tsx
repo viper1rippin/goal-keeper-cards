@@ -50,38 +50,6 @@ const TimelineCard = ({
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
-  // Get category-based colors
-  const getCategoryColors = () => {
-    const category = item.category || 'default';
-    
-    switch (category) {
-      case 'milestone':
-        return 'from-amber-500 to-amber-600 border-amber-400';
-      case 'feature':
-        return 'from-blue-400 to-blue-500 border-blue-300';
-      case 'research':
-        return 'from-purple-400 to-purple-500 border-purple-300';
-      case 'design':
-        return 'from-pink-400 to-pink-500 border-pink-300';
-      case 'development':
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-      case 'testing':
-        return 'from-orange-400 to-orange-500 border-orange-300';
-      case 'marketing':
-        return 'from-red-400 to-red-500 border-red-300';
-      case 'mobile':
-        return 'from-rose-400 to-rose-500 border-rose-300';
-      case 'web':
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-      case 'infrastructure':
-        return 'from-purple-400 to-purple-500 border-purple-300';
-      case 'backend':
-        return 'from-slate-500 to-slate-600 border-slate-400';
-      default:
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-    }
-  };
-  
   // Get category icon
   const getCategoryIcon = () => {
     const category = item.category || 'default';
@@ -102,7 +70,8 @@ const TimelineCard = ({
     }
   };
 
-  const colorClass = getCategoryColors();
+  // Use a uniform emerald gradient like the home page sub-goal cards
+  const cardGradient = "from-emerald-400 to-emerald-500 border-emerald-300";
   const categoryIcon = getCategoryIcon();
   
   // Handle resize start
@@ -138,13 +107,24 @@ const TimelineCard = ({
     document.removeEventListener('mouseup', handleResizeEnd);
   };
 
-  // Always show expanded details by default, no longer dependent on hover or selection
-  // Removed the conditional that was checking for hover/selection state
+  // Calculate minimum width based on text length
+  const getMinWidth = () => {
+    const baseWidth = item.duration * cellWidth;
+    const titleLength = item.title.length;
+    const minTitleWidth = Math.max(titleLength * 10, 100); // Approximate width based on title length
+    
+    return Math.max(baseWidth, minTitleWidth);
+  };
+
+  const minWidth = getMinWidth();
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        minWidth: `${minWidth}px`, // Apply minimum width for text visibility
+      }}
       className={cn(
         "h-[120px] rounded-lg transition-all duration-300", 
         isDragging ? "opacity-80 z-50" : "opacity-100",
@@ -159,10 +139,10 @@ const TimelineCard = ({
         className={cn(
           "rounded-lg h-full px-4 py-3 transition-all duration-300 relative overflow-hidden border shadow-md", 
           isSelected
-            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
+            ? `bg-gradient-to-r ${cardGradient} shadow-lg shadow-emerald/30 animate-emerald-pulse`
             : isHovered
-              ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
-              : `bg-gradient-to-r ${colorClass} opacity-90`
+              ? `bg-gradient-to-r ${cardGradient} shadow-sm shadow-emerald/20 opacity-95`
+              : `bg-gradient-to-r ${cardGradient} opacity-90`
         )}
       >
         {/* Drag handle */}
@@ -199,7 +179,7 @@ const TimelineCard = ({
           "flex flex-col h-full relative z-2 pt-4",
           categoryIcon ? "pl-7" : ""
         )}>
-          <h3 className="font-medium text-base text-white line-clamp-1">{item.title}</h3>
+          <h3 className="font-medium text-base text-white line-clamp-2">{item.title}</h3>
           
           {/* Always display description now */}
           <div className="mt-2 space-y-1">

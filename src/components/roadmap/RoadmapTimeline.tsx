@@ -65,7 +65,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     if (timelineRef.current) {
       const containerWidth = timelineRef.current.clientWidth;
       const calculatedWidth = (containerWidth - 60) / timeUnitCount;
-      setCellWidth(Math.max(calculatedWidth, 80));
+      
+      setCellWidth(Math.max(calculatedWidth, 100));
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
@@ -209,6 +210,29 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const ROW_HEIGHT = 150;
+  
+  const handleAutoResizeCards = () => {
+    const updatedItems = items.map(item => {
+      const titleLength = item.title.length;
+      const minCellsNeeded = Math.ceil(titleLength / 10);
+      
+      if (minCellsNeeded > item.duration) {
+        return {
+          ...item,
+          duration: minCellsNeeded
+        };
+      }
+      return item;
+    });
+    
+    if (JSON.stringify(updatedItems) !== JSON.stringify(items)) {
+      onItemsChange(updatedItems);
+    }
+  };
+  
+  useEffect(() => {
+    handleAutoResizeCards();
+  }, [items.map(i => i.title).join(''), cellWidth]);
   
   return (
     <div className="rounded-xl border border-slate-700 bg-slate-900/90 backdrop-blur-sm overflow-hidden shadow-2xl">
