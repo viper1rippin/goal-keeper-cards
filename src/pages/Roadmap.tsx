@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -13,6 +14,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
+import { format } from "date-fns";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -93,21 +95,32 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
-          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => ({
-            id: subGoal.id,
-            title: subGoal.title,
-            description: subGoal.description,
-            row: Math.floor(index / 3),
-            start: index * 3,
-            duration: 2,
-            progress: subGoal.progress || 0,
-            category: index % 5 === 0 ? 'milestone' : 
-                    index % 4 === 0 ? 'research' : 
-                    index % 3 === 0 ? 'design' : 
-                    index % 2 === 0 ? 'development' : 'testing',
-            parentId: selectedRoadmapId,
-            originalSubGoalId: subGoal.id
-          }));
+          const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
+            // Use existing timeline data or create default values
+            const row = subGoal.timeline_row !== null ? subGoal.timeline_row : Math.floor(index / 3);
+            const start = subGoal.timeline_start !== null ? subGoal.timeline_start : index * 3;
+            const duration = subGoal.timeline_duration !== null ? subGoal.timeline_duration : 2;
+            const category = subGoal.timeline_category as TimelineCategory || 
+                           (index % 5 === 0 ? 'milestone' : 
+                            index % 4 === 0 ? 'research' : 
+                            index % 3 === 0 ? 'design' : 
+                            index % 2 === 0 ? 'development' : 'testing');
+            
+            return {
+              id: subGoal.id,
+              title: subGoal.title,
+              description: subGoal.description,
+              row: row,
+              start: start,
+              duration: duration,
+              progress: subGoal.progress || 0,
+              category: category,
+              parentId: selectedRoadmapId,
+              originalSubGoalId: subGoal.id,
+              startDate: subGoal.start_date || undefined,
+              endDate: subGoal.end_date || undefined
+            };
+          });
           
           setRoadmapItems(items);
         }
@@ -127,23 +140,81 @@ const Roadmap = () => {
     fetchSubGoals();
   }, [selectedRoadmapId, user]);
   
-  const handleItemsChange = (updatedItems: SubGoalTimelineItem[]) => {
+  const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
     setRoadmapItems(updatedItems);
     
     if (user && selectedRoadmapId) {
-      updatedItems.forEach(async (item) => {
-        if (item.originalSubGoalId) {
-          try {
+      // Update each item in the database
+      for (const item of updatedItems) {
+        try {
+          if (item.originalSubGoalId) {
+            // Update existing sub-goal
             await supabase
               .from('sub_goals')
-              .update({ progress: item.progress })
+              .update({
+                progress: item.progress,
+                title: item.title,
+                description: item.description,
+                timeline_row: item.row,
+                timeline_start: item.start,
+                timeline_duration: item.duration,
+                timeline_category: item.category,
+                start_date: item.startDate,
+                end_date: item.endDate
+              })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
-          } catch (error) {
-            console.error('Error updating sub-goal progress:', error);
+          } else {
+            // Create new sub-goal from timeline item
+            const { data, error } = await supabase
+              .from('sub_goals')
+              .insert({
+                parent_goal_id: selectedRoadmapId,
+                title: item.title,
+                description: item.description,
+                progress: item.progress,
+                user_id: user.id,
+                timeline_row: item.row,
+                timeline_start: item.start, 
+                timeline_duration: item.duration,
+                timeline_category: item.category,
+                start_date: item.startDate,
+                end_date: item.endDate
+              })
+              .select();
+              
+            if (!error && data && data.length > 0) {
+              // Update the item with the new ID from the database
+              const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
+              if (newItemIndex >= 0) {
+                updatedItems[newItemIndex].originalSubGoalId = data[0].id;
+                // Now update the roadmap items with the new ID
+                setRoadmapItems([...updatedItems]);
+              }
+            }
           }
+        } catch (error) {
+          console.error('Error updating sub-goal:', error);
         }
-      });
+      }
+      
+      // Handle deleted items - find items that were in the original list but not in the updated list
+      const originalIds = roadmapItems.map(item => item.originalSubGoalId).filter(Boolean);
+      const updatedIds = updatedItems.map(item => item.originalSubGoalId).filter(Boolean);
+      
+      const deletedIds = originalIds.filter(id => !updatedIds.includes(id));
+      
+      for (const id of deletedIds) {
+        try {
+          await supabase
+            .from('sub_goals')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+        } catch (error) {
+          console.error('Error deleting sub-goal:', error);
+        }
+      }
     }
     
     toast({

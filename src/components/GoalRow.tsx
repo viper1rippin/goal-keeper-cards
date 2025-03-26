@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import GoalRowHeader from "./GoalRowHeader";
 import SubGoalsSection from "./SubGoalsSection";
 import { useAuth } from "@/context/AuthContext";
+import { TimelineCategory } from "./roadmap/types";
 
 export interface Goal {
   id?: string;
@@ -17,6 +18,12 @@ export interface Goal {
   progress: number;
   user_id?: string;
   display_order?: number; // Add display_order field
+  startDate?: string; // Added for timeline sync
+  endDate?: string; // Added for timeline sync
+  timeline_row?: number; // Added for timeline sync
+  timeline_start?: number; // Added for timeline sync
+  timeline_duration?: number; // Added for timeline sync
+  timeline_category?: TimelineCategory; // Added for timeline sync
 }
 
 interface GoalRowProps {
@@ -99,6 +106,12 @@ const GoalRow = ({
           description: goal.description,
           progress: goal.progress,
           display_order: goal.display_order,
+          startDate: goal.start_date,
+          endDate: goal.end_date,
+          timeline_row: goal.timeline_row,
+          timeline_start: goal.timeline_start,
+          timeline_duration: goal.timeline_duration,
+          timeline_category: goal.timeline_category,
           // Handle user_id properly with type assertion if it exists on the database record
           ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
         }));

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -8,11 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubGoalForm } from './subgoal/SubGoalForm';
 import { useAuth } from "@/context/AuthContext";
+import { TimelineCategory } from './roadmap/types';
 
 // Form validation schema
 const subGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 export type SubGoalFormValues = z.infer<typeof subGoalSchema>;
@@ -46,6 +50,8 @@ const SubGoalDialog = ({
     defaultValues: {
       title: subGoalToEdit?.title || "",
       description: subGoalToEdit?.description || "",
+      startDate: subGoalToEdit?.startDate || "",
+      endDate: subGoalToEdit?.endDate || "",
     },
   });
 
@@ -55,6 +61,8 @@ const SubGoalDialog = ({
       form.reset({
         title: subGoalToEdit?.title || "",
         description: subGoalToEdit?.description || "",
+        startDate: subGoalToEdit?.startDate || "",
+        endDate: subGoalToEdit?.endDate || "",
       });
     }
   }, [isOpen, subGoalToEdit, form]);
@@ -70,6 +78,8 @@ const SubGoalDialog = ({
           title: values.title,
           description: values.description,
           progress: subGoalToEdit?.progress || 0,
+          startDate: values.startDate,
+          endDate: values.endDate,
         };
         
         onSave(newSubGoal);
@@ -96,13 +106,28 @@ const SubGoalDialog = ({
     // Check if user is authenticated
     if (!user) return;
 
+    // Generate default category based on title (simple heuristic)
+    const defaultCategory: TimelineCategory = determineDefaultCategory(values.title);
+
+    // Calculate timeline position data
+    const timelineRow = subGoalToEdit?.timeline_row || 0;
+    const timelineStart = subGoalToEdit?.timeline_start || 0;
+    const timelineDuration = subGoalToEdit?.timeline_duration || 2;
+    const timelineCategory = subGoalToEdit?.timeline_category || defaultCategory;
+
     // Prepare sub-goal data
     const subGoalData = {
       parent_goal_id: parentGoalId,
       title: values.title,
       description: values.description,
       progress: subGoalToEdit?.progress || 0,
-      user_id: user.id // Associate sub-goal with user
+      user_id: user.id, // Associate sub-goal with user
+      start_date: values.startDate || null,
+      end_date: values.endDate || null,
+      timeline_row: timelineRow,
+      timeline_start: timelineStart,
+      timeline_duration: timelineDuration,
+      timeline_category: timelineCategory
     };
     
     // If editing, update the existing sub-goal
@@ -127,7 +152,25 @@ const SubGoalDialog = ({
     onSave({
       title: values.title,
       description: values.description,
+      startDate: values.startDate,
+      endDate: values.endDate,
     });
+  };
+
+  // Simple function to determine default category based on title
+  const determineDefaultCategory = (title: string): TimelineCategory => {
+    const lowercaseTitle = title.toLowerCase();
+    
+    if (lowercaseTitle.includes('research') || lowercaseTitle.includes('study')) return 'research';
+    if (lowercaseTitle.includes('design') || lowercaseTitle.includes('ui') || lowercaseTitle.includes('ux')) return 'design';
+    if (lowercaseTitle.includes('develop') || lowercaseTitle.includes('code') || lowercaseTitle.includes('implement')) return 'development';
+    if (lowercaseTitle.includes('test') || lowercaseTitle.includes('qa')) return 'testing';
+    if (lowercaseTitle.includes('release') || lowercaseTitle.includes('launch') || lowercaseTitle.includes('v')) return 'milestone';
+    if (lowercaseTitle.includes('mobile') || lowercaseTitle.includes('ios') || lowercaseTitle.includes('android')) return 'mobile';
+    if (lowercaseTitle.includes('web') || lowercaseTitle.includes('browser')) return 'web';
+    if (lowercaseTitle.includes('server') || lowercaseTitle.includes('database') || lowercaseTitle.includes('api')) return 'backend';
+    
+    return 'default';
   };
 
   // Handle delete sub-goal
