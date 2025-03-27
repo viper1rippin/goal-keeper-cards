@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -119,12 +118,16 @@ const SubGoalDialog = ({
     // Preserve existing dates if available
     const startDate = subGoalToEdit?.startDate || null;
     const endDate = subGoalToEdit?.endDate || null;
+    const color = subGoalToEdit?.color || null;
 
     console.log("Timeline data being saved:", {
       row: timelineRow,
       start: timelineStart,
       duration: timelineDuration,
-      category: timelineCategory
+      category: timelineCategory,
+      startDate,
+      endDate,
+      color
     });
 
     // Prepare sub-goal data
@@ -139,7 +142,8 @@ const SubGoalDialog = ({
       timeline_row: timelineRow,
       timeline_start: timelineStart,
       timeline_duration: timelineDuration,
-      timeline_category: timelineCategory
+      timeline_category: timelineCategory,
+      color: color
     };
     
     console.log("Saving sub-goal data:", subGoalData);
@@ -158,14 +162,17 @@ const SubGoalDialog = ({
       }
     } else {
       // Otherwise, create a new sub-goal
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('sub_goals')
-        .insert(subGoalData);
+        .insert(subGoalData)
+        .select();
       
       if (error) {
         console.error("Error inserting sub-goal:", error);
         throw error;
       }
+      
+      console.log("Created new sub-goal:", data);
     }
     
     // Call the onSave callback to update UI
@@ -178,6 +185,7 @@ const SubGoalDialog = ({
       timeline_start: timelineStart,
       timeline_duration: timelineDuration,
       timeline_category: timelineCategory,
+      color: color
     });
   };
 

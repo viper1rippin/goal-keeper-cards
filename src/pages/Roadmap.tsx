@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
-import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
 import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const Roadmap = () => {
   const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   
   const parseTimelineCategory = (category: string | null): TimelineCategory => {
     if (!category) return 'default';
@@ -47,6 +48,7 @@ const Roadmap = () => {
       
       try {
         setIsLoading(true);
+        setLoadingError(null);
         
         const { data: parentGoalsData, error: parentGoalsError } = await supabase
           .from('parent_goals')
@@ -74,6 +76,7 @@ const Roadmap = () => {
         
       } catch (error) {
         console.error('Error fetching parent goals:', error);
+        setLoadingError('Failed to load parent goals');
         toast({
           title: 'Error',
           description: 'Failed to load parent goals. Please try again.',
@@ -96,6 +99,9 @@ const Roadmap = () => {
       
       try {
         setIsLoading(true);
+        setLoadingError(null);
+        
+        console.log(`Fetching sub-goals for parent ID: ${selectedRoadmapId}`);
         
         const { data: subGoalsData, error: subGoalsError } = await supabase
           .from('sub_goals')
@@ -106,9 +112,13 @@ const Roadmap = () => {
         if (subGoalsError) throw subGoalsError;
         
         if (subGoalsData) {
+          console.log(`Found ${subGoalsData.length} sub-goals for parent ID: ${selectedRoadmapId}`, subGoalsData);
+          
+          // Generate timeline items with proper positioning
           const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
+            // Use existing timeline data if available, otherwise create default values
             const row = typeof subGoal.timeline_row === 'number' ? subGoal.timeline_row : Math.floor(index / 3);
-            const start = typeof subGoal.timeline_start === 'number' ? subGoal.timeline_start : index * 3;
+            const start = typeof subGoal.timeline_start === 'number' ? subGoal.timeline_start : index;
             const duration = typeof subGoal.timeline_duration === 'number' ? subGoal.timeline_duration : 2;
             const category = parseTimelineCategory(subGoal.timeline_category);
             
@@ -129,10 +139,13 @@ const Roadmap = () => {
           });
           
           setRoadmapItems(items);
+        } else {
+          setRoadmapItems([]);
         }
         
       } catch (error) {
         console.error('Error fetching sub-goals:', error);
+        setLoadingError('Failed to load sub-goals');
         toast({
           title: 'Error',
           description: 'Failed to load sub-goals. Please try again.',
@@ -150,77 +163,96 @@ const Roadmap = () => {
     setRoadmapItems(updatedItems);
     
     if (user && selectedRoadmapId) {
-      for (const item of updatedItems) {
-        try {
-          if (item.originalSubGoalId) {
-            await supabase
-              .from('sub_goals')
-              .update({
-                progress: item.progress,
-                title: item.title,
-                description: item.description,
-                timeline_row: item.row,
-                timeline_start: item.start,
-                timeline_duration: item.duration,
-                timeline_category: item.category,
-                start_date: item.startDate,
-                end_date: item.endDate
-              })
-              .eq('id', item.originalSubGoalId)
-              .eq('user_id', user.id);
-          } else {
-            const { data, error } = await supabase
-              .from('sub_goals')
-              .insert({
-                parent_goal_id: selectedRoadmapId,
-                title: item.title,
-                description: item.description,
-                progress: item.progress,
-                user_id: user.id,
-                timeline_row: item.row,
-                timeline_start: item.start, 
-                timeline_duration: item.duration,
-                timeline_category: item.category,
-                start_date: item.startDate,
-                end_date: item.endDate
-              })
-              .select();
-              
-            if (!error && data && data.length > 0) {
-              const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
-              if (newItemIndex >= 0) {
-                updatedItems[newItemIndex].originalSubGoalId = data[0].id;
-                setRoadmapItems([...updatedItems]);
+      try {
+        console.log('Updating sub-goals in the database:', updatedItems);
+        
+        for (const item of updatedItems) {
+          try {
+            if (item.originalSubGoalId) {
+              // Update existing sub-goal
+              await supabase
+                .from('sub_goals')
+                .update({
+                  progress: item.progress,
+                  title: item.title,
+                  description: item.description,
+                  timeline_row: item.row,
+                  timeline_start: item.start,
+                  timeline_duration: item.duration,
+                  timeline_category: item.category,
+                  start_date: item.startDate,
+                  end_date: item.endDate
+                })
+                .eq('id', item.originalSubGoalId)
+                .eq('user_id', user.id);
+            } else {
+              // Create new sub-goal
+              const { data, error } = await supabase
+                .from('sub_goals')
+                .insert({
+                  parent_goal_id: selectedRoadmapId,
+                  title: item.title,
+                  description: item.description,
+                  progress: item.progress,
+                  user_id: user.id,
+                  timeline_row: item.row,
+                  timeline_start: item.start, 
+                  timeline_duration: item.duration,
+                  timeline_category: item.category,
+                  start_date: item.startDate,
+                  end_date: item.endDate
+                })
+                .select();
+                
+              if (!error && data && data.length > 0) {
+                const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
+                if (newItemIndex >= 0) {
+                  updatedItems[newItemIndex].originalSubGoalId = data[0].id;
+                  setRoadmapItems([...updatedItems]);
+                }
               }
             }
+          } catch (error) {
+            console.error('Error updating sub-goal:', error);
           }
-        } catch (error) {
-          console.error('Error updating sub-goal:', error);
         }
-      }
-      
-      const originalIds = roadmapItems.map(item => item.originalSubGoalId).filter(Boolean);
-      const updatedIds = updatedItems.map(item => item.originalSubGoalId).filter(Boolean);
-      
-      const deletedIds = originalIds.filter(id => !updatedIds.includes(id));
-      
-      for (const id of deletedIds) {
-        try {
-          await supabase
-            .from('sub_goals')
-            .delete()
-            .eq('id', id)
-            .eq('user_id', user.id);
-        } catch (error) {
-          console.error('Error deleting sub-goal:', error);
+        
+        // Handle deleted items
+        const originalIds = roadmapItems
+          .map(item => item.originalSubGoalId)
+          .filter(Boolean) as string[];
+          
+        const updatedIds = updatedItems
+          .map(item => item.originalSubGoalId)
+          .filter(Boolean) as string[];
+        
+        const deletedIds = originalIds.filter(id => !updatedIds.includes(id));
+        
+        for (const id of deletedIds) {
+          try {
+            await supabase
+              .from('sub_goals')
+              .delete()
+              .eq('id', id)
+              .eq('user_id', user.id);
+          } catch (error) {
+            console.error('Error deleting sub-goal:', error);
+          }
         }
+        
+        toast({
+          title: "Roadmap updated",
+          description: "Your changes have been saved.",
+        });
+      } catch (error) {
+        console.error('Error saving roadmap changes:', error);
+        toast({
+          title: "Error",
+          description: "There was a problem saving your changes.",
+          variant: "destructive"
+        });
       }
     }
-    
-    toast({
-      title: "Roadmap updated",
-      description: "Your changes have been saved.",
-    });
   };
   
   const handleCreateRoadmap = () => {
@@ -232,13 +264,6 @@ const Roadmap = () => {
   
   const handleViewChange = (view: "month" | "year") => {
     setSelectedView(view);
-  };
-  
-  const handleImportSubGoals = (parentId: string) => {
-    toast({
-      title: "Coming Soon",
-      description: "Importing sub-goals will be available in the next update.",
-    });
   };
   
   return (
@@ -301,9 +326,24 @@ const Roadmap = () => {
             <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
               <p className="text-slate-400">Loading roadmap data...</p>
             </div>
+          ) : loadingError ? (
+            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
+              <p className="text-red-400">{loadingError}</p>
+              <button 
+                className="mt-4 px-4 py-2 bg-slate-800 rounded-md hover:bg-slate-700 transition-colors"
+                onClick={() => setSelectedRoadmapId(selectedRoadmapId)}
+              >
+                Retry
+              </button>
+            </div>
           ) : !selectedRoadmapId ? (
             <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
               <p className="text-slate-400">Select a parent goal to view its roadmap</p>
+            </div>
+          ) : roadmapItems.length === 0 ? (
+            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
+              <p className="text-slate-400">No sub-goals found for this roadmap</p>
+              <p className="text-slate-500 mt-2">Add sub-goals from the home page or create them directly in the roadmap</p>
             </div>
           ) : (
             <RoadmapTimeline

@@ -35,6 +35,7 @@ interface SubGoalData {
   timeline_start?: number;
   timeline_duration?: number;
   timeline_category?: string;
+  color?: string;
 }
 
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
@@ -109,7 +110,8 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
             timeline_start: subGoal.timeline_start,
             timeline_duration: subGoal.timeline_duration,
             timeline_category: parseTimelineCategory(subGoal.timeline_category),
-            user_id: subGoal.user_id
+            user_id: subGoal.user_id,
+            color: subGoal.color
           });
         }
       });
