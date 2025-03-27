@@ -100,6 +100,9 @@ const Roadmap = () => {
       try {
         setIsLoading(true);
         
+        // Log the selected parent goal ID for debugging
+        console.log('Fetching sub-goals for parent goal ID:', selectedRoadmapId);
+        
         const { data: subGoalsData, error: subGoalsError } = await supabase
           .from('sub_goals')
           .select('*')
@@ -108,6 +111,8 @@ const Roadmap = () => {
           .order('display_order', { ascending: true });
         
         if (subGoalsError) throw subGoalsError;
+        
+        console.log('Fetched sub-goals:', subGoalsData);
         
         if (subGoalsData) {
           const items: SubGoalTimelineItem[] = subGoalsData.map((subGoal, index) => {
@@ -134,6 +139,7 @@ const Roadmap = () => {
           });
           
           setRoadmapItems(items);
+          console.log('Set roadmap items:', items);
         }
         
       } catch (error) {
@@ -315,6 +321,10 @@ const Roadmap = () => {
           ) : !selectedRoadmapId ? (
             <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
               <p className="text-slate-400">Select a parent goal to view its roadmap</p>
+            </div>
+          ) : roadmapItems.length === 0 ? (
+            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
+              <p className="text-slate-400">No sub-goals found for this parent goal. Create some sub-goals first or add them directly in the roadmap.</p>
             </div>
           ) : (
             <RoadmapTimeline

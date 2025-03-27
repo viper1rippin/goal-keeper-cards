@@ -72,6 +72,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       start: values.start,
       duration: item.duration, // Keep existing duration for now
       progress: values.progress,
+      category: item.category || 'default', // Ensure category is always set
       startDate: values.startDate,
       endDate: values.endDate,
       ...(item.parentId && { parentId: item.parentId }),
