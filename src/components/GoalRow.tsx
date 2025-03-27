@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useState, useEffect } from "react";
@@ -24,6 +23,7 @@ export interface Goal {
   timeline_start?: number; // Added for timeline sync
   timeline_duration?: number; // Added for timeline sync
   timeline_category?: TimelineCategory; // Added for timeline sync
+  color?: string; // Added color property
 }
 
 interface GoalRowProps {
