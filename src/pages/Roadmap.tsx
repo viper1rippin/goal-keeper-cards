@@ -144,16 +144,19 @@ const Roadmap = () => {
   }, [selectedRoadmapId, parentGoals]);
   
   const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
+    // Update the local state immediately for visual feedback
     setRoadmapItems(updatedItems);
     
+    // Only proceed with DB updates if user is authenticated and roadmap is selected
     if (user && selectedRoadmapId) {
       // Track whether any database operations were successful
       let databaseUpdated = false;
+      let updateErrors = 0;
       
       for (const item of updatedItems) {
         try {
+          // For existing items
           if (item.originalSubGoalId) {
-            // Log information about what's being updated
             console.log('Updating sub-goal:', {
               id: item.originalSubGoalId,
               row: item.row,
@@ -163,7 +166,7 @@ const Roadmap = () => {
               endDate: item.endDate
             });
             
-            const { data, error } = await supabase
+            const { error } = await supabase
               .from('sub_goals')
               .update({
                 progress: item.progress,
@@ -180,11 +183,13 @@ const Roadmap = () => {
               
             if (error) {
               console.error('Error updating sub-goal:', error);
+              updateErrors++;
             } else {
               databaseUpdated = true;
             }
-          } else {
-            // Log information about what's being inserted
+          } 
+          // For new items
+          else {
             console.log('Creating new sub-goal:', {
               title: item.title,
               row: item.row,
@@ -212,25 +217,30 @@ const Roadmap = () => {
               
             if (error) {
               console.error('Error creating sub-goal:', error);
+              updateErrors++;
             } else if (data && data.length > 0) {
               const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
               if (newItemIndex >= 0) {
-                updatedItems[newItemIndex].originalSubGoalId = data[0].id;
-                setRoadmapItems([...updatedItems]);
+                // Update the local item with the new ID from database
+                const newItems = [...updatedItems];
+                newItems[newItemIndex].originalSubGoalId = data[0].id;
+                setRoadmapItems(newItems);
                 databaseUpdated = true;
               }
             }
           }
         } catch (error) {
           console.error('Error updating sub-goal:', error);
+          updateErrors++;
         }
       }
       
+      // Check for items that were deleted
       const originalIds = roadmapItems.map(item => item.originalSubGoalId).filter(Boolean);
       const updatedIds = updatedItems.map(item => item.originalSubGoalId).filter(Boolean);
-      
       const deletedIds = originalIds.filter(id => !updatedIds.includes(id));
       
+      // Process deletions
       for (const id of deletedIds) {
         try {
           console.log('Deleting sub-goal:', id);
@@ -243,11 +253,13 @@ const Roadmap = () => {
             
           if (error) {
             console.error('Error deleting sub-goal:', error);
+            updateErrors++;
           } else {
             databaseUpdated = true;
           }
         } catch (error) {
           console.error('Error deleting sub-goal:', error);
+          updateErrors++;
         }
       }
       
@@ -255,9 +267,23 @@ const Roadmap = () => {
       if (databaseUpdated) {
         setLastSaveTimestamp(Date.now());
         
+        if (updateErrors > 0) {
+          toast({
+            title: "Partially updated",
+            description: `Roadmap updated with ${updateErrors} errors.`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Roadmap updated",
+            description: "Your changes have been saved successfully.",
+          });
+        }
+      } else if (updateErrors > 0) {
         toast({
-          title: "Roadmap updated",
-          description: "Your changes have been saved to the database.",
+          title: "Update failed",
+          description: "Failed to save changes. Please try again.",
+          variant: "destructive",
         });
       }
     }

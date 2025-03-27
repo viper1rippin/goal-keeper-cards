@@ -1,5 +1,5 @@
 
-import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
+import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths, format } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
@@ -100,4 +100,28 @@ export const updateDatesFromTimelinePosition = (
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString()
   };
+};
+
+/**
+ * Formats a date for display based on view mode
+ */
+export const formatTimelineDate = (date: Date, viewMode: TimelineViewMode): string => {
+  if (viewMode === 'month') {
+    return format(date, 'MMM d');
+  } else {
+    return format(date, 'MMM yyyy');
+  }
+};
+
+/**
+ * Gets a readable duration label
+ */
+export const getDurationLabel = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): string => {
+  if (viewMode === 'month') {
+    const days = differenceInDays(endDate, startDate) + 1;
+    return `${days} day${days !== 1 ? 's' : ''}`;
+  } else {
+    const months = differenceInMonths(endDate, startDate) + 1;
+    return `${months} month${months !== 1 ? 's' : ''}`;
+  }
 };
