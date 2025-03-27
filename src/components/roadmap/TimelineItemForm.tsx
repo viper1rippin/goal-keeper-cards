@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -52,6 +52,10 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
   onCancel,
   viewMode,
 }) => {
+  // Create refs for popover control
+  const startDatePopoverRef = useRef<{ setOpen: (open: boolean) => void }>(null);
+  const endDatePopoverRef = useRef<{ setOpen: (open: boolean) => void }>(null);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -182,11 +186,37 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => {
-                          field.onChange(date ? date.toISOString() : '');
-                          // Find and click the closest PopoverClose button instead of firing an Escape key event
-                          const popoverContent = document.activeElement?.closest('[data-radix-popper-content-wrapper]');
-                          if (popoverContent) {
-                            popoverContent.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+                          if (date) {
+                            field.onChange(date.toISOString());
+                            
+                            // Close the popover after selection
+                            // By clicking outside - this is a safer method than keyboard events
+                            const popoverElement = document.querySelector('[data-radix-popper-content-wrapper]');
+                            if (popoverElement) {
+                              // First hide any elements that might be blocking the click
+                              const originalVisibility = [];
+                              const elementsInsidePopover = popoverElement.querySelectorAll('*');
+                              elementsInsidePopover.forEach((element) => {
+                                originalVisibility.push(element.style.visibility);
+                                element.style.visibility = 'hidden';
+                              });
+                              
+                              // Create and dispatch a click event outside the popover
+                              const clickEvent = new MouseEvent('mousedown', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                buttons: 1
+                              });
+                              document.body.dispatchEvent(clickEvent);
+                              
+                              // Restore visibility
+                              setTimeout(() => {
+                                elementsInsidePopover.forEach((element, index) => {
+                                  element.style.visibility = originalVisibility[index];
+                                });
+                              }, 0);
+                            }
                           }
                         }}
                         initialFocus
@@ -229,11 +259,37 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => {
-                          field.onChange(date ? date.toISOString() : '');
-                          // Find and click the closest PopoverClose button instead of firing an Escape key event
-                          const popoverContent = document.activeElement?.closest('[data-radix-popper-content-wrapper]');
-                          if (popoverContent) {
-                            popoverContent.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+                          if (date) {
+                            field.onChange(date.toISOString());
+                            
+                            // Close the popover after selection
+                            // By clicking outside - this is a safer method than keyboard events
+                            const popoverElement = document.querySelector('[data-radix-popper-content-wrapper]');
+                            if (popoverElement) {
+                              // First hide any elements that might be blocking the click
+                              const originalVisibility = [];
+                              const elementsInsidePopover = popoverElement.querySelectorAll('*');
+                              elementsInsidePopover.forEach((element) => {
+                                originalVisibility.push(element.style.visibility);
+                                element.style.visibility = 'hidden';
+                              });
+                              
+                              // Create and dispatch a click event outside the popover
+                              const clickEvent = new MouseEvent('mousedown', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                                buttons: 1
+                              });
+                              document.body.dispatchEvent(clickEvent);
+                              
+                              // Restore visibility
+                              setTimeout(() => {
+                                elementsInsidePopover.forEach((element, index) => {
+                                  element.style.visibility = originalVisibility[index];
+                                });
+                              }, 0);
+                            }
                           }
                         }}
                         initialFocus
