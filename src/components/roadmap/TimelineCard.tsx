@@ -49,23 +49,25 @@ const TimelineCard = ({
   
   const colorClass = 'from-emerald-400 to-emerald-500 border-emerald-300';
   
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleResizeStart = (e: React.PointerEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     setIsResizing(true);
     setResizeStartX(e.clientX);
     setInitialDuration(tempDuration);
     
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
+    resizeRef.current?.setPointerCapture(e.pointerId);
+    
+    document.addEventListener('pointermove', handleResizeMove);
+    document.addEventListener('pointerup', handleResizeEnd);
     
     if (cardRef.current) {
       cardRef.current.classList.add('resizing');
     }
   };
   
-  const handleResizeMove = (e: MouseEvent) => {
+  const handleResizeMove = (e: PointerEvent) => {
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
@@ -83,7 +85,7 @@ const TimelineCard = ({
     }
   };
   
-  const handleResizeEnd = () => {
+  const handleResizeEnd = (e: PointerEvent) => {
     if (!isResizing) return;
     
     setIsResizing(false);
@@ -92,8 +94,12 @@ const TimelineCard = ({
       onResize(item.id, tempDuration);
     }
     
-    document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('mouseup', handleResizeEnd);
+    if (e.pointerId && resizeRef.current) {
+      resizeRef.current.releasePointerCapture(e.pointerId);
+    }
+    
+    document.removeEventListener('pointermove', handleResizeMove);
+    document.removeEventListener('pointerup', handleResizeEnd);
     
     if (cardRef.current) {
       cardRef.current.classList.remove('resizing');
@@ -204,11 +210,7 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className="absolute right-0 top-0 bottom-0 w-16 cursor-ew-resize group"
-            onMouseDown={handleResizeStart}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              handleResizeStart(e as unknown as React.MouseEvent);
-            }}
+            onPointerDown={handleResizeStart}
           >
             <div className="absolute right-0 top-0 h-full w-2 bg-white/60 opacity-40 group-hover:opacity-100 transition-opacity rounded-l-md" />
           </div>
