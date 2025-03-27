@@ -75,25 +75,28 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
-    // Much more sensitive calculation - using a very small divisor
-    // This makes resizing happen with minimal mouse movement
-    const divisor = Math.max(cellWidth * 0.2, 5); // Use just 20% of cell width or minimum 5px
+    // Make resize more responsive by using a smaller threshold
+    // Changed from Math.round(deltaX / cellWidth) to make it more sensitive
+    const deltaUnits = deltaX / cellWidth;
     
-    // Use Math.floor for drag right (positive delta) and Math.ceil for drag left (negative delta)
-    // This makes the card resize as soon as you start dragging
-    const deltaUnits = deltaX >= 0 
-      ? Math.floor(deltaX / divisor) 
-      : Math.ceil(deltaX / divisor);
+    // Calculate new duration with decimal precision first
+    const preciseNewDuration = initialDuration + deltaUnits;
     
-    const newDuration = Math.max(1, initialDuration + deltaUnits);
+    // Then round to nearest integer for actual duration value
+    const newDuration = Math.max(1, Math.round(preciseNewDuration));
     
     // Update the visual width immediately for smooth resizing
-    setCurrentWidth(`${newDuration * cellWidth}px`);
-    setTempDuration(newDuration);
+    // Use the precise calculation for the width to make resizing feel more fluid
+    setCurrentWidth(`${preciseNewDuration * cellWidth}px`);
     
-    // Call onResize during resize move for immediate feedback
-    if (onResize && tempDuration !== newDuration) {
-      onResize(item.id, newDuration);
+    // Only update the actual duration value when it changes to an integer
+    if (tempDuration !== newDuration) {
+      setTempDuration(newDuration);
+      
+      // Call onResize during resize move for immediate feedback
+      if (onResize) {
+        onResize(item.id, newDuration);
+      }
     }
   };
   
@@ -222,8 +225,8 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-12 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-3 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
+              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
               isResizing && "after:opacity-100 bg-white/10"
             )}
             onMouseDown={handleResizeStart}
