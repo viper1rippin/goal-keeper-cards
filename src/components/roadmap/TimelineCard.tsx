@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { cn } from "@/lib/utils";
@@ -87,14 +88,12 @@ const TimelineCard = ({
     // For events/state updates, we still want whole number cell increments
     const newDurationWhole = Math.max(1, Math.round(newDurationExact));
     
-    // Only update the actual duration value when it changes to an integer
+    // Only update the temp duration value when it changes to an integer
     if (tempDuration !== newDurationWhole) {
       setTempDuration(newDurationWhole);
       
-      // Call onResize during resize move for immediate feedback
-      if (onResize) {
-        onResize(item.id, newDurationWhole);
-      }
+      // Removing immediate feedback during resize
+      // onResize call removed from here
     }
   };
   
@@ -103,8 +102,8 @@ const TimelineCard = ({
     
     setIsResizing(false);
     
-    // Final update if duration changed
-    if (tempDuration !== initialDuration && onResize) {
+    // Final update only when resizing ends
+    if (onResize) {
       onResize(item.id, tempDuration);
     }
     
@@ -199,11 +198,7 @@ const TimelineCard = ({
                 <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
               )}
               
-              {isResizing && (
-                <p className="text-xs font-semibold text-white/90 mt-1 bg-black/20 px-1.5 py-0.5 rounded inline-block">
-                  {getDurationLabel()}
-                </p>
-              )}
+              {/* Removing the immediate feedback notification that shows duration while resizing */}
             </div>
           )}
           
