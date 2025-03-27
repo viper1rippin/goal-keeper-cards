@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal } from "lucide-react";
-import { useDraggable } from "@dnd-kit/core";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -14,7 +14,6 @@ interface TimelineCardProps {
   onResize?: (itemId: string, newDuration: number) => void;
   cellWidth: number;
   viewMode: TimelineViewMode;
-  isDragging?: boolean;
 }
 
 const TimelineCard = ({ 
@@ -24,8 +23,7 @@ const TimelineCard = ({
   onEdit,
   onResize,
   cellWidth,
-  viewMode,
-  isDragging = false
+  viewMode
 }: TimelineCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -37,12 +35,6 @@ const TimelineCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   
-  // Use dnd-kit's useDraggable hook for the drag handle
-  const { attributes, listeners, setNodeRef: setDragHandleRef } = useDraggable({
-    id: item.id,
-    data: item
-  });
-  
   // Update width when duration or cellWidth changes
   useEffect(() => {
     if (!isResizing) {
@@ -51,7 +43,18 @@ const TimelineCard = ({
     }
   }, [item.duration, cellWidth, isResizing]);
   
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
   const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isResizing ? 'none' : transition,
     width: currentWidth,
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
@@ -59,25 +62,17 @@ const TimelineCard = ({
   // Default colors for all cards
   const colorClass = 'from-emerald-400 to-emerald-500 border-emerald-300';
   
-  const handleResizeStart = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     
     setIsResizing(true);
-    
-    // Get client X position from either mouse or touch event
-    const clientX = 'touches' in e 
-      ? e.touches[0].clientX 
-      : (e as React.MouseEvent).clientX;
-    
-    setResizeStartX(clientX);
+    setResizeStartX(e.clientX);
     setInitialDuration(tempDuration);
     
     // Add event listeners to the document
     document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('touchmove', handleResizeTouchMove);
     document.addEventListener('mouseup', handleResizeEnd);
-    document.addEventListener('touchend', handleResizeEnd);
     
     // Add visual feedback class to show that resizing is in progress
     if (cardRef.current) {
@@ -85,22 +80,10 @@ const TimelineCard = ({
     }
   };
   
-  const handleResizeTouchMove = (e: TouchEvent) => {
-    if (!isResizing || !e.touches[0]) return;
-    
-    const clientX = e.touches[0].clientX;
-    handleResizeUpdate(clientX);
-  };
-  
   const handleResizeMove = (e: MouseEvent) => {
     if (!isResizing) return;
     
-    const clientX = e.clientX;
-    handleResizeUpdate(clientX);
-  };
-  
-  const handleResizeUpdate = (clientX: number) => {
-    const deltaX = clientX - resizeStartX;
+    const deltaX = e.clientX - resizeStartX;
     const deltaUnits = Math.round(deltaX / cellWidth);
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
@@ -126,9 +109,7 @@ const TimelineCard = ({
     
     // Clean up event listeners
     document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('touchmove', handleResizeTouchMove);
     document.removeEventListener('mouseup', handleResizeEnd);
-    document.removeEventListener('touchend', handleResizeEnd);
     
     // Remove visual feedback class
     if (cardRef.current) {
@@ -150,14 +131,19 @@ const TimelineCard = ({
 
   return (
     <div
-      ref={cardRef}
+      ref={(node) => {
+        // Combine refs
+        setNodeRef(node);
+        if (node) cardRef.current = node;
+      }}
       style={style}
       className={cn(
-        "h-[80px] rounded-lg touch-manipulation",
-        isDragging ? "opacity-80 z-50 shadow-xl" : "opacity-100",
-        isResizing ? "cursor-ew-resize" : "cursor-pointer",
-        "select-none",
+        "h-[80px] rounded-lg transition-all",
+        isDragging ? "opacity-80 z-50" : "opacity-100",
+        isResizing ? "cursor-ew-resize" : "cursor-grab",
+        "transform-gpu select-none",
       )}
+      {...attributes}
       onClick={(e) => {
         if (!isResizing) onSelect();
       }}
@@ -177,12 +163,10 @@ const TimelineCard = ({
         )}
       >
         <div 
-          ref={setDragHandleRef}
-          className="absolute top-1 left-1 p-2 text-white/70 hover:text-white hover:bg-white/20 rounded cursor-grab z-10 touch-manipulation"
+          className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
           {...listeners}
-          {...attributes}
         >
-          <GripHorizontal size={16} />
+          <GripHorizontal size={12} />
         </div>
         
         {onEdit && (isHovered || isSelected) && (
@@ -199,7 +183,7 @@ const TimelineCard = ({
         )}
         
         <div className="flex flex-col h-full relative z-2 pt-3">
-          <h3 className="font-medium text-sm text-white line-clamp-1 pl-7">{item.title}</h3>
+          <h3 className="font-medium text-sm text-white line-clamp-1">{item.title}</h3>
           
           {shouldShowExpandedDetails && (
             <div className="mt-1 space-y-0.5">
@@ -231,16 +215,19 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20 touch-manipulation",
+              "absolute right-0 top-0 bottom-0 w-6 cursor-ew-resize hover:bg-white/20",
               "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
               isResizing && "after:opacity-100 bg-white/10"
             )}
             onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleResizeStart(e as unknown as React.MouseEvent);
+            }}
           />
         )}
         
-        {(isResizing || isDragging) && (
+        {isResizing && (
           <div className="absolute inset-0 border-2 border-white/50 rounded-lg pointer-events-none z-20"></div>
         )}
       </div>
