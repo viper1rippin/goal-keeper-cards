@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { CSS } from "@dnd-kit/utilities";
@@ -34,6 +35,7 @@ const TimelineCard = ({
   
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (!isResizing) {
@@ -111,16 +113,12 @@ const TimelineCard = ({
     return `${tempDuration}`;
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 && onDragStart) {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleDragHandle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDragStart) {
       onDragStart(e, item.id);
     }
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
   };
 
   return (
@@ -129,7 +127,7 @@ const TimelineCard = ({
       style={style}
       className={cn(
         "h-[80px] rounded-lg transition-all",
-        isResizing ? "cursor-ew-resize" : "cursor-grab",
+        isResizing ? "cursor-ew-resize" : "cursor-pointer",
         "transform-gpu select-none",
       )}
       onClick={(e) => {
@@ -137,8 +135,6 @@ const TimelineCard = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onMouseDown={handleMouseDown}
-      onContextMenu={handleContextMenu}
     >
       <div 
         className={cn(
@@ -153,9 +149,13 @@ const TimelineCard = ({
         )}
       >
         <div 
+          ref={dragHandleRef}
           className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+          onMouseDown={handleDragHandle}
+          role="button"
+          aria-label="Drag handle"
         >
-          <GripHorizontal size={12} />
+          <GripHorizontal size={14} />
         </div>
         
         {onEdit && (isHovered || isSelected) && (

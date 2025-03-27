@@ -30,6 +30,10 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
   onSelectItem,
   onDragStart
 }) => {
+  const getDraggedItem = () => {
+    return items.find(item => item.id === draggingItemId);
+  };
+
   return (
     <div className="absolute inset-0">
       {items.map((item) => (
@@ -62,13 +66,13 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
           style={{
             top: `${ghostPosition.top}px`,
             left: `${ghostPosition.left}px`,
-            width: `${items.find(item => item.id === draggingItemId)?.duration || 1 * cellWidth}px`,
+            width: `${(getDraggedItem()?.duration || 1) * cellWidth}px`,
             zIndex: 999,
           }}
         >
           <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">
             <div className="p-2 text-white truncate">
-              {items.find(item => item.id === draggingItemId)?.title}
+              {getDraggedItem()?.title}
             </div>
           </div>
         </div>

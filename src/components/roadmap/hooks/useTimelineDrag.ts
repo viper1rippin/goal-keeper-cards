@@ -47,6 +47,10 @@ export const useTimelineDrag = ({
   const timelineRef = useRef<HTMLDivElement>(null);
   
   const handleDragStart = (e: React.MouseEvent, itemId: string) => {
+    // Accept any mouse button (left, middle, right)
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Get the item
     const item = items.find(i => i.id === itemId);
     if (!item) return;
@@ -74,9 +78,6 @@ export const useTimelineDrag = ({
     // Add document event listeners
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
-    
-    // Prevent default behavior
-    e.preventDefault();
   };
   
   const handleDragMove = (e: MouseEvent) => {
@@ -84,7 +85,7 @@ export const useTimelineDrag = ({
     
     const timelineRect = timelineRef.current.getBoundingClientRect();
     
-    // Calculate position relative to timeline
+    // Calculate position relative to timeline with no threshold - respond to every pixel of movement
     const relativeX = e.clientX - timelineRect.left - dragState.dragOffset.x;
     const relativeY = e.clientY - timelineRect.top - dragState.dragOffset.y;
     
