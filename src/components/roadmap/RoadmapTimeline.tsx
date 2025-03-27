@@ -17,6 +17,11 @@ import {
   KeyboardSensor,
   pointerWithin,
 } from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 
@@ -181,15 +186,22 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   // Open form for new item
   const handleAddItem = () => {
+    // Generate default dates for new items
+    const today = new Date();
+    const oneMonthLater = new Date(today);
+    oneMonthLater.setMonth(today.getMonth() + 1);
+    
     const newItem: SubGoalTimelineItem = {
       id: `item-${Date.now()}`,
       title: 'New Item',
       description: '',
       progress: 0,
       row: 0,
-      start: 0,
+      start: today.getMonth(), // Use current month as start
       duration: 2,
-      category: 'default'
+      category: 'default',
+      startDate: today.toISOString(),
+      endDate: oneMonthLater.toISOString()
     };
     
     setSelectedItem(newItem);
@@ -199,6 +211,29 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   // Save item changes
   const handleSaveItem = (item: SubGoalTimelineItem) => {
     const isEditing = items.some(i => i.id === item.id);
+    
+    // Ensure dates are properly set if not provided
+    if (!item.startDate) {
+      const startDate = new Date();
+      if (viewMode === 'month') {
+        startDate.setMonth(item.start);
+      } else if (viewMode === 'year') {
+        startDate.setMonth(item.start * 3); // Convert quarter to month
+      }
+      item.startDate = startDate.toISOString();
+    }
+    
+    if (!item.endDate) {
+      const startDate = new Date(item.startDate);
+      const endDate = new Date(startDate);
+      if (viewMode === 'month') {
+        endDate.setMonth(startDate.getMonth() + item.duration - 1);
+      } else if (viewMode === 'year') {
+        endDate.setMonth(startDate.getMonth() + (item.duration * 3) - 1); // Convert quarters to months
+      }
+      endDate.setDate(endDate.getDate() + 29); // End of the last month
+      item.endDate = endDate.toISOString();
+    }
     
     const updatedItems = isEditing
       ? items.map(i => (i.id === item.id ? item : i))
@@ -284,40 +319,42 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           collisionDetection={pointerWithin}
           modifiers={[restrictToParentElement]}
         >
-          {/* Timeline items */}
-          <div className="absolute inset-0">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="absolute"
-                style={{ 
-                  top: `${item.row * 100 + 10}px`,
-                  left: `${item.start * cellWidth}px`,
-                }}
+          <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+            {/* Timeline items */}
+            <div className="absolute inset-0">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="absolute"
+                  style={{ 
+                    top: `${item.row * 100 + 10}px`,
+                    left: `${item.start * cellWidth}px`,
+                  }}
+                >
+                  <TimelineCard
+                    item={item}
+                    isSelected={selectedItem?.id === item.id}
+                    onSelect={() => setSelectedItem(item)}
+                    onEdit={() => handleEditItem(item)}
+                    onResize={handleResizeItem}
+                    cellWidth={cellWidth}
+                    viewMode={viewMode}
+                  />
+                </div>
+              ))}
+              
+              {/* Add button at the bottom */}
+              <button
+                onClick={handleAddItem}
+                className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
               >
-                <TimelineCard
-                  item={item}
-                  isSelected={selectedItem?.id === item.id}
-                  onSelect={() => setSelectedItem(item)}
-                  onEdit={() => handleEditItem(item)}
-                  onResize={handleResizeItem}
-                  cellWidth={cellWidth}
-                  viewMode={viewMode}
-                />
-              </div>
-            ))}
-            
-            {/* Add button at the bottom */}
-            <button
-              onClick={handleAddItem}
-              className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-            </button>
-          </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+              </button>
+            </div>
+          </SortableContext>
           
           {/* Drag overlay */}
           <DragOverlay>

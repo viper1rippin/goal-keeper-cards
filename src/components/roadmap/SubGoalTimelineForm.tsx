@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,7 +18,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, addMonths, differenceInMonths, differenceInDays, differenceInQuarters, startOfMonth, startOfQuarter, addQuarters } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -63,19 +63,73 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
     },
   });
 
+  // Calculate timeline positions when dates change
+  useEffect(() => {
+    const startDate = form.watch('startDate');
+    const endDate = form.watch('endDate');
+    
+    if (startDate && endDate) {
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
+      
+      // Calculate timeline start position based on view mode
+      const start = calculateStartPosition(startDateObj, viewMode);
+      form.setValue('start', start);
+      
+      // Calculate duration based on view mode
+      const duration = calculateDuration(startDateObj, endDateObj, viewMode);
+      
+      // We'll use this duration when saving the form
+      form.setValue('duration', duration);
+    }
+  }, [form.watch('startDate'), form.watch('endDate'), viewMode]);
+
+  // Calculate start position based on the date and view mode
+  const calculateStartPosition = (date: Date, viewMode: TimelineViewMode): number => {
+    if (viewMode === 'month') {
+      // For month view, return the month index (0-11)
+      return date.getMonth();
+    } else if (viewMode === 'year') {
+      // For year view, return the quarter index (0-3)
+      return Math.floor(date.getMonth() / 3);
+    }
+    return 0;
+  };
+
+  // Calculate duration based on start and end dates and view mode
+  const calculateDuration = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): number => {
+    if (viewMode === 'month') {
+      // Calculate duration in months, minimum 1
+      const monthsDiff = differenceInMonths(endDate, startDate);
+      return Math.max(1, monthsDiff + 1); // +1 to include the start month
+    } else if (viewMode === 'year') {
+      // Calculate duration in quarters, minimum 1
+      const quartersDiff = differenceInQuarters(endDate, startDate);
+      return Math.max(1, quartersDiff + 1); // +1 to include the start quarter
+    }
+    return 1;
+  };
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const startDateObj = values.startDate ? new Date(values.startDate) : new Date();
+    const endDateObj = values.endDate ? new Date(values.endDate) : addMonths(startDateObj, 1);
+    
+    // Calculate duration for saving
+    const duration = calculateDuration(startDateObj, endDateObj, viewMode);
+    
     const updatedItem: SubGoalTimelineItem = {
       id: values.id,
       title: values.title,
       description: values.description || '',
       row: values.row,
       start: values.start,
-      duration: item.duration, // Keep existing duration for now
+      duration: duration, // Use calculated duration
       progress: values.progress,
       startDate: values.startDate,
       endDate: values.endDate,
       ...(item.parentId && { parentId: item.parentId }),
-      ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId })
+      ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId }),
+      ...(item.category && { category: item.category })
     };
     
     onSave(updatedItem);
