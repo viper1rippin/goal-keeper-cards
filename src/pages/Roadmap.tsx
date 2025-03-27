@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
+import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
 import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -129,8 +129,7 @@ const Roadmap = () => {
               parentId: selectedRoadmapId,
               originalSubGoalId: subGoal.id,
               startDate: subGoal.start_date || undefined,
-              endDate: subGoal.end_date || undefined,
-              color: subGoal.color // Make sure color is included
+              endDate: subGoal.end_date || undefined
             };
           });
           
@@ -172,8 +171,7 @@ const Roadmap = () => {
                 timeline_duration: item.duration,
                 timeline_category: item.category,
                 start_date: item.startDate,
-                end_date: item.endDate,
-                color: item.color // Make sure color is included
+                end_date: item.endDate
               })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
@@ -192,8 +190,7 @@ const Roadmap = () => {
                 timeline_duration: item.duration,
                 timeline_category: item.category,
                 start_date: item.startDate,
-                end_date: item.endDate,
-                color: item.color
+                end_date: item.endDate
               })
               .select();
               
@@ -312,12 +309,8 @@ const Roadmap = () => {
           </div>
           
           {isLoading ? (
-            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8">
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
+            <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
+              <p className="text-slate-400">Loading roadmap data...</p>
             </div>
           ) : !selectedRoadmapId ? (
             <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">

@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ParentGoal } from "./IndexPageTypes";
-import { TimelineCategory } from "../roadmap/types";
 
 // Type for parent goal from Supabase, avoiding deep nesting
 interface ParentGoalData {
@@ -28,31 +27,7 @@ interface SubGoalData {
   created_at: string;
   updated_at: string;
   user_id?: string;
-  color?: string;
-  timeline_row?: number;
-  timeline_start?: number;
-  timeline_duration?: number;
-  timeline_category?: string;
-  start_date?: string;
-  end_date?: string;
-  display_order?: number;
 }
-
-// Helper function to safely convert string to TimelineCategory
-const parseTimelineCategory = (category: string | null): TimelineCategory => {
-  if (!category) return 'default';
-  
-  // Check if the category is a valid TimelineCategory value
-  const validCategories: TimelineCategory[] = [
-    'research', 'design', 'development', 'testing', 
-    'marketing', 'feature', 'milestone', 'default',
-    'mobile', 'web', 'infrastructure', 'backend'
-  ];
-  
-  return validCategories.includes(category as TimelineCategory) 
-    ? (category as TimelineCategory) 
-    : 'default';
-};
 
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
@@ -93,22 +68,14 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
         groupedSubGoals[parent.id] = [];
       });
       
-      // Populate groups with all necessary fields for consistent syncing
+      // Populate groups
       ((subGoalsData as SubGoalData[]) || []).forEach(subGoal => {
         if (groupedSubGoals[subGoal.parent_goal_id]) {
           groupedSubGoals[subGoal.parent_goal_id].push({
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            progress: subGoal.progress,
-            color: subGoal.color,
-            display_order: subGoal.display_order,
-            startDate: subGoal.start_date,
-            endDate: subGoal.end_date,
-            timeline_row: subGoal.timeline_row,
-            timeline_start: subGoal.timeline_start,
-            timeline_duration: subGoal.timeline_duration,
-            timeline_category: parseTimelineCategory(subGoal.timeline_category)
+            progress: subGoal.progress
           });
         }
       });
