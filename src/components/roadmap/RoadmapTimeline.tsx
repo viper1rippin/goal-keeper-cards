@@ -24,10 +24,7 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
-import { 
-  calculateEndDateFromDurationChange,
-  updateDatesFromTimelinePosition 
-} from './utils/timelineUtils';
+import { calculateEndDateFromDurationChange } from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
