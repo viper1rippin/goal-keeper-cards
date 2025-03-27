@@ -1,5 +1,4 @@
-
-import { differenceInMonths, differenceInQuarters, differenceInDays } from 'date-fns';
+import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
@@ -61,6 +60,13 @@ export const calculateEndDateFromDurationChange = (
   } else if (viewMode === 'year') {
     // In year view, duration is in months
     endDate.setMonth(startDate.getMonth() + newDuration - 1);
+    // Keep the same day of month but account for months with fewer days
+    const maxDaysInMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
+    if (startDate.getDate() > maxDaysInMonth) {
+      endDate.setDate(maxDaysInMonth);
+    } else {
+      endDate.setDate(startDate.getDate());
+    }
   }
   
   return endDate;

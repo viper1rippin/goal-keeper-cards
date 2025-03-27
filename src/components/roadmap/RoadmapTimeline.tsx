@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -160,8 +161,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
-        let newEndDate = item.endDate;
-        
+        // Only proceed if we have a valid startDate
         if (item.startDate) {
           const startDate = new Date(item.startDate);
           const calculatedEndDate = calculateEndDateFromDurationChange(
@@ -170,18 +170,24 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
             newDuration,
             viewMode
           );
-          newEndDate = calculatedEndDate.toISOString();
+          
+          return {
+            ...item,
+            duration: newDuration,
+            endDate: calculatedEndDate.toISOString()
+          };
         }
         
+        // If no startDate, just update duration
         return {
           ...item,
-          duration: newDuration,
-          endDate: newEndDate
+          duration: newDuration
         };
       }
       return item;
     });
     
+    // Immediately update the items
     onItemsChange(updatedItems);
   };
   

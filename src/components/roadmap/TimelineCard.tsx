@@ -90,6 +90,11 @@ const TimelineCard = ({
     // Update the visual width immediately for smooth resizing
     setCurrentWidth(`${newDuration * cellWidth}px`);
     setTempDuration(newDuration);
+    
+    // Call onResize during resize move for immediate feedback
+    if (onResize && tempDuration !== newDuration) {
+      onResize(item.id, newDuration);
+    }
   };
   
   const handleResizeEnd = () => {
@@ -97,8 +102,8 @@ const TimelineCard = ({
     
     setIsResizing(false);
     
-    // Only call the callback if the duration actually changed
-    if (tempDuration !== item.duration && onResize) {
+    // Final update if duration changed
+    if (tempDuration !== initialDuration && onResize) {
       onResize(item.id, tempDuration);
     }
     
