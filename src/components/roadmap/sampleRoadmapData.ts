@@ -10,8 +10,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 0,
       start: 0,
       duration: 2,
-      progress: 100,
-      category: "research"
+      progress: 100
     },
     {
       id: "sample-2",
@@ -20,8 +19,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 0,
       start: 2,
       duration: 2,
-      progress: 70,
-      category: "design"
+      progress: 70
     },
     {
       id: "sample-3",
@@ -30,8 +28,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 0,
       start: 4,
       duration: 1,
-      progress: 0,
-      category: "milestone"
+      progress: 0
     },
     {
       id: "sample-4",
@@ -40,8 +37,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 1,
       start: 1,
       duration: 3,
-      progress: 50,
-      category: "backend"
+      progress: 50
     },
     {
       id: "sample-5",
@@ -50,8 +46,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 1,
       start: 4,
       duration: 2,
-      progress: 0,
-      category: "mobile"
+      progress: 0
     },
     {
       id: "sample-6",
@@ -60,8 +55,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 2,
       start: 3,
       duration: 3,
-      progress: 30,
-      category: "web"
+      progress: 30
     },
     {
       id: "sample-7",
@@ -70,8 +64,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 2,
       start: 0,
       duration: 3,
-      progress: 90,
-      category: "infrastructure"
+      progress: 90
     },
     {
       id: "sample-8",
@@ -80,8 +73,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 1,
       start: 6,
       duration: 1,
-      progress: 0,
-      category: "milestone"
+      progress: 0
     },
     {
       id: "sample-9",
@@ -90,8 +82,7 @@ export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
       row: 2,
       start: 6,
       duration: 2,
-      progress: 0,
-      category: "testing"
+      progress: 0
     }
   ];
 };

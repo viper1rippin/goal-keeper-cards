@@ -1,9 +1,10 @@
+
 import React, { useState, useRef } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, AlertTriangle, Star, Package, Monitor, Cpu, ArrowRightLeft, BeakerIcon } from "lucide-react";
+import { Edit2, GripHorizontal } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -47,58 +48,8 @@ const TimelineCard = ({
     zIndex: isDragging ? 100 : isSelected ? 10 : 1,
   };
   
-  const getCategoryColors = () => {
-    const category = item.category || 'default';
-    
-    switch (category) {
-      case 'milestone':
-        return 'from-amber-500 to-amber-600 border-amber-400';
-      case 'feature':
-        return 'from-blue-400 to-blue-500 border-blue-300';
-      case 'research':
-        return 'from-purple-400 to-purple-500 border-purple-300';
-      case 'design':
-        return 'from-pink-400 to-pink-500 border-pink-300';
-      case 'development':
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-      case 'testing':
-        return 'from-orange-400 to-orange-500 border-orange-300';
-      case 'marketing':
-        return 'from-red-400 to-red-500 border-red-300';
-      case 'mobile':
-        return 'from-rose-400 to-rose-500 border-rose-300';
-      case 'web':
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-      case 'infrastructure':
-        return 'from-purple-400 to-purple-500 border-purple-300';
-      case 'backend':
-        return 'from-slate-500 to-slate-600 border-slate-400';
-      default:
-        return 'from-emerald-400 to-emerald-500 border-emerald-300';
-    }
-  };
-  
-  const getCategoryIcon = () => {
-    const category = item.category || 'default';
-    
-    switch (category) {
-      case 'milestone':
-        return <Star size={16} className="text-white" />;
-      case 'research':
-        return <AlertTriangle size={16} className="text-white" />;
-      case 'design':
-        return <Package size={16} className="text-white" />;
-      case 'development':
-        return <Monitor size={16} className="text-white" />;
-      case 'testing':
-        return <Cpu size={16} className="text-white" />;
-      default:
-        return null;
-    }
-  };
-
-  const colorClass = getCategoryColors();
-  const categoryIcon = getCategoryIcon();
+  // Default colors for all cards
+  const colorClass = 'from-emerald-400 to-emerald-500 border-emerald-300';
   
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -163,12 +114,6 @@ const TimelineCard = ({
           <GripHorizontal size={12} />
         </div>
         
-        {categoryIcon && (
-          <div className="absolute left-2 top-2">
-            {categoryIcon}
-          </div>
-        )}
-        
         {onEdit && (isHovered || isSelected) && (
           <button
             onClick={(e) => {
@@ -182,10 +127,7 @@ const TimelineCard = ({
           </button>
         )}
         
-        <div className={cn(
-          "flex flex-col h-full relative z-2 pt-3",
-          categoryIcon ? "pl-6" : ""
-        )}>
+        <div className="flex flex-col h-full relative z-2 pt-3">
           <h3 className="font-medium text-sm text-white line-clamp-1">{item.title}</h3>
           
           {shouldShowExpandedDetails && (

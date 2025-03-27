@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -199,7 +198,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       row: 0,
       start: today.getMonth(), // Use current month as start
       duration: 2,
-      category: 'default',
       startDate: today.toISOString(),
       endDate: oneMonthLater.toISOString()
     };
