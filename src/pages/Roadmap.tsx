@@ -209,11 +209,6 @@ const Roadmap = () => {
         }
       }
     }
-    
-    toast({
-      title: "Roadmap updated",
-      description: "Your changes have been saved.",
-    });
   };
   
   const handleCreateRoadmap = () => {
