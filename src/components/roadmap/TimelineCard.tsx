@@ -5,7 +5,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal } from "lucide-react";
-import { calculateEndDateFromDurationChange, formatTimelineDate, getDurationLabel } from "./utils/timelineUtils";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -32,7 +31,6 @@ const TimelineCard = ({
   const [initialDuration, setInitialDuration] = useState(item.duration);
   const [currentWidth, setCurrentWidth] = useState(`${item.duration * cellWidth}px`);
   const [tempDuration, setTempDuration] = useState(item.duration);
-  const [dateLabel, setDateLabel] = useState('');
   
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
@@ -42,23 +40,8 @@ const TimelineCard = ({
     if (!isResizing) {
       setCurrentWidth(`${item.duration * cellWidth}px`);
       setTempDuration(item.duration);
-      setInitialDuration(item.duration);
     }
   }, [item.duration, cellWidth, isResizing]);
-  
-  // Update date label when item dates change
-  useEffect(() => {
-    if (item.startDate && item.endDate) {
-      const startDate = new Date(item.startDate);
-      const endDate = new Date(item.endDate);
-      const durationLabel = getDurationLabel(startDate, endDate, viewMode);
-      const formattedStart = formatTimelineDate(startDate, viewMode);
-      const formattedEnd = formatTimelineDate(endDate, viewMode);
-      setDateLabel(`${formattedStart} - ${formattedEnd} (${durationLabel})`);
-    } else {
-      setDateLabel('');
-    }
-  }, [item.startDate, item.endDate, viewMode]);
   
   const {
     attributes,
@@ -107,23 +90,6 @@ const TimelineCard = ({
     // Update the visual width immediately for smooth resizing
     setCurrentWidth(`${newDuration * cellWidth}px`);
     setTempDuration(newDuration);
-    
-    // Also update the date label to provide immediate feedback
-    if (item.startDate) {
-      const startDate = new Date(item.startDate);
-      const newEndDate = calculateEndDateFromDurationChange(
-        startDate,
-        initialDuration,
-        newDuration,
-        viewMode
-      );
-      
-      const durationLabel = getDurationLabel(startDate, newEndDate, viewMode);
-      const formattedStart = formatTimelineDate(startDate, viewMode);
-      const formattedEnd = formatTimelineDate(newEndDate, viewMode);
-      
-      setDateLabel(`${formattedStart} - ${formattedEnd} (${durationLabel})`);
-    }
   };
   
   const handleResizeEnd = () => {
@@ -132,7 +98,7 @@ const TimelineCard = ({
     setIsResizing(false);
     
     // Only call the callback if the duration actually changed
-    if (tempDuration !== initialDuration && onResize) {
+    if (tempDuration !== item.duration && onResize) {
       onResize(item.id, tempDuration);
     }
     
@@ -207,11 +173,7 @@ const TimelineCard = ({
           {shouldShowExpandedDetails && (
             <div className="mt-1 space-y-0.5">
               {item.description && (
-                <p className="text-xs text-white/80 line-clamp-1">{item.description}</p>
-              )}
-              
-              {dateLabel && (
-                <p className="text-xs text-white/80 font-mono">{dateLabel}</p>
+                <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
               )}
             </div>
           )}

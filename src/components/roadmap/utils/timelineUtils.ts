@@ -1,5 +1,5 @@
 
-import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths, format } from 'date-fns';
+import { differenceInMonths, differenceInQuarters, differenceInDays } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
@@ -53,76 +53,15 @@ export const calculateEndDateFromDurationChange = (
   newDuration: number, 
   viewMode: TimelineViewMode
 ): Date => {
-  // Create a copy of the start date
   const endDate = new Date(startDate);
   
   if (viewMode === 'month') {
     // In month view, duration is in days
-    return addDays(startDate, newDuration - 1);
+    endDate.setDate(startDate.getDate() + newDuration - 1);
   } else if (viewMode === 'year') {
     // In year view, duration is in months
-    return addMonths(startDate, newDuration - 1);
+    endDate.setMonth(startDate.getMonth() + newDuration - 1);
   }
   
   return endDate;
-};
-
-/**
- * Updates the start and end dates based on timeline position changes
- */
-export const updateDatesFromTimelinePosition = (
-  item: { start: number; duration: number; startDate?: string; endDate?: string },
-  viewMode: TimelineViewMode,
-  year: number,
-  month: number
-): { startDate: string; endDate: string } => {
-  // Create base date from current view context
-  const baseDate = new Date(year, month, 1);
-  
-  // Calculate new start date
-  const startDate = new Date(baseDate);
-  if (viewMode === 'month') {
-    // In month view, position is day of month (0-based to 1-based)
-    startDate.setDate(item.start + 1);
-  } else if (viewMode === 'year') {
-    // In year view, position is month (already 0-based)
-    startDate.setMonth(item.start);
-  }
-  
-  // Calculate end date based on duration
-  const endDate = calculateEndDateFromDurationChange(
-    startDate,
-    1, // Not using current duration, just calculating from start
-    item.duration,
-    viewMode
-  );
-  
-  return {
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString()
-  };
-};
-
-/**
- * Formats a date for display based on view mode
- */
-export const formatTimelineDate = (date: Date, viewMode: TimelineViewMode): string => {
-  if (viewMode === 'month') {
-    return format(date, 'MMM d');
-  } else {
-    return format(date, 'MMM yyyy');
-  }
-};
-
-/**
- * Gets a readable duration label
- */
-export const getDurationLabel = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): string => {
-  if (viewMode === 'month') {
-    const days = differenceInDays(endDate, startDate) + 1;
-    return `${days} day${days !== 1 ? 's' : ''}`;
-  } else {
-    const months = differenceInMonths(endDate, startDate) + 1;
-    return `${months} month${months !== 1 ? 's' : ''}`;
-  }
 };

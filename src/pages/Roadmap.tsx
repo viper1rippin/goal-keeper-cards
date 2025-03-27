@@ -22,8 +22,6 @@ const Roadmap = () => {
   const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastSaveTimestamp, setLastSaveTimestamp] = useState(Date.now());
-  const [isDirty, setIsDirty] = useState(false);
   
   useEffect(() => {
     const fetchParentGoals = async () => {
@@ -104,12 +102,11 @@ const Roadmap = () => {
         });
       } finally {
         setIsLoading(false);
-        setIsDirty(false);
       }
     };
     
     fetchParentGoals();
-  }, [user, lastSaveTimestamp]);
+  }, [user, selectedRoadmapId]);
   
   useEffect(() => {
     const loadSubGoalsToTimeline = () => {
@@ -145,32 +142,13 @@ const Roadmap = () => {
   }, [selectedRoadmapId, parentGoals]);
   
   const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
-    console.log("Handling items change:", updatedItems);
-    
-    // Update the local state immediately for visual feedback
     setRoadmapItems(updatedItems);
-    setIsDirty(true);
     
-    // Only proceed with DB updates if user is authenticated and roadmap is selected
     if (user && selectedRoadmapId) {
-      // Track whether any database operations were successful
-      let databaseUpdated = false;
-      let updateErrors = 0;
-      
       for (const item of updatedItems) {
         try {
-          // For existing items
           if (item.originalSubGoalId) {
-            console.log('Updating sub-goal:', {
-              id: item.originalSubGoalId,
-              row: item.row,
-              start: item.start,
-              duration: item.duration,
-              startDate: item.startDate,
-              endDate: item.endDate
-            });
-            
-            const { error } = await supabase
+            await supabase
               .from('sub_goals')
               .update({
                 progress: item.progress,
@@ -184,25 +162,7 @@ const Roadmap = () => {
               })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
-              
-            if (error) {
-              console.error('Error updating sub-goal:', error);
-              updateErrors++;
-            } else {
-              databaseUpdated = true;
-            }
-          } 
-          // For new items
-          else {
-            console.log('Creating new sub-goal:', {
-              title: item.title,
-              row: item.row,
-              start: item.start,
-              duration: item.duration,
-              startDate: item.startDate,
-              endDate: item.endDate
-            });
-            
+          } else {
             const { data, error } = await supabase
               .from('sub_goals')
               .insert({
@@ -219,79 +179,41 @@ const Roadmap = () => {
               })
               .select();
               
-            if (error) {
-              console.error('Error creating sub-goal:', error);
-              updateErrors++;
-            } else if (data && data.length > 0) {
+            if (!error && data && data.length > 0) {
               const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
               if (newItemIndex >= 0) {
-                // Update the local item with the new ID from database
-                const newItems = [...updatedItems];
-                newItems[newItemIndex].originalSubGoalId = data[0].id;
-                setRoadmapItems(newItems);
-                databaseUpdated = true;
+                updatedItems[newItemIndex].originalSubGoalId = data[0].id;
+                setRoadmapItems([...updatedItems]);
               }
             }
           }
         } catch (error) {
           console.error('Error updating sub-goal:', error);
-          updateErrors++;
         }
       }
       
-      // Check for items that were deleted
       const originalIds = roadmapItems.map(item => item.originalSubGoalId).filter(Boolean);
       const updatedIds = updatedItems.map(item => item.originalSubGoalId).filter(Boolean);
+      
       const deletedIds = originalIds.filter(id => !updatedIds.includes(id));
       
-      // Process deletions
       for (const id of deletedIds) {
         try {
-          console.log('Deleting sub-goal:', id);
-          
-          const { error } = await supabase
+          await supabase
             .from('sub_goals')
             .delete()
             .eq('id', id)
             .eq('user_id', user.id);
-            
-          if (error) {
-            console.error('Error deleting sub-goal:', error);
-            updateErrors++;
-          } else {
-            databaseUpdated = true;
-          }
         } catch (error) {
           console.error('Error deleting sub-goal:', error);
-          updateErrors++;
         }
-      }
-      
-      // If any database operation was successful, update the timestamp to trigger a data refresh
-      if (databaseUpdated) {
-        setLastSaveTimestamp(Date.now());
-        setIsDirty(false);
-        
-        if (updateErrors > 0) {
-          toast({
-            title: "Partially updated",
-            description: `Roadmap updated with ${updateErrors} errors.`,
-            variant: "default",
-          });
-        } else {
-          toast({
-            title: "Roadmap updated",
-            description: "Your changes have been saved successfully.",
-          });
-        }
-      } else if (updateErrors > 0) {
-        toast({
-          title: "Update failed",
-          description: "Failed to save changes. Please try again.",
-          variant: "destructive",
-        });
       }
     }
+    
+    toast({
+      title: "Roadmap updated",
+      description: "Your changes have been saved.",
+    });
   };
   
   const handleCreateRoadmap = () => {
