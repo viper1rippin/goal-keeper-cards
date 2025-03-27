@@ -151,3 +151,33 @@ export const syncTimelineItemWithDates = (
   
   return item;
 };
+
+/**
+ * Calculate cell position from pixel coordinates
+ */
+export const calculateCellFromPosition = (
+  x: number, 
+  cellWidth: number, 
+  timeUnitCount: number
+): number => {
+  // Calculate which cell this position corresponds to
+  const cell = Math.floor(x / cellWidth);
+  
+  // Ensure cell is within bounds
+  return Math.max(0, Math.min(timeUnitCount - 1, cell));
+};
+
+/**
+ * Calculate row position from pixel coordinates
+ */
+export const calculateRowFromPosition = (
+  y: number, 
+  rowHeight: number, 
+  maxRows: number
+): number => {
+  // Calculate which row this position corresponds to
+  const row = Math.floor(y / rowHeight);
+  
+  // Ensure row is within bounds
+  return Math.max(0, Math.min(maxRows - 1, row));
+};

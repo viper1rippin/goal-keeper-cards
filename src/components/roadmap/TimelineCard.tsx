@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
-import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal } from "lucide-react";
@@ -14,6 +13,7 @@ interface TimelineCardProps {
   onResize?: (itemId: string, newDuration: number) => void;
   cellWidth: number;
   viewMode: TimelineViewMode;
+  onDragStart?: (e: React.MouseEvent, itemId: string) => void;
 }
 
 const TimelineCard = ({ 
@@ -23,7 +23,8 @@ const TimelineCard = ({
   onEdit,
   onResize,
   cellWidth,
-  viewMode
+  viewMode,
+  onDragStart
 }: TimelineCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -43,20 +44,9 @@ const TimelineCard = ({
     }
   }, [item.duration, cellWidth, isResizing]);
   
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
-
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: isResizing ? 'none' : transition,
     width: currentWidth,
-    zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
+    zIndex: isResizing ? 50 : isSelected ? 10 : 1,
   };
   
   // Default colors for all cards
@@ -129,26 +119,34 @@ const TimelineCard = ({
     return `${tempDuration}`;
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 2 && onDragStart) { // Right mouse button
+      e.preventDefault();
+      e.stopPropagation();
+      onDragStart(e, item.id);
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default context menu
+  };
+
   return (
     <div
-      ref={(node) => {
-        // Combine refs
-        setNodeRef(node);
-        if (node) cardRef.current = node;
-      }}
+      ref={cardRef}
       style={style}
       className={cn(
         "h-[80px] rounded-lg transition-all",
-        isDragging ? "opacity-80 z-50" : "opacity-100",
         isResizing ? "cursor-ew-resize" : "cursor-grab",
         "transform-gpu select-none",
       )}
-      {...attributes}
       onClick={(e) => {
         if (!isResizing) onSelect();
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onMouseDown={handleMouseDown}
+      onContextMenu={handleContextMenu}
     >
       <div 
         className={cn(
@@ -164,7 +162,6 @@ const TimelineCard = ({
       >
         <div 
           className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
-          {...listeners}
         >
           <GripHorizontal size={12} />
         </div>
