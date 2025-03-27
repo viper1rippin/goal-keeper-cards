@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal } from "lucide-react";
+import { Edit2, GripHorizontal, Move } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -35,6 +35,7 @@ const TimelineCard = ({
   
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
   
   // Update width when duration or cellWidth changes
   useEffect(() => {
@@ -76,7 +77,6 @@ const TimelineCard = ({
     const deltaX = e.clientX - resizeStartX;
     
     // Make resize more responsive by using a smaller threshold
-    // Changed from Math.round(deltaX / cellWidth) to make it more sensitive
     const deltaUnits = deltaX / cellWidth;
     
     // Calculate new duration with decimal precision first
@@ -133,7 +133,10 @@ const TimelineCard = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 && onDragStart) { // Right mouse button
+    // Initiate drag on both right-click and when clicking the drag handle
+    const isDragHandleClick = dragHandleRef.current?.contains(e.target as Node);
+    
+    if ((e.button === 2 || isDragHandleClick) && onDragStart) {
       e.preventDefault();
       e.stopPropagation();
       onDragStart(e, item.id);
@@ -174,9 +177,11 @@ const TimelineCard = ({
         )}
       >
         <div 
-          className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+          ref={dragHandleRef}
+          className="absolute top-1 left-1 p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded opacity-70 hover:opacity-100 transition-all cursor-move z-10 flex items-center gap-0.5"
+          title="Drag to move"
         >
-          <GripHorizontal size={12} />
+          <Move size={14} />
         </div>
         
         {onEdit && (isHovered || isSelected) && (
@@ -225,7 +230,7 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20",
+              "absolute right-0 top-0 bottom-0 w-12 cursor-ew-resize hover:bg-white/20",
               "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
               isResizing && "after:opacity-100 bg-white/10"
             )}

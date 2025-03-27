@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import TimelineCard from './TimelineCard';
 
@@ -30,8 +30,86 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
   onSelectItem,
   onDragStart
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [autoScrollActive, setAutoScrollActive] = useState(false);
+  const [scrollDirection, setScrollDirection] = useState<'left' | 'right' | null>(null);
+  const scrollSpeed = 15; // Pixels per scroll frame
+  const scrollThreshold = 100; // Distance from edge to trigger auto-scroll
+
+  // Auto-scroll functionality when dragging near edges
+  useEffect(() => {
+    if (!isDragging || !containerRef.current || !scrollDirection) {
+      return;
+    }
+
+    const container = containerRef.current;
+    const parentElement = container.parentElement;
+    
+    if (!parentElement) return;
+
+    const scrollInterval = setInterval(() => {
+      if (scrollDirection === 'right') {
+        parentElement.scrollLeft += scrollSpeed;
+      } else if (scrollDirection === 'left') {
+        parentElement.scrollLeft -= scrollSpeed;
+      }
+    }, 16); // ~60fps
+
+    return () => clearInterval(scrollInterval);
+  }, [isDragging, scrollDirection]);
+
+  // Update scroll direction based on mouse position
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const parentElement = container.parentElement;
+    
+    if (!parentElement) return;
+
+    const rect = parentElement.getBoundingClientRect();
+    const distanceFromLeft = e.clientX - rect.left;
+    const distanceFromRight = rect.right - e.clientX;
+
+    if (distanceFromRight < scrollThreshold) {
+      setScrollDirection('right');
+      setAutoScrollActive(true);
+    } else if (distanceFromLeft < scrollThreshold) {
+      setScrollDirection('left');
+      setAutoScrollActive(true);
+    } else {
+      setScrollDirection(null);
+      setAutoScrollActive(false);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setAutoScrollActive(false);
+    setScrollDirection(null);
+  };
+
+  // Calculate styles for drag ghost
+  const getGhostStyles = () => {
+    if (!isDragging || !draggingItemId) return {};
+    
+    const draggingItem = items.find(item => item.id === draggingItemId);
+    if (!draggingItem) return {};
+    
+    return {
+      width: `${draggingItem.duration * cellWidth}px`,
+      opacity: 0.8,
+      transform: 'scale(1.02)',
+      zIndex: 999,
+    };
+  };
+
   return (
-    <div className="absolute inset-0">
+    <div 
+      ref={containerRef}
+      className="absolute inset-0"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       {items.map((item) => (
         <div
           key={item.id}
@@ -55,21 +133,25 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
         </div>
       ))}
       
-      {/* Drag ghost element */}
+      {/* Drag ghost element with enhanced styles */}
       {isDragging && draggingItemId && (
         <div 
           className="absolute pointer-events-none"
           style={{
             top: `${ghostPosition.top}px`,
             left: `${ghostPosition.left}px`,
-            width: `${items.find(item => item.id === draggingItemId)?.duration || 1 * cellWidth}px`,
-            zIndex: 999,
+            ...getGhostStyles(),
           }}
         >
-          <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">
-            <div className="p-2 text-white truncate">
+          <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/50">
+            <div className="p-2 text-white truncate font-medium">
               {items.find(item => item.id === draggingItemId)?.title}
             </div>
+            {autoScrollActive && (
+              <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-1 rounded-bl">
+                {scrollDirection === 'right' ? '→' : '←'}
+              </div>
+            )}
           </div>
         </div>
       )}
