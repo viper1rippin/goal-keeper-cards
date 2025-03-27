@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useState, useEffect } from "react";
@@ -23,7 +24,6 @@ export interface Goal {
   timeline_start?: number; // Added for timeline sync
   timeline_duration?: number; // Added for timeline sync
   timeline_category?: TimelineCategory; // Added for timeline sync
-  color?: string; // Added color property
 }
 
 interface GoalRowProps {
@@ -104,7 +104,6 @@ const GoalRow = ({
         return;
       }
 
-      console.log('Fetching sub-goals for parent goal:', id);
       const { data, error } = await supabase
         .from('sub_goals')
         .select('*')
@@ -117,7 +116,6 @@ const GoalRow = ({
       }
       
       if (data) {
-        console.log('Fetched sub-goals:', data);
         const formattedData: Goal[] = data.map(goal => ({
           id: goal.id,
           title: goal.title,

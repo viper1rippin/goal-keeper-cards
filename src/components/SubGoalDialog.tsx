@@ -73,10 +73,6 @@ const SubGoalDialog = ({
           progress: subGoalToEdit?.progress || 0,
           startDate: subGoalToEdit?.startDate,
           endDate: subGoalToEdit?.endDate,
-          timeline_row: subGoalToEdit?.timeline_row,
-          timeline_start: subGoalToEdit?.timeline_start,
-          timeline_duration: subGoalToEdit?.timeline_duration,
-          timeline_category: subGoalToEdit?.timeline_category,
         };
         
         onSave(newSubGoal);
@@ -86,9 +82,6 @@ const SubGoalDialog = ({
         return;
       }
 
-      console.log("Saving sub-goal with values:", values);
-      console.log("Editing sub-goal:", subGoalToEdit);
-      
       await saveSubGoal(values);
       form.reset();
       onClose();
@@ -109,26 +102,15 @@ const SubGoalDialog = ({
     // Generate default category based on title (simple heuristic)
     const defaultCategory: TimelineCategory = determineDefaultCategory(values.title);
 
-    // Preserve existing timeline data or set defaults if creating new
-    const timelineRow = subGoalToEdit?.timeline_row ?? 0;
-    const timelineStart = subGoalToEdit?.timeline_start ?? 0;
-    const timelineDuration = subGoalToEdit?.timeline_duration ?? 2;
-    const timelineCategory = subGoalToEdit?.timeline_category ?? defaultCategory;
+    // Calculate timeline position data
+    const timelineRow = subGoalToEdit?.timeline_row || 0;
+    const timelineStart = subGoalToEdit?.timeline_start || 0;
+    const timelineDuration = subGoalToEdit?.timeline_duration || 2;
+    const timelineCategory = subGoalToEdit?.timeline_category || defaultCategory;
 
     // Preserve existing dates if available
     const startDate = subGoalToEdit?.startDate || null;
     const endDate = subGoalToEdit?.endDate || null;
-    const color = subGoalToEdit?.color || null;
-
-    console.log("Timeline data being saved:", {
-      row: timelineRow,
-      start: timelineStart,
-      duration: timelineDuration,
-      category: timelineCategory,
-      startDate,
-      endDate,
-      color
-    });
 
     // Prepare sub-goal data
     const subGoalData = {
@@ -142,11 +124,8 @@ const SubGoalDialog = ({
       timeline_row: timelineRow,
       timeline_start: timelineStart,
       timeline_duration: timelineDuration,
-      timeline_category: timelineCategory,
-      color: color
+      timeline_category: timelineCategory
     };
-    
-    console.log("Saving sub-goal data:", subGoalData);
     
     // If editing, update the existing sub-goal
     if (subGoalToEdit && subGoalToEdit.id) {
@@ -156,23 +135,14 @@ const SubGoalDialog = ({
         .eq('id', subGoalToEdit.id)
         .eq('user_id', user.id); // Only update if user owns the sub-goal
       
-      if (error) {
-        console.error("Error updating sub-goal:", error);
-        throw error;
-      }
+      if (error) throw error;
     } else {
       // Otherwise, create a new sub-goal
-      const { error, data } = await supabase
+      const { error } = await supabase
         .from('sub_goals')
-        .insert(subGoalData)
-        .select();
+        .insert(subGoalData);
       
-      if (error) {
-        console.error("Error inserting sub-goal:", error);
-        throw error;
-      }
-      
-      console.log("Created new sub-goal:", data);
+      if (error) throw error;
     }
     
     // Call the onSave callback to update UI
@@ -181,11 +151,7 @@ const SubGoalDialog = ({
       description: values.description,
       startDate: startDate,
       endDate: endDate,
-      timeline_row: timelineRow,
-      timeline_start: timelineStart,
-      timeline_duration: timelineDuration,
       timeline_category: timelineCategory,
-      color: color
     });
   };
 

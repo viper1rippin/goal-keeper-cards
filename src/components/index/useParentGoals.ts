@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ParentGoal } from "./IndexPageTypes";
-import { TimelineCategory } from "../roadmap/types";
 
 // Type for parent goal from Supabase, avoiding deep nesting
 interface ParentGoalData {
@@ -28,14 +27,6 @@ interface SubGoalData {
   created_at: string;
   updated_at: string;
   user_id?: string;
-  display_order?: number;
-  start_date?: string;
-  end_date?: string;
-  timeline_row?: number;
-  timeline_start?: number;
-  timeline_duration?: number;
-  timeline_category?: string;
-  color?: string;
 }
 
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
@@ -44,29 +35,12 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Helper function to safely convert string to TimelineCategory
-  const parseTimelineCategory = (category: string | null): TimelineCategory => {
-    if (!category) return 'default';
-    
-    // Check if the category is a valid TimelineCategory value
-    const validCategories: TimelineCategory[] = [
-      'research', 'design', 'development', 'testing', 
-      'marketing', 'feature', 'milestone', 'default',
-      'mobile', 'web', 'infrastructure', 'backend'
-    ];
-    
-    return validCategories.includes(category as TimelineCategory) 
-      ? (category as TimelineCategory) 
-      : 'default';
-  };
-
   // Function to fetch parent goals
   const fetchParentGoals = useCallback(async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
-      console.log('Fetching parent goals and sub-goals');
       
       // Fetch parent goals
       const { data: parentGoalsData, error: parentGoalsError } = await supabase
@@ -77,15 +51,14 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
       
       if (parentGoalsError) throw parentGoalsError;
       
-      // Fetch sub goals with ALL timeline fields
+      // Fetch sub goals
       const { data: subGoalsData, error: subGoalsError } = await supabase
         .from('sub_goals')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
       
       if (subGoalsError) throw subGoalsError;
-      
-      console.log('Fetched sub-goals in useParentGoals:', subGoalsData);
       
       // Group sub goals by parent goal
       const groupedSubGoals: Record<string, Goal[]> = {};
@@ -102,16 +75,7 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            progress: subGoal.progress,
-            display_order: subGoal.display_order,
-            startDate: subGoal.start_date,
-            endDate: subGoal.end_date,
-            timeline_row: subGoal.timeline_row,
-            timeline_start: subGoal.timeline_start,
-            timeline_duration: subGoal.timeline_duration,
-            timeline_category: parseTimelineCategory(subGoal.timeline_category),
-            user_id: subGoal.user_id,
-            color: subGoal.color
+            progress: subGoal.progress
           });
         }
       });
