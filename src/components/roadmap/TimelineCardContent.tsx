@@ -11,6 +11,7 @@ interface TimelineCardContentProps {
   tempDuration: number;
   viewMode: TimelineViewMode;
   onEdit?: () => void;
+  onDragStart?: (e: React.MouseEvent, itemId: string) => void;
 }
 
 const TimelineCardContent: React.FC<TimelineCardContentProps> = ({
@@ -20,7 +21,8 @@ const TimelineCardContent: React.FC<TimelineCardContentProps> = ({
   isResizing,
   tempDuration,
   viewMode,
-  onEdit
+  onEdit,
+  onDragStart
 }) => {
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
   
@@ -33,10 +35,19 @@ const TimelineCardContent: React.FC<TimelineCardContentProps> = ({
     return `${tempDuration}`;
   };
   
+  const handleDragHandleMouseDown = (e: React.MouseEvent) => {
+    if (onDragStart) {
+      e.preventDefault();
+      e.stopPropagation();
+      onDragStart(e, item.id);
+    }
+  };
+  
   return (
     <>
       <div 
         className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+        onMouseDown={handleDragHandleMouseDown}
       >
         <GripHorizontal size={12} />
       </div>

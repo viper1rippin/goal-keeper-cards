@@ -23,7 +23,8 @@ const TimelineFormDialog: React.FC<TimelineFormDialogProps> = ({
   onCancel,
   viewMode
 }) => {
-  if (!selectedItem) return null;
+  // Only render the dialog when there's a selected item and the dialog is open
+  if (!selectedItem || !open) return null;
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

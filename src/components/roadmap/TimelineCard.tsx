@@ -51,7 +51,8 @@ const TimelineCard = ({
   const colorClass = 'from-emerald-400 to-emerald-500 border-emerald-300';
   
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 && onDragStart) {
+    // Use right mouse button or middle mouse button to initiate drag
+    if ((e.button === 2 || e.button === 1) && onDragStart) {
       e.preventDefault();
       e.stopPropagation();
       onDragStart(e, item.id);
@@ -59,6 +60,7 @@ const TimelineCard = ({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
+    // Prevent default context menu to allow right-click drag
     e.preventDefault();
   };
 
@@ -99,6 +101,7 @@ const TimelineCard = ({
           tempDuration={tempDuration}
           viewMode={viewMode}
           onEdit={onEdit}
+          onDragStart={onDragStart}
         />
         
         {onResize && (

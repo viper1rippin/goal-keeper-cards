@@ -77,6 +77,7 @@ export const useTimelineDrag = ({
     
     // Prevent default behavior
     e.preventDefault();
+    e.stopPropagation();
   };
   
   const handleDragMove = (e: MouseEvent) => {
@@ -92,8 +93,8 @@ export const useTimelineDrag = ({
     setDragState(prev => ({
       ...prev,
       ghostPosition: {
-        left: relativeX,
-        top: relativeY
+        left: Math.max(0, relativeX),
+        top: Math.max(0, relativeY)
       }
     }));
   };
@@ -114,38 +115,42 @@ export const useTimelineDrag = ({
     }
     
     // Calculate position relative to timeline
-    const relativeX = e.clientX - timelineRect.left;
-    const relativeY = e.clientY - timelineRect.top;
+    const relativeX = Math.max(0, e.clientX - timelineRect.left);
+    const relativeY = Math.max(0, e.clientY - timelineRect.top);
     
     // Calculate new cell and row positions
     const newCell = calculateCellFromPosition(relativeX, cellWidth, timeUnitCount);
     const newRow = calculateRowFromPosition(relativeY, 100, maxRow);
     
-    // Update dates based on new position
-    const { startDate, endDate } = updateDatesFromTimelinePosition(
-      newCell,
-      draggedItem.duration,
-      currentYear,
-      currentMonth,
-      viewMode
-    );
+    // Only update if position changed
+    if (newCell !== draggedItem.start || newRow !== draggedItem.row) {
+      // Update dates based on new position
+      const { startDate, endDate } = updateDatesFromTimelinePosition(
+        newCell,
+        draggedItem.duration,
+        currentYear,
+        currentMonth,
+        viewMode
+      );
+      
+      // Create updated items array
+      const updatedItems = items.map(item => {
+        if (item.id === dragState.draggingItemId) {
+          return {
+            ...item,
+            start: newCell,
+            row: newRow,
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+          };
+        }
+        return item;
+      });
+      
+      // Update state
+      onItemsChange(updatedItems);
+    }
     
-    // Create updated items array
-    const updatedItems = items.map(item => {
-      if (item.id === dragState.draggingItemId) {
-        return {
-          ...item,
-          start: newCell,
-          row: newRow,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        };
-      }
-      return item;
-    });
-    
-    // Update state
-    onItemsChange(updatedItems);
     cleanup();
   };
   
