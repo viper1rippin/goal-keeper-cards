@@ -35,7 +35,6 @@ const TimelineCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   
-  // Update width when duration or cellWidth changes
   useEffect(() => {
     if (!isResizing) {
       setCurrentWidth(`${item.duration * cellWidth}px`);
@@ -48,7 +47,6 @@ const TimelineCard = ({
     zIndex: isResizing ? 50 : isSelected ? 10 : 1,
   };
   
-  // Default colors for all cards
   const colorClass = 'from-emerald-400 to-emerald-500 border-emerald-300';
   
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -59,11 +57,9 @@ const TimelineCard = ({
     setResizeStartX(e.clientX);
     setInitialDuration(tempDuration);
     
-    // Add event listeners to the document
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
     
-    // Add visual feedback class to show that resizing is in progress
     if (cardRef.current) {
       cardRef.current.classList.add('resizing');
     }
@@ -74,14 +70,11 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
-    // Live pixel width: base width + deltaX
     const livePixelWidth = Math.max(cellWidth, initialDuration * cellWidth + deltaX);
     setCurrentWidth(`${livePixelWidth}px`);
     
-    // Calculate smooth duration based on pixel width
     const preciseDuration = livePixelWidth / cellWidth;
     
-    // For data, still round to nearest full cell
     const intDuration = Math.max(1, Math.round(preciseDuration));
     
     if (intDuration !== tempDuration) {
@@ -95,16 +88,13 @@ const TimelineCard = ({
     
     setIsResizing(false);
     
-    // Final update if duration changed
     if (tempDuration !== initialDuration && onResize) {
       onResize(item.id, tempDuration);
     }
     
-    // Clean up event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
     
-    // Remove visual feedback class
     if (cardRef.current) {
       cardRef.current.classList.remove('resizing');
     }
@@ -112,7 +102,6 @@ const TimelineCard = ({
 
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
 
-  // Get label for duration based on view mode
   const getDurationLabel = () => {
     if (viewMode === 'month') {
       return `${tempDuration} ${tempDuration === 1 ? 'day' : 'days'}`;
@@ -123,7 +112,7 @@ const TimelineCard = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 && onDragStart) { // Right mouse button
+    if (e.button === 2 && onDragStart) {
       e.preventDefault();
       e.stopPropagation();
       onDragStart(e, item.id);
@@ -131,7 +120,7 @@ const TimelineCard = ({
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default context menu
+    e.preventDefault();
   };
 
   return (
@@ -214,17 +203,15 @@ const TimelineCard = ({
         {onResize && (
           <div 
             ref={resizeRef}
-            className={cn(
-              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
-              isResizing && "after:opacity-100 bg-white/10"
-            )}
+            className="absolute right-0 top-0 bottom-0 w-16 cursor-ew-resize group"
             onMouseDown={handleResizeStart}
             onTouchStart={(e) => {
               e.preventDefault();
               handleResizeStart(e as unknown as React.MouseEvent);
             }}
-          />
+          >
+            <div className="absolute right-0 top-0 h-full w-2 bg-white/60 opacity-40 group-hover:opacity-100 transition-opacity rounded-l-md" />
+          </div>
         )}
         
         {isResizing && (
