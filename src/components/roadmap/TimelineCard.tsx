@@ -38,6 +38,7 @@ const TimelineCard = ({
   // Update width when duration or cellWidth changes
   useEffect(() => {
     if (!isResizing) {
+      // Ensure width is always an exact multiple of cellWidth for precise alignment
       setCurrentWidth(`${item.duration * cellWidth}px`);
       setTempDuration(item.duration);
     }
@@ -84,11 +85,13 @@ const TimelineCard = ({
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
+    // Calculate exact cell units for precise grid alignment
     const deltaUnits = Math.round(deltaX / cellWidth);
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
-    // Update the visual width immediately for smooth resizing
-    setCurrentWidth(`${newDuration * cellWidth}px`);
+    // Update the visual width with exact cell multiples for perfect alignment
+    const exactWidth = newDuration * cellWidth;
+    setCurrentWidth(`${exactWidth}px`);
     setTempDuration(newDuration);
     
     // Call onResize during resize move for immediate feedback

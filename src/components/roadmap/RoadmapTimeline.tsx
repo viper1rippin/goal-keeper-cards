@@ -69,11 +69,21 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timeUnitCount = timeUnits.length;
   
   useEffect(() => {
-    if (timelineRef.current) {
-      const containerWidth = timelineRef.current.clientWidth;
-      const calculatedWidth = (containerWidth - 60) / timeUnitCount;
-      setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80));
-    }
+    const updateCellWidth = () => {
+      if (timelineRef.current) {
+        const containerWidth = timelineRef.current.clientWidth;
+        const calculatedWidth = Math.floor((containerWidth - 60) / timeUnitCount);
+        setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80));
+      }
+    };
+    
+    updateCellWidth();
+    
+    window.addEventListener('resize', updateCellWidth);
+    
+    return () => {
+      window.removeEventListener('resize', updateCellWidth);
+    };
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
   const sensors = useSensors(
@@ -140,13 +150,47 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
+      let updatedItem = {
+        ...draggedItem,
+        start: newCell,
+        row: newRow
+      };
+      
+      if (draggedItem.startDate && viewMode === 'month') {
+        const startDate = new Date(draggedItem.startDate);
+        const newDate = new Date(currentYear, currentMonth, newCell + 1);
+        
+        if (draggedItem.endDate) {
+          const oldStartDate = new Date(draggedItem.startDate);
+          const oldEndDate = new Date(draggedItem.endDate);
+          const durationMs = oldEndDate.getTime() - oldStartDate.getTime();
+          
+          const newEndDate = new Date(newDate.getTime() + durationMs);
+          updatedItem.endDate = newEndDate.toISOString();
+        }
+        
+        updatedItem.startDate = newDate.toISOString();
+      } else if (draggedItem.startDate && viewMode === 'year') {
+        const startDate = new Date(draggedItem.startDate);
+        const newDate = new Date(currentYear, newCell, startDate.getDate());
+        
+        if (draggedItem.endDate) {
+          const oldStartDate = new Date(draggedItem.startDate);
+          const oldEndDate = new Date(draggedItem.endDate);
+          const monthsDiff = (oldEndDate.getFullYear() - oldStartDate.getFullYear()) * 12 + 
+                             (oldEndDate.getMonth() - oldStartDate.getMonth());
+          
+          const newEndDate = new Date(newDate);
+          newEndDate.setMonth(newEndDate.getMonth() + monthsDiff);
+          updatedItem.endDate = newEndDate.toISOString();
+        }
+        
+        updatedItem.startDate = newDate.toISOString();
+      }
+      
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
-          return {
-            ...item,
-            start: newCell,
-            row: newRow
-          };
+          return updatedItem;
         }
         return item;
       });
@@ -160,7 +204,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
-        // Only proceed if we have a valid startDate
         if (item.startDate) {
           const startDate = new Date(item.startDate);
           const calculatedEndDate = calculateEndDateFromDurationChange(
@@ -177,7 +220,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           };
         }
         
-        // If no startDate, just update duration
         return {
           ...item,
           duration: newDuration
@@ -186,7 +228,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       return item;
     });
     
-    // Immediately update the items
     onItemsChange(updatedItems);
   };
   
@@ -317,7 +358,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
             <div 
               key={`unit-${idx}`}
               className="text-center text-xs font-medium text-slate-300"
-              style={{ minWidth: `${cellWidth}px`, flexGrow: 1 }}
+              style={{ width: `${cellWidth}px`, flexShrink: 0 }}
             >
               {unit}
             </div>
@@ -335,7 +376,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
             <div 
               key={idx}
               className="h-full border-r border-slate-800/70"
-              style={{ width: `${cellWidth}px` }}
+              style={{ width: `${cellWidth}px`, flexShrink: 0 }}
             ></div>
           ))}
         </div>
@@ -373,7 +414,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
                     item={item}
                     isSelected={selectedItem?.id === item.id}
                     onSelect={() => setSelectedItem(item)}
-                    onEdit={() => handleEditItem(item)}
+                    onEdit={() => handleEditItem && handleEditItem(item)}
                     onResize={handleResizeItem}
                     cellWidth={cellWidth}
                     viewMode={viewMode}
