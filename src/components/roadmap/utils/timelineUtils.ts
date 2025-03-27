@@ -1,3 +1,4 @@
+
 import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
@@ -70,4 +71,43 @@ export const calculateEndDateFromDurationChange = (
   }
   
   return endDate;
+};
+
+/**
+ * Converts a position and duration from the timeline grid to actual dates
+ * Used when dropping cards to update their dates
+ */
+export const calculateDatesFromPosition = (
+  gridPosition: number,
+  gridDuration: number,
+  currentMonth: number,
+  currentYear: number,
+  viewMode: TimelineViewMode
+): { startDate: Date, endDate: Date } => {
+  const startDate = new Date(currentYear, currentMonth);
+  
+  if (viewMode === 'month') {
+    // In month view, position is day of month (0-based)
+    startDate.setDate(gridPosition + 1); // Convert from 0-based to 1-based day
+    
+    // Calculate end date based on duration (in days)
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + gridDuration - 1);
+    
+    return { startDate, endDate };
+  } else if (viewMode === 'year') {
+    // In year view, position is month (0-based)
+    startDate.setMonth(gridPosition);
+    
+    // Calculate end date based on duration (in months)
+    const endDate = new Date(startDate);
+    endDate.setMonth(startDate.getMonth() + gridDuration - 1);
+    
+    return { startDate, endDate };
+  }
+  
+  // Default fallback
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + gridDuration - 1);
+  return { startDate, endDate };
 };

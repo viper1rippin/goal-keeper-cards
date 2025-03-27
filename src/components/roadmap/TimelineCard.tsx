@@ -50,7 +50,13 @@ const TimelineCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ 
+    id: item.id,
+    data: {
+      type: 'timeline-item',
+      item: item,
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
