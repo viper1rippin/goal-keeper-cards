@@ -30,11 +30,6 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
   onSelectItem,
   onDragStart
 }) => {
-  // Find the dragging item for the ghost element
-  const draggedItem = draggingItemId
-    ? items.find(item => item.id === draggingItemId)
-    : null;
-
   return (
     <div className="absolute inset-0">
       {items.map((item) => (
@@ -44,8 +39,7 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
           style={{ 
             top: `${item.row * 100 + 10}px`,
             left: `${item.start * cellWidth}px`,
-            opacity: isDragging && draggingItemId === item.id ? 0.3 : 1, // More transparent when dragging
-            transition: isDragging && draggingItemId === item.id ? 'none' : 'opacity 0.2s ease', // Smoother transitions
+            opacity: isDragging && draggingItemId === item.id ? 0.4 : 1,
           }}
         >
           <TimelineCard
@@ -61,20 +55,20 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
         </div>
       ))}
       
-      {/* Drag ghost element with improved visuals */}
-      {isDragging && draggedItem && (
+      {/* Drag ghost element */}
+      {isDragging && draggingItemId && (
         <div 
-          className="absolute pointer-events-none transition-none" // Remove any transitions for immediate feedback
+          className="absolute pointer-events-none"
           style={{
             top: `${ghostPosition.top}px`,
             left: `${ghostPosition.left}px`,
-            width: `${draggedItem.duration * cellWidth}px`,
+            width: `${items.find(item => item.id === draggingItemId)?.duration || 1 * cellWidth}px`,
             zIndex: 999,
           }}
         >
-          <div className="h-[80px] rounded-lg bg-emerald-500/90 border-2 border-white/90 shadow-lg shadow-black/50">
+          <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">
             <div className="p-2 text-white truncate">
-              {draggedItem.title}
+              {items.find(item => item.id === draggingItemId)?.title}
             </div>
           </div>
         </div>

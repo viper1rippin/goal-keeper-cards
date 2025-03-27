@@ -55,7 +55,6 @@ export const useTimelineDrag = ({
     const timelineRect = timelineRef.current?.getBoundingClientRect();
     if (!timelineRect) return;
     
-    // Improve sensitivity by reducing drag offset threshold
     setDragState({
       isDragging: true,
       draggingItemId: itemId,
@@ -63,7 +62,6 @@ export const useTimelineDrag = ({
       dragStartY: e.clientY,
       dragInitialPosition: { row: item.row, start: item.start },
       dragOffset: {
-        // Adjust for better sensitivity
         x: e.clientX - (timelineRect.left + item.start * cellWidth),
         y: e.clientY - (timelineRect.top + item.row * 100 + 10)
       },
@@ -73,9 +71,9 @@ export const useTimelineDrag = ({
       }
     });
     
-    // Add document event listeners with capture option for improved sensitivity
-    document.addEventListener('mousemove', handleDragMove, { capture: true });
-    document.addEventListener('mouseup', handleDragEnd, { capture: true });
+    // Add document event listeners
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('mouseup', handleDragEnd);
     
     // Prevent default behavior
     e.preventDefault();
@@ -86,11 +84,11 @@ export const useTimelineDrag = ({
     
     const timelineRect = timelineRef.current.getBoundingClientRect();
     
-    // Use more responsive calculation with no threshold
+    // Calculate position relative to timeline
     const relativeX = e.clientX - timelineRect.left - dragState.dragOffset.x;
     const relativeY = e.clientY - timelineRect.top - dragState.dragOffset.y;
     
-    // More immediate update with no debouncing
+    // Update ghost position for visual feedback
     setDragState(prev => ({
       ...prev,
       ghostPosition: {
@@ -115,7 +113,7 @@ export const useTimelineDrag = ({
       return;
     }
     
-    // Calculate position relative to timeline with higher precision
+    // Calculate position relative to timeline
     const relativeX = e.clientX - timelineRect.left;
     const relativeY = e.clientY - timelineRect.top;
     
@@ -163,15 +161,15 @@ export const useTimelineDrag = ({
     });
     
     // Remove document event listeners
-    document.removeEventListener('mousemove', handleDragMove, { capture: true });
-    document.removeEventListener('mouseup', handleDragEnd, { capture: true });
+    document.removeEventListener('mousemove', handleDragMove);
+    document.removeEventListener('mouseup', handleDragEnd);
   };
   
   // Cleanup effect for unmounting
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleDragMove, { capture: true });
-      document.removeEventListener('mouseup', handleDragEnd, { capture: true });
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
     };
   }, []);
   
