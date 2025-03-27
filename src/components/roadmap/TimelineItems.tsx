@@ -55,15 +55,16 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
         </div>
       ))}
       
-      {/* Drag ghost element */}
+      {/* Improved drag ghost element */}
       {isDragging && draggingItemId && (
         <div 
           className="absolute pointer-events-none"
           style={{
             top: `${ghostPosition.top}px`,
             left: `${ghostPosition.left}px`,
-            width: `${items.find(item => item.id === draggingItemId)?.duration || 1 * cellWidth}px`,
+            width: `${(items.find(item => item.id === draggingItemId)?.duration || 1) * cellWidth}px`,
             zIndex: 999,
+            transition: 'none', // Remove transition for immediate response
           }}
         >
           <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">

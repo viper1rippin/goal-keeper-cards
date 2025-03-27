@@ -1,6 +1,6 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
-import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal } from "lucide-react";
 
@@ -70,15 +70,17 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
+    // Provide immediate visual feedback by updating width in real time
     const livePixelWidth = Math.max(cellWidth, initialDuration * cellWidth + deltaX);
     setCurrentWidth(`${livePixelWidth}px`);
     
     const preciseDuration = livePixelWidth / cellWidth;
-    
     const intDuration = Math.max(1, Math.round(preciseDuration));
     
+    // Update duration display in real time
     if (intDuration !== tempDuration) {
       setTempDuration(intDuration);
+      // For immediate feedback, call onResize every time
       if (onResize) onResize(item.id, intDuration);
     }
   };
@@ -87,10 +89,6 @@ const TimelineCard = ({
     if (!isResizing) return;
     
     setIsResizing(false);
-    
-    if (tempDuration !== initialDuration && onResize) {
-      onResize(item.id, tempDuration);
-    }
     
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
@@ -111,8 +109,9 @@ const TimelineCard = ({
     return `${tempDuration}`;
   };
 
+  // Handle normal left-click for dragging
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 && onDragStart) {
+    if (onDragStart && (e.button === 0 || e.button === 2)) {
       e.preventDefault();
       e.stopPropagation();
       onDragStart(e, item.id);
@@ -154,6 +153,7 @@ const TimelineCard = ({
       >
         <div 
           className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+          onMouseDown={handleMouseDown} // Make the grip handle actually work for dragging
         >
           <GripHorizontal size={12} />
         </div>
@@ -205,10 +205,6 @@ const TimelineCard = ({
             ref={resizeRef}
             className="absolute right-0 top-0 bottom-0 w-16 cursor-ew-resize group"
             onMouseDown={handleResizeStart}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              handleResizeStart(e as unknown as React.MouseEvent);
-            }}
           >
             <div className="absolute right-0 top-0 h-full w-2 bg-white/60 opacity-40 group-hover:opacity-100 transition-opacity rounded-l-md" />
           </div>
