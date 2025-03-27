@@ -1,6 +1,6 @@
 
 import { differenceInMonths, differenceInQuarters } from 'date-fns';
-import { TimelineViewMode } from '../types';
+import { TimelineViewMode, TimelineCategory } from '../types';
 
 /**
  * Calculates the start position in the timeline based on the date and view mode
@@ -45,7 +45,7 @@ export const getTimeUnitLabel = (viewMode: TimelineViewMode): string => {
 /**
  * Safely parses a timeline category from a string
  */
-export const parseTimelineCategory = (category: string | null) => {
+export const parseTimelineCategory = (category: string | null): TimelineCategory => {
   if (!category) return 'default';
   
   const validCategories = [
@@ -55,6 +55,6 @@ export const parseTimelineCategory = (category: string | null) => {
   ];
   
   return validCategories.includes(category) 
-    ? category 
+    ? category as TimelineCategory 
     : 'default';
 };
