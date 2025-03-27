@@ -32,7 +32,6 @@ const TimelineCard = ({
   const [initialDuration, setInitialDuration] = useState(item.duration);
   const [currentWidth, setCurrentWidth] = useState(`${item.duration * cellWidth}px`);
   const [tempDuration, setTempDuration] = useState(item.duration);
-  const [lastReportedDuration, setLastReportedDuration] = useState(item.duration);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
@@ -42,7 +41,6 @@ const TimelineCard = ({
     if (!isResizing) {
       setCurrentWidth(`${item.duration * cellWidth}px`);
       setTempDuration(item.duration);
-      setLastReportedDuration(item.duration);
     }
   }, [item.duration, cellWidth, isResizing]);
   
@@ -61,7 +59,6 @@ const TimelineCard = ({
     setIsResizing(true);
     setResizeStartX(e.clientX);
     setInitialDuration(tempDuration);
-    setLastReportedDuration(tempDuration);
     
     // Add event listeners to the document
     document.addEventListener('mousemove', handleResizeMove);
@@ -78,28 +75,28 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
-    // Use a higher sensitivity factor to require less mouse movement
-    // Multiply delta by 1.5 to make resizing more responsive
-    const sensitivityFactor = 1.5;
-    const adjustedDeltaX = deltaX * sensitivityFactor;
+    // Make resize more responsive by using a smaller threshold
+    // Changed from Math.round(deltaX / cellWidth) to make it more sensitive
+    const deltaUnits = deltaX / cellWidth;
     
-    // Calculate precise duration with decimal points for smoother visual updates
-    const preciseDuration = initialDuration + (adjustedDeltaX / cellWidth);
+    // Calculate new duration with decimal precision first
+    const preciseNewDuration = initialDuration + deltaUnits;
     
-    // Ensure minimum duration of 1
-    const adjustedPreciseDuration = Math.max(1, preciseDuration);
+    // Then round to nearest integer for actual duration value
+    const newDuration = Math.max(1, Math.round(preciseNewDuration));
     
-    // Update visual width continuously for smooth feedback
-    setCurrentWidth(`${adjustedPreciseDuration * cellWidth}px`);
+    // Update the visual width immediately for smooth resizing
+    // Use the precise calculation for the width to make resizing feel more fluid
+    setCurrentWidth(`${preciseNewDuration * cellWidth}px`);
     
-    // Calculate the integer duration for actual data updates
-    const newIntDuration = Math.max(1, Math.round(adjustedPreciseDuration));
-    setTempDuration(newIntDuration);
-    
-    // Only call onResize when the rounded duration changes
-    if (newIntDuration !== lastReportedDuration && onResize) {
-      onResize(item.id, newIntDuration);
-      setLastReportedDuration(newIntDuration);
+    // Only update the actual duration value when it changes to an integer
+    if (tempDuration !== newDuration) {
+      setTempDuration(newDuration);
+      
+      // Call onResize during resize move for immediate feedback
+      if (onResize) {
+        onResize(item.id, newDuration);
+      }
     }
   };
   
@@ -228,9 +225,9 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-16 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-3 after:bg-white/50 after:opacity-40 hover:after:opacity-100",
-              isResizing && "after:opacity-100 bg-white/20"
+              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
+              isResizing && "after:opacity-100 bg-white/10"
             )}
             onMouseDown={handleResizeStart}
             onTouchStart={(e) => {
@@ -241,7 +238,7 @@ const TimelineCard = ({
         )}
         
         {isResizing && (
-          <div className="absolute inset-0 border-2 border-white/70 rounded-lg pointer-events-none z-20 animate-pulse"></div>
+          <div className="absolute inset-0 border-2 border-white/50 rounded-lg pointer-events-none z-20"></div>
         )}
       </div>
     </div>
