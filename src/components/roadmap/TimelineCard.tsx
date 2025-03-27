@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { CSS } from "@dnd-kit/utilities";
@@ -75,28 +74,19 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
-    // Make resize more responsive by using a smaller threshold
-    // Changed from Math.round(deltaX / cellWidth) to make it more sensitive
-    const deltaUnits = deltaX / cellWidth;
+    // Live pixel width: base width + deltaX
+    const livePixelWidth = Math.max(cellWidth, initialDuration * cellWidth + deltaX);
+    setCurrentWidth(`${livePixelWidth}px`);
     
-    // Calculate new duration with decimal precision first
-    const preciseNewDuration = initialDuration + deltaUnits;
+    // Calculate smooth duration based on pixel width
+    const preciseDuration = livePixelWidth / cellWidth;
     
-    // Then round to nearest integer for actual duration value
-    const newDuration = Math.max(1, Math.round(preciseNewDuration));
+    // For data, still round to nearest full cell
+    const intDuration = Math.max(1, Math.round(preciseDuration));
     
-    // Update the visual width immediately for smooth resizing
-    // Use the precise calculation for the width to make resizing feel more fluid
-    setCurrentWidth(`${preciseNewDuration * cellWidth}px`);
-    
-    // Only update the actual duration value when it changes to an integer
-    if (tempDuration !== newDuration) {
-      setTempDuration(newDuration);
-      
-      // Call onResize during resize move for immediate feedback
-      if (onResize) {
-        onResize(item.id, newDuration);
-      }
+    if (intDuration !== tempDuration) {
+      setTempDuration(intDuration);
+      if (onResize) onResize(item.id, intDuration);
     }
   };
   
