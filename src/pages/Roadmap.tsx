@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -22,6 +23,7 @@ const Roadmap = () => {
   const [roadmapItems, setRoadmapItems] = useState<SubGoalTimelineItem[]>([]);
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastSaveTimestamp, setLastSaveTimestamp] = useState(Date.now());
   
   useEffect(() => {
     const fetchParentGoals = async () => {
@@ -106,7 +108,7 @@ const Roadmap = () => {
     };
     
     fetchParentGoals();
-  }, [user, selectedRoadmapId]);
+  }, [user, lastSaveTimestamp]);
   
   useEffect(() => {
     const loadSubGoalsToTimeline = () => {
@@ -145,10 +147,23 @@ const Roadmap = () => {
     setRoadmapItems(updatedItems);
     
     if (user && selectedRoadmapId) {
+      // Track whether any database operations were successful
+      let databaseUpdated = false;
+      
       for (const item of updatedItems) {
         try {
           if (item.originalSubGoalId) {
-            await supabase
+            // Log information about what's being updated
+            console.log('Updating sub-goal:', {
+              id: item.originalSubGoalId,
+              row: item.row,
+              start: item.start,
+              duration: item.duration,
+              startDate: item.startDate,
+              endDate: item.endDate
+            });
+            
+            const { data, error } = await supabase
               .from('sub_goals')
               .update({
                 progress: item.progress,
@@ -162,7 +177,23 @@ const Roadmap = () => {
               })
               .eq('id', item.originalSubGoalId)
               .eq('user_id', user.id);
+              
+            if (error) {
+              console.error('Error updating sub-goal:', error);
+            } else {
+              databaseUpdated = true;
+            }
           } else {
+            // Log information about what's being inserted
+            console.log('Creating new sub-goal:', {
+              title: item.title,
+              row: item.row,
+              start: item.start,
+              duration: item.duration,
+              startDate: item.startDate,
+              endDate: item.endDate
+            });
+            
             const { data, error } = await supabase
               .from('sub_goals')
               .insert({
@@ -179,11 +210,14 @@ const Roadmap = () => {
               })
               .select();
               
-            if (!error && data && data.length > 0) {
+            if (error) {
+              console.error('Error creating sub-goal:', error);
+            } else if (data && data.length > 0) {
               const newItemIndex = updatedItems.findIndex(i => i.id === item.id);
               if (newItemIndex >= 0) {
                 updatedItems[newItemIndex].originalSubGoalId = data[0].id;
                 setRoadmapItems([...updatedItems]);
+                databaseUpdated = true;
               }
             }
           }
@@ -199,21 +233,34 @@ const Roadmap = () => {
       
       for (const id of deletedIds) {
         try {
-          await supabase
+          console.log('Deleting sub-goal:', id);
+          
+          const { error } = await supabase
             .from('sub_goals')
             .delete()
             .eq('id', id)
             .eq('user_id', user.id);
+            
+          if (error) {
+            console.error('Error deleting sub-goal:', error);
+          } else {
+            databaseUpdated = true;
+          }
         } catch (error) {
           console.error('Error deleting sub-goal:', error);
         }
       }
+      
+      // If any database operation was successful, update the timestamp to trigger a data refresh
+      if (databaseUpdated) {
+        setLastSaveTimestamp(Date.now());
+        
+        toast({
+          title: "Roadmap updated",
+          description: "Your changes have been saved to the database.",
+        });
+      }
     }
-    
-    toast({
-      title: "Roadmap updated",
-      description: "Your changes have been saved.",
-    });
   };
   
   const handleCreateRoadmap = () => {

@@ -25,6 +25,7 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
+import { updateDatesFromTimelinePosition } from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -157,10 +158,20 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       // Update the item's position
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
+          // Update dates based on new timeline position
+          const { startDate, endDate } = updateDatesFromTimelinePosition(
+            { ...item, start: newCell },
+            viewMode,
+            currentYear,
+            currentMonth
+          );
+          
           return {
             ...item,
             start: newCell,
-            row: newRow
+            row: newRow,
+            startDate,
+            endDate
           };
         }
         return item;
@@ -176,9 +187,22 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
+        // Get the current start date
+        const startDate = item.startDate ? new Date(item.startDate) : new Date(currentYear, currentMonth, item.start + 1);
+        
+        // Calculate new end date based on the updated duration
+        const { startDate: newStartDate, endDate: newEndDate } = updateDatesFromTimelinePosition(
+          { ...item, duration: newDuration },
+          viewMode,
+          currentYear,
+          currentMonth
+        );
+        
         return {
           ...item,
-          duration: newDuration
+          duration: newDuration,
+          startDate: newStartDate,
+          endDate: newEndDate
         };
       }
       return item;
@@ -196,9 +220,12 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   // Open form for new item
   const handleAddItem = () => {
     // Generate default dates for new items
-    const today = new Date();
+    const today = new Date(currentYear, currentMonth, 1);
     const oneMonthLater = new Date(today);
     oneMonthLater.setMonth(today.getMonth() + 1);
+    
+    // Calculate proper start position based on view mode
+    const start = viewMode === 'month' ? 0 : today.getMonth();
     
     const newItem: SubGoalTimelineItem = {
       id: `item-${Date.now()}`,
@@ -206,8 +233,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       description: '',
       progress: 0,
       row: 0,
-      start: viewMode === 'month' ? today.getDate() - 1 : today.getMonth(), // Use current day or month as start
+      start: start,
       duration: 2,
+      parentId: roadmapId,
       startDate: today.toISOString(),
       endDate: oneMonthLater.toISOString()
     };
@@ -222,25 +250,14 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     
     // Ensure dates are properly set if not provided
     if (!item.startDate) {
-      const startDate = new Date();
-      if (viewMode === 'month') {
-        startDate.setDate(item.start + 1); // Convert from 0-based to 1-based day
-      } else if (viewMode === 'year') {
-        startDate.setMonth(item.start); // Month is already 0-based
-      }
-      item.startDate = startDate.toISOString();
-    }
-    
-    if (!item.endDate) {
-      const startDate = new Date(item.startDate);
-      const endDate = new Date(startDate);
-      if (viewMode === 'month') {
-        endDate.setDate(startDate.getDate() + item.duration - 1);
-      } else if (viewMode === 'year') {
-        endDate.setMonth(startDate.getMonth() + item.duration - 1);
-      }
-      endDate.setDate(endDate.getDate()); // End of the last day/month
-      item.endDate = endDate.toISOString();
+      const { startDate, endDate } = updateDatesFromTimelinePosition(
+        item,
+        viewMode,
+        currentYear,
+        currentMonth
+      );
+      item.startDate = startDate;
+      item.endDate = endDate;
     }
     
     const updatedItems = isEditing
