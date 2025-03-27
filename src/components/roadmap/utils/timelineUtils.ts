@@ -1,14 +1,33 @@
+
 import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
  * Calculates the start position in the timeline based on the date and view mode
  */
-export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode): number => {
-  if (viewMode === 'month') {
-    return date.getDate() - 1; // Convert from 1-based days to 0-based index
+export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode, currentMonth?: number, currentYear?: number): number => {
+  // For absolute positioning within the current view
+  if (viewMode === 'month' && currentMonth !== undefined && currentYear !== undefined) {
+    // If the date is in the current month and year, calculate its position
+    if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+      return date.getDate() - 1; // Convert from 1-based days to 0-based index
+    }
+    // If date is not in the current month view, place at beginning
+    return 0;
+  } else if (viewMode === 'month') {
+    // Without current month context, just return day of month
+    return date.getDate() - 1;
   } else if (viewMode === 'year') {
-    return date.getMonth(); // Months are already 0-based
+    // For year view, if within the current year
+    if (currentYear !== undefined) {
+      if (date.getFullYear() === currentYear) {
+        return date.getMonth(); // Months are 0-based
+      }
+      // If not in current year, place at beginning
+      return 0;
+    }
+    // Without year context, just return month
+    return date.getMonth(); 
   }
   return 0;
 };
@@ -70,4 +89,65 @@ export const calculateEndDateFromDurationChange = (
   }
   
   return endDate;
+};
+
+/**
+ * Updates the start/end dates based on timeline position
+ */
+export const updateDatesFromTimelinePosition = (
+  start: number, 
+  duration: number, 
+  currentYear: number, 
+  currentMonth: number, 
+  viewMode: TimelineViewMode
+): { startDate: Date, endDate: Date } => {
+  const startDate = new Date(currentYear, currentMonth);
+  
+  if (viewMode === 'month') {
+    // In month view, start represents the day (0-indexed)
+    startDate.setDate(start + 1); // Convert 0-indexed to day of month
+  } else if (viewMode === 'year') {
+    // In year view, start represents the month (already 0-indexed)
+    startDate.setMonth(start);
+    startDate.setDate(1); // First day of month
+  }
+  
+  // Calculate end date based on duration
+  const endDate = calculateEndDateFromDurationChange(
+    startDate,
+    0, // Current duration doesn't matter as we're setting a new one
+    duration, 
+    viewMode
+  );
+  
+  return { startDate, endDate };
+};
+
+/**
+ * Synchronizes timeline position with actual dates
+ */
+export const syncTimelineItemWithDates = (
+  item: { startDate?: string; endDate?: string; start: number; duration: number },
+  currentYear: number,
+  currentMonth: number,
+  viewMode: TimelineViewMode
+) => {
+  if (item.startDate && item.endDate) {
+    const startDate = new Date(item.startDate);
+    const endDate = new Date(item.endDate);
+    
+    // Calculate the start position based on the date
+    const newStart = calculateStartPosition(startDate, viewMode, currentMonth, currentYear);
+    
+    // Calculate duration based on dates
+    const newDuration = calculateDuration(startDate, endDate, viewMode);
+    
+    return {
+      ...item,
+      start: newStart,
+      duration: newDuration
+    };
+  }
+  
+  return item;
 };

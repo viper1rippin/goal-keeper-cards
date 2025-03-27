@@ -24,7 +24,11 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
-import { calculateEndDateFromDurationChange } from './utils/timelineUtils';
+import { 
+  calculateEndDateFromDurationChange, 
+  updateDatesFromTimelinePosition,
+  syncTimelineItemWithDates
+} from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -48,6 +52,22 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
+  
+  useEffect(() => {
+    if (items.length === 0) return;
+    
+    const syncedItems = items.map(item => 
+      syncTimelineItemWithDates(item, currentYear, currentMonth, viewMode)
+    );
+    
+    const hasChanges = syncedItems.some((item, idx) => 
+      item.start !== items[idx].start || item.duration !== items[idx].duration
+    );
+    
+    if (hasChanges) {
+      onItemsChange(syncedItems);
+    }
+  }, [items, viewMode, currentMonth, currentYear]);
   
   const getDaysInCurrentMonth = () => {
     const daysCount = getDaysInMonth(new Date(currentYear, currentMonth));
@@ -140,12 +160,22 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
+      const { startDate, endDate } = updateDatesFromTimelinePosition(
+        newCell,
+        draggedItem.duration,
+        currentYear,
+        currentMonth,
+        viewMode
+      );
+      
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
           return {
             ...item,
             start: newCell,
-            row: newRow
+            row: newRow,
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
           };
         }
         return item;
@@ -160,7 +190,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
-        // Only proceed if we have a valid startDate
         if (item.startDate) {
           const startDate = new Date(item.startDate);
           const calculatedEndDate = calculateEndDateFromDurationChange(
@@ -177,7 +206,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           };
         }
         
-        // If no startDate, just update duration
         return {
           ...item,
           duration: newDuration
@@ -186,7 +214,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       return item;
     });
     
-    // Immediately update the items
     onItemsChange(updatedItems);
   };
   
@@ -196,7 +223,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const handleAddItem = () => {
-    const today = new Date();
+    const today = new Date(currentYear, currentMonth, 1);
     const oneMonthLater = new Date(today);
     oneMonthLater.setMonth(today.getMonth() + 1);
     
@@ -206,8 +233,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       description: '',
       progress: 0,
       row: 0,
-      start: viewMode === 'month' ? today.getDate() - 1 : today.getMonth(),
-      duration: 2,
+      start: viewMode === 'month' ? 0 : today.getMonth(),
+      duration: viewMode === 'month' ? 7 : 2,
       startDate: today.toISOString(),
       endDate: oneMonthLater.toISOString()
     };
@@ -219,25 +246,16 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleSaveItem = (item: SubGoalTimelineItem) => {
     const isEditing = items.some(i => i.id === item.id);
     
-    if (!item.startDate) {
-      const startDate = new Date();
-      if (viewMode === 'month') {
-        startDate.setDate(item.start + 1);
-      } else if (viewMode === 'year') {
-        startDate.setMonth(item.start);
-      }
+    if (!item.startDate || !item.endDate) {
+      const { startDate, endDate } = updateDatesFromTimelinePosition(
+        item.start,
+        item.duration,
+        currentYear,
+        currentMonth,
+        viewMode
+      );
+      
       item.startDate = startDate.toISOString();
-    }
-    
-    if (!item.endDate) {
-      const startDate = new Date(item.startDate);
-      const endDate = new Date(startDate);
-      if (viewMode === 'month') {
-        endDate.setDate(startDate.getDate() + item.duration - 1);
-      } else if (viewMode === 'year') {
-        endDate.setMonth(startDate.getMonth() + item.duration - 1);
-      }
-      endDate.setDate(endDate.getDate());
       item.endDate = endDate.toISOString();
     }
     
