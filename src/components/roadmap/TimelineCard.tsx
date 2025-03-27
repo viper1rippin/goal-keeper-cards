@@ -78,8 +78,13 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
+    // Use a higher sensitivity factor to require less mouse movement
+    // Multiply delta by 1.5 to make resizing more responsive
+    const sensitivityFactor = 1.5;
+    const adjustedDeltaX = deltaX * sensitivityFactor;
+    
     // Calculate precise duration with decimal points for smoother visual updates
-    const preciseDuration = initialDuration + (deltaX / cellWidth);
+    const preciseDuration = initialDuration + (adjustedDeltaX / cellWidth);
     
     // Ensure minimum duration of 1
     const adjustedPreciseDuration = Math.max(1, preciseDuration);
@@ -223,9 +228,9 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-12 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
-              isResizing && "after:opacity-100 bg-white/10"
+              "absolute right-0 top-0 bottom-0 w-16 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-3 after:bg-white/50 after:opacity-40 hover:after:opacity-100",
+              isResizing && "after:opacity-100 bg-white/20"
             )}
             onMouseDown={handleResizeStart}
             onTouchStart={(e) => {
@@ -236,7 +241,7 @@ const TimelineCard = ({
         )}
         
         {isResizing && (
-          <div className="absolute inset-0 border-2 border-white/50 rounded-lg pointer-events-none z-20"></div>
+          <div className="absolute inset-0 border-2 border-white/70 rounded-lg pointer-events-none z-20 animate-pulse"></div>
         )}
       </div>
     </div>
