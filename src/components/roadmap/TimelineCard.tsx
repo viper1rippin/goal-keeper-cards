@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
-import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal } from "lucide-react";
+import { useDraggable } from "@dnd-kit/core";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -48,13 +48,15 @@ const TimelineCard = ({
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useDraggable({ 
+    id: item.id,
+    data: item
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isResizing ? 'none' : transition,
+    transition: isResizing ? 'none' : 'transform 0.2s ease',
     width: currentWidth,
     zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
