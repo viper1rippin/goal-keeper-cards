@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useState, useEffect } from "react";
@@ -17,13 +16,14 @@ export interface Goal {
   description: string;
   progress: number;
   user_id?: string;
-  display_order?: number; // Add display_order field
-  startDate?: string; // Added for timeline sync
-  endDate?: string; // Added for timeline sync
-  timeline_row?: number; // Added for timeline sync
-  timeline_start?: number; // Added for timeline sync
-  timeline_duration?: number; // Added for timeline sync
-  timeline_category?: TimelineCategory; // Added for timeline sync
+  display_order?: number; 
+  startDate?: string; 
+  endDate?: string; 
+  timeline_row?: number; 
+  timeline_start?: number; 
+  timeline_duration?: number; 
+  timeline_category?: TimelineCategory; 
+  color?: string; // Added color field to match database schema
 }
 
 interface GoalRowProps {
@@ -128,6 +128,7 @@ const GoalRow = ({
           timeline_start: goal.timeline_start,
           timeline_duration: goal.timeline_duration,
           timeline_category: parseTimelineCategory(goal.timeline_category),
+          color: goal.color,
           // Handle user_id properly with type assertion if it exists on the database record
           ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
         }));
