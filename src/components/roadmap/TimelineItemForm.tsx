@@ -101,7 +101,6 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
       endDate: values.endDate,
       ...(item.parentId && { parentId: item.parentId }),
       ...(item.originalSubGoalId && { originalSubGoalId: item.originalSubGoalId }),
-      ...(item.category && { category: item.category })
     };
     
     onSave(updatedItem);
@@ -182,7 +181,11 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                       <Calendar
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
+                        onSelect={(date) => {
+                          field.onChange(date ? date.toISOString() : '');
+                          // Close the popover by triggering Escape key event
+                          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                        }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
                       />
@@ -222,7 +225,11 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                       <Calendar
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date ? date.toISOString() : '')}
+                        onSelect={(date) => {
+                          field.onChange(date ? date.toISOString() : '');
+                          // Close the popover by triggering Escape key event
+                          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                        }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
                       />
