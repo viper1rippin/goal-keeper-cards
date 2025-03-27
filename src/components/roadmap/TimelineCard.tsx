@@ -119,6 +119,16 @@ const TimelineCard = ({
 
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
 
+  // Get label for duration based on view mode
+  const getDurationLabel = () => {
+    if (viewMode === 'month') {
+      return `${tempDuration} ${tempDuration === 1 ? 'day' : 'days'}`;
+    } else if (viewMode === 'year') {
+      return `${tempDuration} ${tempDuration === 1 ? 'month' : 'months'}`;
+    }
+    return `${tempDuration}`;
+  };
+
   return (
     <div
       ref={(node) => {
@@ -180,6 +190,12 @@ const TimelineCard = ({
               {item.description && (
                 <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
               )}
+              
+              {isResizing && (
+                <p className="text-xs font-semibold text-white/90 mt-1 bg-black/20 px-1.5 py-0.5 rounded inline-block">
+                  {getDurationLabel()}
+                </p>
+              )}
             </div>
           )}
           
@@ -199,8 +215,8 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-1 after:bg-white/40 after:opacity-0 hover:after:opacity-100",
+              "absolute right-0 top-0 bottom-0 w-6 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
               isResizing && "after:opacity-100 bg-white/10"
             )}
             onMouseDown={handleResizeStart}
