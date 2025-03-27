@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
+import LoadingGoals from "@/components/LoadingGoals";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -315,8 +316,10 @@ const Roadmap = () => {
           </div>
           
           {isLoading ? (
+            <LoadingGoals message="Loading roadmap data..." />
+          ) : !parentGoals.length ? (
             <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
-              <p className="text-slate-400">Loading roadmap data...</p>
+              <p className="text-slate-400">You don't have any parent goals. Create some parent goals first.</p>
             </div>
           ) : !selectedRoadmapId ? (
             <div className="bg-slate-900/70 backdrop-blur-sm border border-slate-800 rounded-lg p-8 text-center">
