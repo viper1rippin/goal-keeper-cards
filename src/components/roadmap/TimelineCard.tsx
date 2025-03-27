@@ -1,7 +1,5 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
-import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Edit2, GripHorizontal } from "lucide-react";
 
@@ -61,8 +59,8 @@ const TimelineCard = ({
     setInitialDuration(tempDuration);
     
     // Add event listeners to the document
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
+    document.addEventListener('mousemove', handleResizeMove, { capture: true });
+    document.addEventListener('mouseup', handleResizeEnd, { capture: true });
     
     // Add visual feedback class to show that resizing is in progress
     if (cardRef.current) {
@@ -75,27 +73,27 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
-    // Make resize more responsive by using a smaller threshold
-    // Changed from Math.round(deltaX / cellWidth) to make it more sensitive
-    const deltaUnits = deltaX / cellWidth;
+    // Calculate exact pixel width for smooth visual feedback
+    const exactPixelWidth = (initialDuration * cellWidth) + deltaX;
+    const minWidth = cellWidth; // Minimum width of one cell
     
-    // Calculate new duration with decimal precision first
-    const preciseNewDuration = initialDuration + deltaUnits;
+    // Apply the visual width change immediately for fluid resizing
+    const fluidWidth = Math.max(minWidth, exactPixelWidth);
+    setCurrentWidth(`${fluidWidth}px`);
     
-    // Then round to nearest integer for actual duration value
-    const newDuration = Math.max(1, Math.round(preciseNewDuration));
+    // Calculate duration for state updates (can be decimal)
+    const newDurationExact = fluidWidth / cellWidth;
     
-    // Update the visual width immediately for smooth resizing
-    // Use the precise calculation for the width to make resizing feel more fluid
-    setCurrentWidth(`${preciseNewDuration * cellWidth}px`);
+    // For events/state updates, we still want whole number cell increments
+    const newDurationWhole = Math.max(1, Math.round(newDurationExact));
     
     // Only update the actual duration value when it changes to an integer
-    if (tempDuration !== newDuration) {
-      setTempDuration(newDuration);
+    if (tempDuration !== newDurationWhole) {
+      setTempDuration(newDurationWhole);
       
       // Call onResize during resize move for immediate feedback
       if (onResize) {
-        onResize(item.id, newDuration);
+        onResize(item.id, newDurationWhole);
       }
     }
   };
@@ -111,8 +109,8 @@ const TimelineCard = ({
     }
     
     // Clean up event listeners
-    document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('mouseup', handleResizeEnd);
+    document.removeEventListener('mousemove', handleResizeMove, { capture: true });
+    document.removeEventListener('mouseup', handleResizeEnd, { capture: true });
     
     // Remove visual feedback class
     if (cardRef.current) {
@@ -225,8 +223,8 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
+              "absolute right-0 top-0 bottom-0 w-12 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-3 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
               isResizing && "after:opacity-100 bg-white/10"
             )}
             onMouseDown={handleResizeStart}
