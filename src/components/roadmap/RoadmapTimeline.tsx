@@ -45,7 +45,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
   const [maxRow, setMaxRow] = useState(3);
-  const [tempDragPosition, setTempDragPosition] = useState<{ id: string; row: number; start: number } | null>(null);
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
@@ -101,95 +100,67 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setDraggingItemId(active.id as string);
-    
-    const item = items.find(i => i.id === active.id);
-    if (item) {
-      setTempDragPosition({
-        id: item.id,
-        row: item.row,
-        start: item.start
-      });
-    }
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
-    if (!draggingItemId || !timelineRef.current) return;
-    
-    const { active, delta } = event;
-    const draggingItem = items.find(item => item.id === active.id);
-    if (!draggingItem) return;
-    
-    const rect = timelineRef.current.getBoundingClientRect();
-    const clientX = event.activatorEvent instanceof MouseEvent 
-      ? event.activatorEvent.clientX 
-      : event.activatorEvent instanceof TouchEvent 
-        ? event.activatorEvent.touches[0].clientX 
-        : 0;
-        
-    const clientY = event.activatorEvent instanceof MouseEvent 
-      ? event.activatorEvent.clientY 
-      : event.activatorEvent instanceof TouchEvent 
-        ? event.activatorEvent.touches[0].clientY 
-        : 0;
-    
-    const relativeX = clientX - rect.left;
-    const relativeY = clientY - rect.top;
-    
-    const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
-    const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
-    
-    setTempDragPosition({
-      id: draggingItem.id,
-      row: newRow,
-      start: newCell
-    });
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over || !tempDragPosition) {
+    if (!over) {
       setDraggingItemId(null);
-      setTempDragPosition(null);
       return;
     }
     
     const draggedItem = items.find(item => item.id === active.id);
     if (!draggedItem) {
       setDraggingItemId(null);
-      setTempDragPosition(null);
       return;
     }
     
-    const { startDate, endDate } = updateDatesFromTimelinePosition(
-      tempDragPosition.start,
-      draggedItem.duration,
-      currentYear,
-      currentMonth,
-      viewMode
-    );
+    if (timelineRef.current) {
+      const rect = timelineRef.current.getBoundingClientRect();
+      
+      const clientX = event.activatorEvent instanceof MouseEvent 
+        ? event.activatorEvent.clientX 
+        : event.activatorEvent instanceof TouchEvent 
+          ? event.activatorEvent.touches[0].clientX 
+          : 0;
+          
+      const clientY = event.activatorEvent instanceof MouseEvent 
+        ? event.activatorEvent.clientY 
+        : event.activatorEvent instanceof TouchEvent 
+          ? event.activatorEvent.touches[0].clientY 
+          : 0;
+      
+      const relativeX = clientX - rect.left;
+      const relativeY = clientY - rect.top;
+      
+      const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
+      const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
+      
+      const updatedItems = items.map(item => {
+        if (item.id === draggedItem.id) {
+          return {
+            ...item,
+            start: newCell,
+            row: newRow
+          };
+        }
+        return item;
+      });
+      
+      onItemsChange(updatedItems);
+    }
     
-    const updatedItems = items.map(item => {
-      if (item.id === draggedItem.id) {
-        return {
-          ...item,
-          start: tempDragPosition.start,
-          row: tempDragPosition.row,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        };
-      }
-      return item;
-    });
-    
-    onItemsChange(updatedItems);
     setDraggingItemId(null);
-    setTempDragPosition(null);
   };
   
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
+        // Only proceed if we have a valid startDate
         if (item.startDate) {
           const startDate = new Date(item.startDate);
           const calculatedEndDate = calculateEndDateFromDurationChange(
@@ -206,6 +177,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           };
         }
         
+        // If no startDate, just update duration
         return {
           ...item,
           duration: newDuration
@@ -214,6 +186,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       return item;
     });
     
+    // Immediately update the items
     onItemsChange(updatedItems);
   };
   
@@ -387,37 +360,26 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         >
           <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
             <div className="absolute inset-0">
-              {items.map((item) => {
-                const displayRow = (tempDragPosition && tempDragPosition.id === item.id) 
-                  ? tempDragPosition.row 
-                  : item.row;
-                
-                const displayStart = (tempDragPosition && tempDragPosition.id === item.id) 
-                  ? tempDragPosition.start
-                  : item.start;
-                
-                return (
-                  <div
-                    key={item.id}
-                    className="absolute"
-                    style={{ 
-                      top: `${displayRow * 100 + 10}px`,
-                      left: `${displayStart * cellWidth}px`,
-                      transition: (tempDragPosition && tempDragPosition.id === item.id) ? 'none' : 'all 0.2s ease'
-                    }}
-                  >
-                    <TimelineCard
-                      item={item}
-                      isSelected={selectedItem?.id === item.id}
-                      onSelect={() => setSelectedItem(item)}
-                      onEdit={() => handleEditItem(item)}
-                      onResize={handleResizeItem}
-                      cellWidth={cellWidth}
-                      viewMode={viewMode}
-                    />
-                  </div>
-                );
-              })}
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="absolute"
+                  style={{ 
+                    top: `${item.row * 100 + 10}px`,
+                    left: `${item.start * cellWidth}px`,
+                  }}
+                >
+                  <TimelineCard
+                    item={item}
+                    isSelected={selectedItem?.id === item.id}
+                    onSelect={() => setSelectedItem(item)}
+                    onEdit={() => handleEditItem(item)}
+                    onResize={handleResizeItem}
+                    cellWidth={cellWidth}
+                    viewMode={viewMode}
+                  />
+                </div>
+              ))}
               
               <button
                 onClick={handleAddItem}
