@@ -4,7 +4,9 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal } from "lucide-react";
+import { Edit2, GripHorizontal, Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { formatDateRange } from "./utils/timelineUtils";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -14,6 +16,8 @@ interface TimelineCardProps {
   onResize?: (itemId: string, newDuration: number) => void;
   cellWidth: number;
   viewMode: TimelineViewMode;
+  currentMonth?: number;
+  currentYear?: number;
 }
 
 const TimelineCard = ({ 
@@ -23,7 +27,9 @@ const TimelineCard = ({
   onEdit,
   onResize,
   cellWidth,
-  viewMode
+  viewMode,
+  currentMonth,
+  currentYear
 }: TimelineCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -122,6 +128,21 @@ const TimelineCard = ({
 
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
 
+  // Format date range for display
+  const getDateRangeDisplay = () => {
+    if (item.startDate && item.endDate) {
+      const startDate = new Date(item.startDate);
+      const endDate = new Date(item.endDate);
+      
+      if (viewMode === 'month') {
+        return `${startDate.getDate()}-${endDate.getDate()} ${format(startDate, 'MMM')}`;
+      } else {
+        return `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd')}`;
+      }
+    }
+    return '';
+  };
+
   // Get label for duration based on view mode
   const getDurationLabel = () => {
     if (viewMode === 'month') {
@@ -192,6 +213,13 @@ const TimelineCard = ({
             <div className="mt-1 space-y-0.5">
               {item.description && (
                 <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
+              )}
+              
+              {item.startDate && item.endDate && (isHovered || isSelected) && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Calendar size={10} className="text-white/80" />
+                  <p className="text-xs text-white/90">{getDateRangeDisplay()}</p>
+                </div>
               )}
               
               {isResizing && (

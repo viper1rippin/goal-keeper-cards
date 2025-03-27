@@ -24,7 +24,12 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
-import { calculateEndDateFromDurationChange } from './utils/timelineUtils';
+import { 
+  calculateEndDateFromDurationChange,
+  calculateStartPosition,
+  calculateDuration,
+  isItemVisibleInCurrentView
+} from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -45,6 +50,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
   const [maxRow, setMaxRow] = useState(3);
+  const [visibleItems, setVisibleItems] = useState<SubGoalTimelineItem[]>([]);
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
@@ -67,6 +73,50 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const timeUnits = getTimeUnits();
   const timeUnitCount = timeUnits.length;
+  
+  useEffect(() => {
+    if (!items.length) {
+      setVisibleItems([]);
+      return;
+    }
+
+    const processedItems = items.map(item => {
+      let updatedItem = { ...item };
+      
+      if (item.startDate && item.endDate) {
+        const startDate = new Date(item.startDate);
+        const endDate = new Date(item.endDate);
+        
+        const isVisible = isItemVisibleInCurrentView(startDate, endDate, currentMonth, currentYear);
+        
+        if (isVisible) {
+          const startPosition = calculateStartPosition(startDate, viewMode, currentMonth, currentYear);
+          
+          if (startPosition >= 0) {
+            const duration = calculateDuration(startDate, endDate, viewMode, currentMonth, currentYear);
+            
+            updatedItem = {
+              ...updatedItem,
+              start: startPosition,
+              duration: duration
+            };
+          }
+        }
+      }
+      
+      return updatedItem;
+    }).filter(item => {
+      if (!item.startDate || !item.endDate) return true;
+      return isItemVisibleInCurrentView(
+        new Date(item.startDate),
+        new Date(item.endDate),
+        currentMonth,
+        currentYear
+      );
+    });
+    
+    setVisibleItems(processedItems);
+  }, [items, viewMode, currentMonth, currentYear]);
   
   useEffect(() => {
     const updateCellWidth = () => {
@@ -101,11 +151,11 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   );
   
   useEffect(() => {
-    if (items.length === 0) return;
+    if (visibleItems.length === 0) return;
     
-    const maxRowValue = Math.max(...items.map(item => item.row));
+    const maxRowValue = Math.max(...visibleItems.map(item => item.row));
     setMaxRow(Math.max(maxRowValue + 1, 3));
-  }, [items]);
+  }, [visibleItems]);
   
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -157,7 +207,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       };
       
       if (draggedItem.startDate && viewMode === 'month') {
-        const startDate = new Date(draggedItem.startDate);
         const newDate = new Date(currentYear, currentMonth, newCell + 1);
         
         if (draggedItem.endDate) {
@@ -399,9 +448,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           collisionDetection={pointerWithin}
           modifiers={[restrictToParentElement]}
         >
-          <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={visibleItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
             <div className="absolute inset-0">
-              {items.map((item) => (
+              {visibleItems.map((item) => (
                 <div
                   key={item.id}
                   className="absolute"
@@ -418,6 +467,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
                     onResize={handleResizeItem}
                     cellWidth={cellWidth}
                     viewMode={viewMode}
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
                   />
                 </div>
               ))}
@@ -437,7 +488,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           <DragOverlay>
             {draggingItemId ? (
               <div className="opacity-80">
-                {items.map((item) => {
+                {visibleItems.map((item) => {
                   if (item.id === draggingItemId) {
                     return (
                       <TimelineCard
@@ -447,6 +498,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
                         onSelect={() => {}}
                         cellWidth={cellWidth}
                         viewMode={viewMode}
+                        currentMonth={currentMonth}
+                        currentYear={currentYear}
                       />
                     );
                   }
