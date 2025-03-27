@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { ParentGoal } from "./IndexPageTypes";
+import { parseTimelineCategory } from "../roadmap/utils/timelineUtils";
 
 // Type for parent goal from Supabase, avoiding deep nesting
 interface ParentGoalData {
@@ -27,6 +28,12 @@ interface SubGoalData {
   created_at: string;
   updated_at: string;
   user_id?: string;
+  start_date?: string;
+  end_date?: string;
+  timeline_row?: number;
+  timeline_start?: number;
+  timeline_duration?: number;
+  timeline_category?: string;
 }
 
 export const useParentGoals = (goalToEdit: ParentGoal | null) => {
@@ -56,7 +63,7 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
         .from('sub_goals')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+        .order('display_order', { ascending: true });
       
       if (subGoalsError) throw subGoalsError;
       
@@ -75,7 +82,15 @@ export const useParentGoals = (goalToEdit: ParentGoal | null) => {
             id: subGoal.id,
             title: subGoal.title,
             description: subGoal.description,
-            progress: subGoal.progress
+            progress: subGoal.progress,
+            startDate: subGoal.start_date,
+            endDate: subGoal.end_date,
+            timeline_row: subGoal.timeline_row,
+            timeline_start: subGoal.timeline_start,
+            timeline_duration: subGoal.timeline_duration,
+            timeline_category: subGoal.timeline_category 
+              ? parseTimelineCategory(subGoal.timeline_category)
+              : undefined
           });
         }
       });
