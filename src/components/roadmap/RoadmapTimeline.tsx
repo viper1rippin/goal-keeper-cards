@@ -1,20 +1,20 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import SubGoalTimelineForm from './SubGoalTimelineForm';
-import TimelineCard from './TimelineCard';
-import { restrictToParentElement } from '@dnd-kit/modifiers';
-import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
 import { 
   calculateEndDateFromDurationChange, 
-  updateDatesFromTimelinePosition,
   syncTimelineItemWithDates,
-  calculateCellFromPosition,
-  calculateRowFromPosition
+  updateDatesFromTimelinePosition
 } from './utils/timelineUtils';
 import { toast } from '@/components/ui/use-toast';
+import TimelineHeader from './TimelineHeader';
+import TimelineGrid from './TimelineGrid';
+import TimelineItems from './TimelineItems';
+import AddItemButton from './AddItemButton';
+import { useTimelineDrag } from './hooks/useTimelineDrag';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -23,31 +23,62 @@ interface RoadmapTimelineProps {
   viewMode: TimelineViewMode;
 }
 
-const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onItemsChange, viewMode }) => {
+const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ 
+  roadmapId, 
+  items, 
+  onItemsChange, 
+  viewMode 
+}) => {
   const [months] = useState([
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
-  const [quarters] = useState(['Q1', 'Q2', 'Q3', 'Q4']);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [openForm, setOpenForm] = useState(false);
   const [maxRow, setMaxRow] = useState(3);
-  
-  // State for drag operation
-  const [isDragging, setIsDragging] = useState(false);
-  const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragStartY, setDragStartY] = useState(0);
-  const [dragInitialPosition, setDragInitialPosition] = useState({ row: 0, start: 0 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [ghostPosition, setGhostPosition] = useState({ left: 0, top: 0 });
-  
-  const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
-  const rowHeight = 100; // Fixed row height
   
+  // Get time units based on view mode
+  const getTimeUnits = () => {
+    switch (viewMode) {
+      case 'month':
+        return getDaysInCurrentMonth();
+      case 'year':
+        return months;
+      default:
+        return months;
+    }
+  };
+  
+  const getDaysInCurrentMonth = () => {
+    const daysCount = getDaysInMonth(new Date(currentYear, currentMonth));
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  };
+  
+  const timeUnits = getTimeUnits();
+  const timeUnitCount = timeUnits.length;
+  
+  // Initialize drag handling
+  const {
+    timelineRef,
+    isDragging,
+    draggingItemId,
+    ghostPosition,
+    handleDragStart
+  } = useTimelineDrag({
+    items,
+    onItemsChange,
+    timeUnitCount,
+    cellWidth,
+    maxRow,
+    currentYear,
+    currentMonth,
+    viewMode
+  });
+  
+  // Sync timeline with dates
   useEffect(() => {
     if (items.length === 0) return;
     
@@ -64,33 +95,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   }, [items, viewMode, currentMonth, currentYear]);
   
-  const getDaysInCurrentMonth = () => {
-    const daysCount = getDaysInMonth(new Date(currentYear, currentMonth));
-    return Array.from({ length: daysCount }, (_, i) => i + 1);
-  };
-  
-  const getTimeUnits = () => {
-    switch (viewMode) {
-      case 'month':
-        return getDaysInCurrentMonth();
-      case 'year':
-        return months;
-      default:
-        return months;
-    }
-  };
-  
-  const timeUnits = getTimeUnits();
-  const timeUnitCount = timeUnits.length;
-  
-  useEffect(() => {
-    if (timelineRef.current) {
-      const containerWidth = timelineRef.current.clientWidth;
-      const calculatedWidth = (containerWidth - 60) / timeUnitCount;
-      setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80));
-    }
-  }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
-  
+  // Set max row
   useEffect(() => {
     if (items.length === 0) return;
     
@@ -98,127 +103,14 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setMaxRow(Math.max(maxRowValue + 1, 3));
   }, [items]);
   
-  const handleDragStart = (e: React.MouseEvent, itemId: string) => {
-    // Get the item
-    const item = items.find(i => i.id === itemId);
-    if (!item) return;
-    
-    // Get the initial position of the timeline container
-    const timelineRect = timelineRef.current?.getBoundingClientRect();
-    if (!timelineRect) return;
-    
-    setIsDragging(true);
-    setDraggingItemId(itemId);
-    setDragStartX(e.clientX);
-    setDragStartY(e.clientY);
-    setDragInitialPosition({ row: item.row, start: item.start });
-    
-    // Calculate the offset within the card for more natural dragging
-    const cardElement = e.currentTarget as HTMLElement;
-    const cardRect = cardElement.getBoundingClientRect();
-    const offsetX = e.clientX - cardRect.left;
-    const offsetY = e.clientY - cardRect.top;
-    setDragOffset({ x: offsetX, y: offsetY });
-    
-    // Set initial ghost position
-    setGhostPosition({
-      left: (item.start * cellWidth), 
-      top: (item.row * rowHeight + 10)
-    });
-    
-    // Add document event listeners
-    document.addEventListener('mousemove', handleDragMove);
-    document.addEventListener('mouseup', handleDragEnd);
-    
-    // Prevent default behavior
-    e.preventDefault();
-  };
-  
-  const handleDragMove = (e: MouseEvent) => {
-    if (!isDragging || !draggingItemId || !timelineRef.current) return;
-    
-    const timelineRect = timelineRef.current.getBoundingClientRect();
-    
-    // Calculate position relative to timeline
-    const relativeX = e.clientX - timelineRect.left - dragOffset.x;
-    const relativeY = e.clientY - timelineRect.top - dragOffset.y;
-    
-    // Update ghost position for visual feedback
-    setGhostPosition({
-      left: relativeX,
-      top: relativeY
-    });
-  };
-  
-  const handleDragEnd = (e: MouseEvent) => {
-    if (!isDragging || !draggingItemId || !timelineRef.current) {
-      cleanup();
-      return;
+  // Calculate cell width
+  useEffect(() => {
+    if (timelineRef.current) {
+      const containerWidth = timelineRef.current.clientWidth;
+      const calculatedWidth = (containerWidth - 60) / timeUnitCount;
+      setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80));
     }
-    
-    const timelineRect = timelineRef.current.getBoundingClientRect();
-    
-    // Get the dragged item
-    const draggedItem = items.find(item => item.id === draggingItemId);
-    if (!draggedItem) {
-      cleanup();
-      return;
-    }
-    
-    // Calculate position relative to timeline
-    const relativeX = e.clientX - timelineRect.left;
-    const relativeY = e.clientY - timelineRect.top;
-    
-    // Calculate new cell and row positions
-    const newCell = calculateCellFromPosition(relativeX, cellWidth, timeUnitCount);
-    const newRow = calculateRowFromPosition(relativeY, rowHeight, maxRow);
-    
-    // Update dates based on new position
-    const { startDate, endDate } = updateDatesFromTimelinePosition(
-      newCell,
-      draggedItem.duration,
-      currentYear,
-      currentMonth,
-      viewMode
-    );
-    
-    // Create updated items array
-    const updatedItems = items.map(item => {
-      if (item.id === draggingItemId) {
-        return {
-          ...item,
-          start: newCell,
-          row: newRow,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        };
-      }
-      return item;
-    });
-    
-    // Update state
-    onItemsChange(updatedItems);
-    cleanup();
-    
-    // Show toast for feedback
-    toast({
-      title: "Item moved",
-      description: `${draggedItem.title} has been moved to a new position.`,
-      duration: 2000,
-    });
-  };
-  
-  const cleanup = () => {
-    setIsDragging(false);
-    setDraggingItemId(null);
-    setDragStartX(0);
-    setDragStartY(0);
-    setDragInitialPosition({ row: 0, start: 0 });
-    
-    // Remove document event listeners
-    document.removeEventListener('mousemove', handleDragMove);
-    document.removeEventListener('mouseup', handleDragEnd);
-  };
+  }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
@@ -308,17 +200,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setSelectedItem(null);
   };
   
-  const getHeaderLabel = () => {
-    switch (viewMode) {
-      case 'month':
-        return `${months[currentMonth]} ${currentYear}`;
-      case 'year':
-        return `${currentYear}`;
-      default:
-        return `${months[currentMonth]} ${currentYear}`;
-    }
-  };
-  
   const navigatePrevious = () => {
     if (viewMode === 'month') {
       if (currentMonth === 0) {
@@ -347,113 +228,43 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-900/70 backdrop-blur-sm overflow-hidden shadow-xl">
-      <div className="border-b border-slate-800 p-2 bg-slate-800/50">
-        <div className="flex justify-between items-center mb-2">
-          <button 
-            onClick={navigatePrevious}
-            className="px-2 py-1 rounded hover:bg-slate-700 transition-colors"
-          >
-            &lt;
-          </button>
-          <h3 className="text-sm font-medium text-slate-300">{getHeaderLabel()}</h3>
-          <button 
-            onClick={navigateNext}
-            className="px-2 py-1 rounded hover:bg-slate-700 transition-colors"
-          >
-            &gt;
-          </button>
-        </div>
-        <div className="flex">
-          {timeUnits.map((unit, idx) => (
-            <div 
-              key={`unit-${idx}`}
-              className="text-center text-xs font-medium text-slate-300"
-              style={{ minWidth: `${cellWidth}px`, flexGrow: 1 }}
-            >
-              {unit}
-            </div>
-          ))}
-        </div>
-      </div>
+      <TimelineHeader
+        months={months}
+        timeUnits={timeUnits}
+        cellWidth={cellWidth}
+        currentMonth={currentMonth}
+        currentYear={currentYear}
+        viewMode={viewMode}
+        onNavigatePrevious={navigatePrevious}
+        onNavigateNext={navigateNext}
+      />
       
       <div 
         className="relative overflow-x-auto"
         style={{ height: `${maxRow * 100 + 50}px` }}
         ref={timelineRef}
       >
-        <div className="absolute inset-0 flex pointer-events-none">
-          {timeUnits.map((_, idx) => (
-            <div 
-              key={idx}
-              className="h-full border-r border-slate-800/70"
-              style={{ width: `${cellWidth}px` }}
-            ></div>
-          ))}
-        </div>
+        <TimelineGrid
+          timeUnits={timeUnits}
+          maxRow={maxRow}
+          cellWidth={cellWidth}
+        />
         
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: maxRow }).map((_, idx) => (
-            <div 
-              key={idx}
-              className="w-full border-b border-slate-800/70"
-              style={{ height: '100px' }}
-            ></div>
-          ))}
-        </div>
+        <TimelineItems
+          items={items}
+          selectedItem={selectedItem}
+          cellWidth={cellWidth}
+          viewMode={viewMode}
+          isDragging={isDragging}
+          draggingItemId={draggingItemId}
+          ghostPosition={ghostPosition}
+          onEditItem={handleEditItem}
+          onResizeItem={handleResizeItem}
+          onSelectItem={setSelectedItem}
+          onDragStart={handleDragStart}
+        />
         
-        <div className="absolute inset-0">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="absolute"
-              style={{ 
-                top: `${item.row * 100 + 10}px`,
-                left: `${item.start * cellWidth}px`,
-                opacity: isDragging && draggingItemId === item.id ? 0.4 : 1,
-              }}
-            >
-              <TimelineCard
-                item={item}
-                isSelected={selectedItem?.id === item.id}
-                onSelect={() => setSelectedItem(item)}
-                onEdit={() => handleEditItem(item)}
-                onResize={handleResizeItem}
-                cellWidth={cellWidth}
-                viewMode={viewMode}
-                onDragStart={handleDragStart}
-              />
-            </div>
-          ))}
-          
-          {/* Drag ghost element */}
-          {isDragging && draggingItemId && (
-            <div 
-              className="absolute pointer-events-none"
-              style={{
-                top: `${ghostPosition.top}px`,
-                left: `${ghostPosition.left}px`,
-                width: `${items.find(item => item.id === draggingItemId)?.duration || 1 * cellWidth}px`,
-                zIndex: 999,
-              }}
-            >
-              <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">
-                <div className="p-2 text-white truncate">
-                  {items.find(item => item.id === draggingItemId)?.title}
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <button
-            onClick={handleAddItem}
-            className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
-          </button>
-        </div>
+        <AddItemButton onClick={handleAddItem} />
       </div>
       
       <Dialog open={openForm} onOpenChange={setOpenForm}>
