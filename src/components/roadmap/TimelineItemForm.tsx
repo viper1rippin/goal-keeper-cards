@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -23,7 +22,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { calculateDuration, calculateStartPosition } from './utils/timelineUtils';
+import { calculateDuration, calculateStartPosition, calculateEndDateFromDurationChange } from './utils/timelineUtils';
 
 const formSchema = z.object({
   id: z.string(),
@@ -52,10 +51,6 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
   onCancel,
   viewMode,
 }) => {
-  // Create refs for popover control
-  const startDatePopoverRef = useRef<HTMLButtonElement>(null);
-  const endDatePopoverRef = useRef<HTMLButtonElement>(null);
-  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -87,6 +82,24 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
     }
   }, [form.watch('startDate'), form.watch('endDate'), viewMode, form]);
 
+  useEffect(() => {
+    const startDate = form.watch('startDate');
+    const duration = form.watch('duration');
+    const currentEndDate = form.watch('endDate');
+    
+    if (startDate && duration && item.duration !== duration) {
+      const startDateObj = new Date(startDate);
+      const newEndDate = calculateEndDateFromDurationChange(
+        startDateObj,
+        item.duration,
+        duration,
+        viewMode
+      );
+      
+      form.setValue('endDate', newEndDate.toISOString());
+    }
+  }, [form.watch('duration'), form, item.duration, viewMode]);
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const startDateObj = values.startDate ? new Date(values.startDate) : new Date();
     const endDateObj = values.endDate ? new Date(values.endDate) : addMonths(startDateObj, 1);
@@ -114,8 +127,22 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
     if (date) {
       updateFn(date.toISOString());
       
-      // Use a click outside approach to close the popover
-      document.body.click();
+      setTimeout(() => {
+        const openPopover = document.querySelector('[data-state="open"][data-radix-popover-content-wrapper]');
+        if (openPopover) {
+          const popoverClose = openPopover.querySelector('[data-radix-popover-close]');
+          if (popoverClose && popoverClose instanceof HTMLElement) {
+            popoverClose.click();
+          } else {
+            const escEvent = new KeyboardEvent('keydown', {
+              key: 'Escape',
+              bubbles: false,
+              cancelable: true
+            });
+            openPopover.dispatchEvent(escEvent);
+          }
+        }
+      }, 0);
     }
   };
 
@@ -175,7 +202,6 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          ref={startDatePopoverRef}
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
@@ -197,7 +223,7 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => handleDateSelect(date, field.onChange)}
                         initialFocus
-                        className="p-3 pointer-events-auto"
+                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
@@ -216,7 +242,6 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          ref={endDatePopoverRef}
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
@@ -238,7 +263,7 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => handleDateSelect(date, field.onChange)}
                         initialFocus
-                        className="p-3 pointer-events-auto"
+                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>

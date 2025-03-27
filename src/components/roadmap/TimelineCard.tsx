@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -29,8 +29,19 @@ const TimelineCard = ({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [initialDuration, setInitialDuration] = useState(item.duration);
+  const [currentWidth, setCurrentWidth] = useState(`${item.duration * cellWidth}px`);
+  const [tempDuration, setTempDuration] = useState(item.duration);
   
+  const cardRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+  
+  // Update width when duration or cellWidth changes
+  useEffect(() => {
+    if (!isResizing) {
+      setCurrentWidth(`${item.duration * cellWidth}px`);
+      setTempDuration(item.duration);
+    }
+  }, [item.duration, cellWidth, isResizing]);
   
   const {
     attributes,
@@ -43,9 +54,9 @@ const TimelineCard = ({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    width: `${item.duration * cellWidth}px`,
-    zIndex: isDragging ? 100 : isSelected ? 10 : 1,
+    transition: isResizing ? 'none' : transition,
+    width: currentWidth,
+    zIndex: isDragging ? 100 : isResizing ? 50 : isSelected ? 10 : 1,
   };
   
   // Default colors for all cards
@@ -57,10 +68,16 @@ const TimelineCard = ({
     
     setIsResizing(true);
     setResizeStartX(e.clientX);
-    setInitialDuration(item.duration);
+    setInitialDuration(tempDuration);
     
+    // Add event listeners to the document
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
+    
+    // Add visual feedback class to show that resizing is in progress
+    if (cardRef.current) {
+      cardRef.current.classList.add('resizing');
+    }
   };
   
   const handleResizeMove = (e: MouseEvent) => {
@@ -70,41 +87,64 @@ const TimelineCard = ({
     const deltaUnits = Math.round(deltaX / cellWidth);
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
-    if (onResize) {
-      onResize(item.id, newDuration);
-    }
+    // Update the visual width immediately for smooth resizing
+    setCurrentWidth(`${newDuration * cellWidth}px`);
+    setTempDuration(newDuration);
   };
   
   const handleResizeEnd = () => {
+    if (!isResizing) return;
+    
     setIsResizing(false);
+    
+    // Only call the callback if the duration actually changed
+    if (tempDuration !== item.duration && onResize) {
+      onResize(item.id, tempDuration);
+    }
+    
+    // Clean up event listeners
     document.removeEventListener('mousemove', handleResizeMove);
     document.removeEventListener('mouseup', handleResizeEnd);
+    
+    // Remove visual feedback class
+    if (cardRef.current) {
+      cardRef.current.classList.remove('resizing');
+    }
   };
 
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        // Combine refs
+        setNodeRef(node);
+        if (node) cardRef.current = node;
+      }}
       style={style}
       className={cn(
-        "h-[80px] rounded-lg transition-all duration-300",
+        "h-[80px] rounded-lg transition-all",
         isDragging ? "opacity-80 z-50" : "opacity-100",
-        "transform-gpu cursor-grab select-none",
+        isResizing ? "cursor-ew-resize" : "cursor-grab",
+        "transform-gpu select-none",
       )}
       {...attributes}
-      onClick={onSelect}
+      onClick={(e) => {
+        if (!isResizing) onSelect();
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div 
         className={cn(
-          "rounded-lg h-full px-3 py-2 transition-all duration-300 relative overflow-hidden border shadow-md",
-          isSelected
-            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
-            : isHovered
-              ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
-              : `bg-gradient-to-r ${colorClass} opacity-90`
+          "rounded-lg h-full px-3 py-2 transition-all relative overflow-hidden border shadow-md",
+          isResizing
+            ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/50 border-2 border-white/40`
+            : isSelected
+              ? `bg-gradient-to-r ${colorClass} shadow-lg shadow-black/30`
+              : isHovered
+                ? `bg-gradient-to-r ${colorClass} shadow-sm shadow-black/20 opacity-95`
+                : `bg-gradient-to-r ${colorClass} opacity-90`
         )}
       >
         <div 
@@ -153,9 +193,21 @@ const TimelineCard = ({
         {onResize && (
           <div 
             ref={resizeRef}
-            className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize hover:bg-white/20"
+            className={cn(
+              "absolute right-0 top-0 bottom-0 w-4 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-1 after:bg-white/40 after:opacity-0 hover:after:opacity-100",
+              isResizing && "after:opacity-100 bg-white/10"
+            )}
             onMouseDown={handleResizeStart}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleResizeStart(e as unknown as React.MouseEvent);
+            }}
           />
+        )}
+        
+        {isResizing && (
+          <div className="absolute inset-0 border-2 border-white/50 rounded-lg pointer-events-none z-20"></div>
         )}
       </div>
     </div>

@@ -43,3 +43,25 @@ export const getTimeUnitLabel = (viewMode: TimelineViewMode): string => {
       return 'days';
   }
 };
+
+/**
+ * Calculates the new end date based on the increased or decreased duration
+ */
+export const calculateEndDateFromDurationChange = (
+  startDate: Date, 
+  currentDuration: number, 
+  newDuration: number, 
+  viewMode: TimelineViewMode
+): Date => {
+  const endDate = new Date(startDate);
+  
+  if (viewMode === 'month') {
+    // In month view, duration is in days
+    endDate.setDate(startDate.getDate() + newDuration - 1);
+  } else if (viewMode === 'year') {
+    // In year view, duration is in months
+    endDate.setMonth(startDate.getMonth() + newDuration - 1);
+  }
+  
+  return endDate;
+};
