@@ -129,25 +129,6 @@ const TimelineCard = ({
     return `${tempDuration}`;
   };
 
-  // Format dates for display
-  const formatDateRange = () => {
-    if (!item.startDate || !item.endDate) return '';
-    
-    const startDate = new Date(item.startDate);
-    const endDate = new Date(item.endDate);
-    
-    // Format for month view
-    if (viewMode === 'month') {
-      return `${startDate.getDate()}/${startDate.getMonth() + 1} - ${endDate.getDate()}/${endDate.getMonth() + 1}`;
-    }
-    
-    // Format for year view
-    return `${months[startDate.getMonth()]} - ${months[endDate.getMonth()]}`;
-  };
-
-  // Month names for formatting
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
   return (
     <div
       ref={(node) => {
@@ -208,12 +189,6 @@ const TimelineCard = ({
             <div className="mt-1 space-y-0.5">
               {item.description && (
                 <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
-              )}
-              
-              {(isResizing || isSelected || isHovered) && item.startDate && item.endDate && (
-                <p className="text-xs text-white/90 mt-1 bg-black/20 px-1.5 py-0.5 rounded inline-block">
-                  {formatDateRange()}
-                </p>
               )}
               
               {isResizing && (

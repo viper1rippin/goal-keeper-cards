@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -25,12 +24,7 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
-import { 
-  calculateEndDateFromDurationChange, 
-  calculateNewDates,
-  calculateStartPosition,
-  calculateDuration
-} from './utils/timelineUtils';
+import { calculateEndDateFromDurationChange } from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -54,7 +48,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
-  const [isDragging, setIsDragging] = useState(false);
   
   const getDaysInCurrentMonth = () => {
     const daysCount = getDaysInMonth(new Date(currentYear, currentMonth));
@@ -107,11 +100,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setDraggingItemId(active.id as string);
-    setIsDragging(true);
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
-    // We can use this for live preview if needed
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
@@ -119,14 +110,12 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     
     if (!over) {
       setDraggingItemId(null);
-      setIsDragging(false);
       return;
     }
     
     const draggedItem = items.find(item => item.id === active.id);
     if (!draggedItem) {
       setDraggingItemId(null);
-      setIsDragging(false);
       return;
     }
     
@@ -151,56 +140,21 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
-      // Only update if we have valid dates to work with
-      if (draggedItem.startDate && draggedItem.endDate) {
-        const currentStartDate = new Date(draggedItem.startDate);
-        const currentEndDate = new Date(draggedItem.endDate);
-        
-        // Calculate new dates based on the drag position
-        const { newStartDate, newEndDate } = calculateNewDates(
-          currentStartDate,
-          currentEndDate,
-          newCell,
-          viewMode,
-          currentYear,
-          currentMonth
-        );
-        
-        const updatedItems = items.map(item => {
-          if (item.id === draggedItem.id) {
-            return {
-              ...item,
-              row: newRow,
-              start: newCell,
-              startDate: newStartDate.toISOString(),
-              endDate: newEndDate.toISOString(),
-              // Update duration based on the new dates
-              duration: calculateDuration(newStartDate, newEndDate, viewMode)
-            };
-          }
-          return item;
-        });
-        
-        onItemsChange(updatedItems);
-      } else {
-        // Handle items without dates by just updating position
-        const updatedItems = items.map(item => {
-          if (item.id === draggedItem.id) {
-            return {
-              ...item,
-              start: newCell,
-              row: newRow
-            };
-          }
-          return item;
-        });
-        
-        onItemsChange(updatedItems);
-      }
+      const updatedItems = items.map(item => {
+        if (item.id === draggedItem.id) {
+          return {
+            ...item,
+            start: newCell,
+            row: newRow
+          };
+        }
+        return item;
+      });
+      
+      onItemsChange(updatedItems);
     }
     
     setDraggingItemId(null);
-    setIsDragging(false);
   };
   
   const handleResizeItem = (itemId: string, newDuration: number) => {
@@ -405,7 +359,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           modifiers={[restrictToParentElement]}
         >
           <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-            <div className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : ''}`}>
+            <div className="absolute inset-0">
               {items.map((item) => (
                 <div
                   key={item.id}

@@ -1,4 +1,3 @@
-
 import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
@@ -71,64 +70,4 @@ export const calculateEndDateFromDurationChange = (
   }
   
   return endDate;
-};
-
-/**
- * Calculates a new start date based on the new position in the timeline
- */
-export const calculateNewStartDate = (
-  currentStartDate: Date,
-  newStartPosition: number,
-  viewMode: TimelineViewMode,
-  year: number,
-  month: number
-): Date => {
-  const newDate = new Date(currentStartDate);
-  
-  if (viewMode === 'month') {
-    // Set the new date to the correct year and month
-    newDate.setFullYear(year);
-    newDate.setMonth(month);
-    // Set the day based on the new position (adding 1 because days are 1-indexed)
-    newDate.setDate(newStartPosition + 1);
-  } else if (viewMode === 'year') {
-    // Set the year
-    newDate.setFullYear(year);
-    // Set the month based on the new position
-    newDate.setMonth(newStartPosition);
-  }
-  
-  return newDate;
-};
-
-/**
- * Calculates both new start and end dates when an item is moved
- */
-export const calculateNewDates = (
-  currentStartDate: Date,
-  currentEndDate: Date,
-  newStartPosition: number,
-  viewMode: TimelineViewMode,
-  year: number,
-  month: number
-): { newStartDate: Date, newEndDate: Date } => {
-  // Calculate the new start date
-  const newStartDate = calculateNewStartDate(
-    currentStartDate,
-    newStartPosition,
-    viewMode,
-    year,
-    month
-  );
-  
-  // Maintain the same duration between start and end dates
-  const currentDuration = calculateDuration(currentStartDate, currentEndDate, viewMode);
-  const newEndDate = calculateEndDateFromDurationChange(
-    newStartDate,
-    0, // Not used in this calculation
-    currentDuration,
-    viewMode
-  );
-  
-  return { newStartDate, newEndDate };
 };
