@@ -41,20 +41,3 @@ export const getTimeUnitLabel = (viewMode: TimelineViewMode): string => {
       return 'months';
   }
 };
-
-/**
- * Safely parses a timeline category from a string
- */
-export const parseTimelineCategory = (category: string | null) => {
-  if (!category) return 'default';
-  
-  const validCategories = [
-    'research', 'design', 'development', 'testing', 
-    'marketing', 'feature', 'milestone', 'default',
-    'mobile', 'web', 'infrastructure', 'backend'
-  ];
-  
-  return validCategories.includes(category) 
-    ? category 
-    : 'default';
-};

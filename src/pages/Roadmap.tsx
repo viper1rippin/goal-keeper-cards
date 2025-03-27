@@ -5,7 +5,7 @@ import AnimatedContainer from "@/components/AnimatedContainer";
 import RoadmapTimeline from "@/components/roadmap/RoadmapTimeline";
 import RoadmapSelector from "@/components/roadmap/RoadmapSelector";
 import ParentGoalSelector from "@/components/roadmap/ParentGoalSelector";
-import { SubGoalTimelineItem, TimelineViewMode, TimelineCategory } from "@/components/roadmap/types";
+import { SubGoalTimelineItem, TimelineViewMode } from "@/components/roadmap/types";
 import StarsBackground from "@/components/effects/StarsBackground";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -13,7 +13,6 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ParentGoal } from "@/components/index/IndexPageTypes";
 import { Goal } from "@/components/GoalRow";
-import { parseTimelineCategory } from "@/components/roadmap/utils/timelineUtils";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -71,8 +70,7 @@ const Roadmap = () => {
                 endDate: subGoal.end_date,
                 timeline_row: subGoal.timeline_row,
                 timeline_start: subGoal.timeline_start,
-                timeline_duration: subGoal.timeline_duration,
-                timeline_category: parseTimelineCategory(subGoal.timeline_category)
+                timeline_duration: subGoal.timeline_duration
               });
             }
           });
@@ -121,7 +119,6 @@ const Roadmap = () => {
         const row = subGoal.timeline_row !== undefined ? subGoal.timeline_row : Math.floor(index / 3);
         const start = subGoal.timeline_start !== undefined ? subGoal.timeline_start : index * 3;
         const duration = subGoal.timeline_duration !== undefined ? subGoal.timeline_duration : 2;
-        const category = subGoal.timeline_category || 'default';
         
         return {
           id: subGoal.id || '',
@@ -131,7 +128,6 @@ const Roadmap = () => {
           start: start,
           duration: duration,
           progress: subGoal.progress || 0,
-          category: category as TimelineCategory,
           parentId: selectedRoadmapId,
           originalSubGoalId: subGoal.id,
           startDate: subGoal.startDate || undefined,
@@ -161,7 +157,6 @@ const Roadmap = () => {
                 timeline_row: item.row,
                 timeline_start: item.start,
                 timeline_duration: item.duration,
-                timeline_category: item.category,
                 start_date: item.startDate,
                 end_date: item.endDate
               })
@@ -179,7 +174,6 @@ const Roadmap = () => {
                 timeline_row: item.row,
                 timeline_start: item.start, 
                 timeline_duration: item.duration,
-                timeline_category: item.category,
                 start_date: item.startDate,
                 end_date: item.endDate
               })

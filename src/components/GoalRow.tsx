@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import AnimatedContainer from "./AnimatedContainer";
 import { useState, useEffect } from "react";
@@ -9,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import GoalRowHeader from "./GoalRowHeader";
 import SubGoalsSection from "./SubGoalsSection";
 import { useAuth } from "@/context/AuthContext";
-import { TimelineCategory } from "./roadmap/types";
 
 export interface Goal {
   id?: string;
@@ -23,7 +21,6 @@ export interface Goal {
   timeline_row?: number; // Added for timeline sync
   timeline_start?: number; // Added for timeline sync
   timeline_duration?: number; // Added for timeline sync
-  timeline_category?: TimelineCategory; // Added for timeline sync
 }
 
 interface GoalRowProps {
@@ -76,22 +73,6 @@ const GoalRow = ({
   // Calculate delay based on row index for staggered animation
   const rowDelay = rowIndex * 100;
   
-  // Helper function to safely convert string to TimelineCategory
-  const parseTimelineCategory = (category: string | null): TimelineCategory => {
-    if (!category) return 'default';
-    
-    // Check if the category is a valid TimelineCategory value
-    const validCategories: TimelineCategory[] = [
-      'research', 'design', 'development', 'testing', 
-      'marketing', 'feature', 'milestone', 'default',
-      'mobile', 'web', 'infrastructure', 'backend'
-    ];
-    
-    return validCategories.includes(category as TimelineCategory) 
-      ? (category as TimelineCategory) 
-      : 'default';
-  };
-  
   // Fetch sub-goals for this parent goal
   const fetchSubGoals = async () => {
     try {
@@ -127,7 +108,6 @@ const GoalRow = ({
           timeline_row: goal.timeline_row,
           timeline_start: goal.timeline_start,
           timeline_duration: goal.timeline_duration,
-          timeline_category: parseTimelineCategory(goal.timeline_category),
           // Handle user_id properly with type assertion if it exists on the database record
           ...(('user_id' in goal) ? { user_id: goal.user_id as string } : {})
         }));
