@@ -1,5 +1,5 @@
 
-import { differenceInMonths, differenceInQuarters } from 'date-fns';
+import { differenceInMonths, differenceInQuarters, differenceInDays } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
@@ -7,9 +7,9 @@ import { TimelineViewMode } from '../types';
  */
 export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode): number => {
   if (viewMode === 'month') {
-    return date.getMonth();
+    return date.getDate() - 1; // Convert from 1-based days to 0-based index
   } else if (viewMode === 'year') {
-    return Math.floor(date.getMonth() / 3);
+    return date.getMonth(); // Months are already 0-based
   }
   return 0;
 };
@@ -19,11 +19,13 @@ export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode): 
  */
 export const calculateDuration = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): number => {
   if (viewMode === 'month') {
+    // For month view, calculate days difference
+    const daysDiff = differenceInDays(endDate, startDate);
+    return Math.max(1, daysDiff + 1);
+  } else if (viewMode === 'year') {
+    // For year view, calculate months difference
     const monthsDiff = differenceInMonths(endDate, startDate);
     return Math.max(1, monthsDiff + 1);
-  } else if (viewMode === 'year') {
-    const quartersDiff = differenceInQuarters(endDate, startDate);
-    return Math.max(1, quartersDiff + 1);
   }
   return 1;
 };
@@ -34,10 +36,10 @@ export const calculateDuration = (startDate: Date, endDate: Date, viewMode: Time
 export const getTimeUnitLabel = (viewMode: TimelineViewMode): string => {
   switch (viewMode) {
     case 'month':
-      return 'months';
+      return 'days';
     case 'year':
-      return 'quarters';
-    default:
       return 'months';
+    default:
+      return 'days';
   }
 };

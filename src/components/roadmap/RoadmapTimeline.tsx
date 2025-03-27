@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -23,6 +24,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
+import { getDaysInMonth } from 'date-fns';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -36,6 +38,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ]);
   const [quarters] = useState(['Q1', 'Q2', 'Q3', 'Q4']);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
   const [selectedItem, setSelectedItem] = useState<SubGoalTimelineItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
@@ -45,13 +49,19 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
   
+  // Generate days for the current month
+  const getDaysInCurrentMonth = () => {
+    const daysCount = getDaysInMonth(new Date(currentYear, currentMonth));
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  };
+  
   // Get time units based on view mode
   const getTimeUnits = () => {
     switch (viewMode) {
       case 'month':
-        return months;
+        return getDaysInCurrentMonth();
       case 'year':
-        return quarters;
+        return months;
       default:
         return months;
     }
@@ -66,7 +76,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const containerWidth = timelineRef.current.clientWidth;
       // Leave some margin for scrollbar and padding
       const calculatedWidth = (containerWidth - 60) / timeUnitCount;
-      setCellWidth(Math.max(calculatedWidth, 80)); // Minimum 80px per cell
+      setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80)); // Smaller minimum for days
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
@@ -196,7 +206,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       description: '',
       progress: 0,
       row: 0,
-      start: today.getMonth(), // Use current month as start
+      start: viewMode === 'month' ? today.getDate() - 1 : today.getMonth(), // Use current day or month as start
       duration: 2,
       startDate: today.toISOString(),
       endDate: oneMonthLater.toISOString()
@@ -214,9 +224,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     if (!item.startDate) {
       const startDate = new Date();
       if (viewMode === 'month') {
-        startDate.setMonth(item.start);
+        startDate.setDate(item.start + 1); // Convert from 0-based to 1-based day
       } else if (viewMode === 'year') {
-        startDate.setMonth(item.start * 3); // Convert quarter to month
+        startDate.setMonth(item.start); // Month is already 0-based
       }
       item.startDate = startDate.toISOString();
     }
@@ -225,11 +235,11 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const startDate = new Date(item.startDate);
       const endDate = new Date(startDate);
       if (viewMode === 'month') {
-        endDate.setMonth(startDate.getMonth() + item.duration - 1);
+        endDate.setDate(startDate.getDate() + item.duration - 1);
       } else if (viewMode === 'year') {
-        endDate.setMonth(startDate.getMonth() + (item.duration * 3) - 1); // Convert quarters to months
+        endDate.setMonth(startDate.getMonth() + item.duration - 1);
       }
-      endDate.setDate(endDate.getDate() + 29); // End of the last month
+      endDate.setDate(endDate.getDate()); // End of the last day/month
       item.endDate = endDate.toISOString();
     }
     
@@ -254,11 +264,38 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const getHeaderLabel = () => {
     switch (viewMode) {
       case 'month':
-        return 'Months';
+        return `${months[currentMonth]} ${currentYear}`;
       case 'year':
-        return 'Quarters';
+        return `${currentYear}`;
       default:
-        return 'Months';
+        return `${months[currentMonth]} ${currentYear}`;
+    }
+  };
+  
+  // Change month/year
+  const navigatePrevious = () => {
+    if (viewMode === 'month') {
+      if (currentMonth === 0) {
+        setCurrentMonth(11);
+        setCurrentYear(currentYear - 1);
+      } else {
+        setCurrentMonth(currentMonth - 1);
+      }
+    } else {
+      setCurrentYear(currentYear - 1);
+    }
+  };
+  
+  const navigateNext = () => {
+    if (viewMode === 'month') {
+      if (currentMonth === 11) {
+        setCurrentMonth(0);
+        setCurrentYear(currentYear + 1);
+      } else {
+        setCurrentMonth(currentMonth + 1);
+      }
+    } else {
+      setCurrentYear(currentYear + 1);
     }
   };
   
@@ -267,11 +304,26 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     <div className="rounded-lg border border-slate-800 bg-slate-900/70 backdrop-blur-sm overflow-hidden shadow-xl">
       {/* Timeline header with time units */}
       <div className="border-b border-slate-800 p-2 bg-slate-800/50">
+        <div className="flex justify-between items-center mb-2">
+          <button 
+            onClick={navigatePrevious}
+            className="px-2 py-1 rounded hover:bg-slate-700 transition-colors"
+          >
+            &lt;
+          </button>
+          <h3 className="text-sm font-medium text-slate-300">{getHeaderLabel()}</h3>
+          <button 
+            onClick={navigateNext}
+            className="px-2 py-1 rounded hover:bg-slate-700 transition-colors"
+          >
+            &gt;
+          </button>
+        </div>
         <div className="flex">
           {timeUnits.map((unit, idx) => (
             <div 
-              key={unit.toString()}
-              className="text-center text-sm font-medium text-slate-300"
+              key={`unit-${idx}`}
+              className="text-center text-xs font-medium text-slate-300"
               style={{ minWidth: `${cellWidth}px`, flexGrow: 1 }}
             >
               {unit}

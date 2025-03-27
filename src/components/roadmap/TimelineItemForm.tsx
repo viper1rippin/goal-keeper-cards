@@ -53,8 +53,8 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
   viewMode,
 }) => {
   // Create refs for popover control
-  const startDatePopoverRef = useRef<{ setOpen: (open: boolean) => void }>(null);
-  const endDatePopoverRef = useRef<{ setOpen: (open: boolean) => void }>(null);
+  const startDatePopoverRef = useRef<HTMLButtonElement>(null);
+  const endDatePopoverRef = useRef<HTMLButtonElement>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -108,6 +108,15 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
     };
     
     onSave(updatedItem);
+  };
+
+  const handleDateSelect = (date: Date | undefined, updateFn: (value: string) => void) => {
+    if (date) {
+      updateFn(date.toISOString());
+      
+      // Use a click outside approach to close the popover
+      document.body.click();
+    }
   };
 
   return (
@@ -166,6 +175,7 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          ref={startDatePopoverRef}
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
@@ -185,42 +195,9 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                       <Calendar
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            field.onChange(date.toISOString());
-                            
-                            // Close the popover after selection
-                            // By clicking outside - this is a safer method than keyboard events
-                            const popoverElement = document.querySelector('[data-radix-popper-content-wrapper]');
-                            if (popoverElement) {
-                              // First hide any elements that might be blocking the click
-                              const originalVisibility = [];
-                              const elementsInsidePopover = popoverElement.querySelectorAll('*');
-                              elementsInsidePopover.forEach((element) => {
-                                originalVisibility.push(element.style.visibility);
-                                element.style.visibility = 'hidden';
-                              });
-                              
-                              // Create and dispatch a click event outside the popover
-                              const clickEvent = new MouseEvent('mousedown', {
-                                bubbles: true,
-                                cancelable: true,
-                                view: window,
-                                buttons: 1
-                              });
-                              document.body.dispatchEvent(clickEvent);
-                              
-                              // Restore visibility
-                              setTimeout(() => {
-                                elementsInsidePopover.forEach((element, index) => {
-                                  element.style.visibility = originalVisibility[index];
-                                });
-                              }, 0);
-                            }
-                          }
-                        }}
+                        onSelect={(date) => handleDateSelect(date, field.onChange)}
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -239,6 +216,7 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          ref={endDatePopoverRef}
                           variant={"outline"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
@@ -258,42 +236,9 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                       <Calendar
                         mode="single"
                         selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => {
-                          if (date) {
-                            field.onChange(date.toISOString());
-                            
-                            // Close the popover after selection
-                            // By clicking outside - this is a safer method than keyboard events
-                            const popoverElement = document.querySelector('[data-radix-popper-content-wrapper]');
-                            if (popoverElement) {
-                              // First hide any elements that might be blocking the click
-                              const originalVisibility = [];
-                              const elementsInsidePopover = popoverElement.querySelectorAll('*');
-                              elementsInsidePopover.forEach((element) => {
-                                originalVisibility.push(element.style.visibility);
-                                element.style.visibility = 'hidden';
-                              });
-                              
-                              // Create and dispatch a click event outside the popover
-                              const clickEvent = new MouseEvent('mousedown', {
-                                bubbles: true,
-                                cancelable: true,
-                                view: window,
-                                buttons: 1
-                              });
-                              document.body.dispatchEvent(clickEvent);
-                              
-                              // Restore visibility
-                              setTimeout(() => {
-                                elementsInsidePopover.forEach((element, index) => {
-                                  element.style.visibility = originalVisibility[index];
-                                });
-                              }, 0);
-                            }
-                          }
-                        }}
+                        onSelect={(date) => handleDateSelect(date, field.onChange)}
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
