@@ -12,6 +12,8 @@ interface SubGoalTimelineFormProps {
 }
 
 const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = (props) => {
+  // This component is a simple wrapper around TimelineItemForm
+  // We pass all props directly to TimelineItemForm
   return <TimelineItemForm {...props} />;
 };
 

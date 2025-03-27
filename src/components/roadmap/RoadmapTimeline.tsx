@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -50,13 +49,11 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
   
-  // Generate days for the current month
   const getDaysInCurrentMonth = () => {
     const daysCount = getDaysInMonth(new Date(currentYear, currentMonth));
     return Array.from({ length: daysCount }, (_, i) => i + 1);
   };
   
-  // Get time units based on view mode
   const getTimeUnits = () => {
     switch (viewMode) {
       case 'month':
@@ -71,17 +68,14 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const timeUnits = getTimeUnits();
   const timeUnitCount = timeUnits.length;
   
-  // Calculate cell width based on container size and view mode
   useEffect(() => {
     if (timelineRef.current) {
       const containerWidth = timelineRef.current.clientWidth;
-      // Leave some margin for scrollbar and padding
       const calculatedWidth = (containerWidth - 60) / timeUnitCount;
-      setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80)); // Smaller minimum for days
+      setCellWidth(Math.max(calculatedWidth, viewMode === 'month' ? 30 : 80));
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
-  // Add sensors for drag operations
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
@@ -96,26 +90,21 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     useSensor(KeyboardSensor, {})
   );
   
-  // Calculate the maximum row value to determine the height
   useEffect(() => {
     if (items.length === 0) return;
     
     const maxRowValue = Math.max(...items.map(item => item.row));
-    setMaxRow(Math.max(maxRowValue + 1, 3)); // Ensure at least 3 rows
+    setMaxRow(Math.max(maxRowValue + 1, 3));
   }, [items]);
   
-  // Handle drag start
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setDraggingItemId(active.id as string);
   };
   
-  // Handle drag move
   const handleDragMove = (event: DragMoveEvent) => {
-    // Currently empty, but needed for future features
   };
   
-  // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -124,18 +113,15 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       return;
     }
     
-    // Find the dragged item
     const draggedItem = items.find(item => item.id === active.id);
     if (!draggedItem) {
       setDraggingItemId(null);
       return;
     }
     
-    // Calculate new position
     if (timelineRef.current) {
       const rect = timelineRef.current.getBoundingClientRect();
       
-      // Safely access clientX and clientY
       const clientX = event.activatorEvent instanceof MouseEvent 
         ? event.activatorEvent.clientX 
         : event.activatorEvent instanceof TouchEvent 
@@ -151,14 +137,11 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const relativeX = clientX - rect.left;
       const relativeY = clientY - rect.top;
       
-      // Calculate new position
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
-      // Update the item's position
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
-          // Update dates based on new timeline position
           const { startDate, endDate } = updateDatesFromTimelinePosition(
             { ...item, start: newCell },
             viewMode,
@@ -183,14 +166,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setDraggingItemId(null);
   };
   
-  // Handle resizing an item
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
-        // Get the current start date
-        const startDate = item.startDate ? new Date(item.startDate) : new Date(currentYear, currentMonth, item.start + 1);
-        
-        // Calculate new end date based on the updated duration
         const { startDate: newStartDate, endDate: newEndDate } = updateDatesFromTimelinePosition(
           { ...item, duration: newDuration },
           viewMode,
@@ -211,20 +189,16 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     onItemsChange(updatedItems);
   };
   
-  // Open item form for editing
   const handleEditItem = (item: SubGoalTimelineItem) => {
     setSelectedItem(item);
     setOpenForm(true);
   };
   
-  // Open form for new item
   const handleAddItem = () => {
-    // Generate default dates for new items
     const today = new Date(currentYear, currentMonth, 1);
     const oneMonthLater = new Date(today);
     oneMonthLater.setMonth(today.getMonth() + 1);
     
-    // Calculate proper start position based on view mode
     const start = viewMode === 'month' ? 0 : today.getMonth();
     
     const newItem: SubGoalTimelineItem = {
@@ -244,11 +218,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setOpenForm(true);
   };
   
-  // Save item changes
   const handleSaveItem = (item: SubGoalTimelineItem) => {
     const isEditing = items.some(i => i.id === item.id);
     
-    // Ensure dates are properly set if not provided
     if (!item.startDate) {
       const { startDate, endDate } = updateDatesFromTimelinePosition(
         item,
@@ -269,7 +241,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setSelectedItem(null);
   };
   
-  // Delete an item
   const handleDeleteItem = (itemId: string) => {
     const updatedItems = items.filter(item => item.id !== itemId);
     onItemsChange(updatedItems);
@@ -277,7 +248,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setSelectedItem(null);
   };
   
-  // Get header label based on view mode
   const getHeaderLabel = () => {
     switch (viewMode) {
       case 'month':
@@ -289,7 +259,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   };
   
-  // Change month/year
   const navigatePrevious = () => {
     if (viewMode === 'month') {
       if (currentMonth === 0) {
@@ -316,10 +285,8 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   };
   
-  // Render timeline with months and items
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-900/70 backdrop-blur-sm overflow-hidden shadow-xl">
-      {/* Timeline header with time units */}
       <div className="border-b border-slate-800 p-2 bg-slate-800/50">
         <div className="flex justify-between items-center mb-2">
           <button 
@@ -349,13 +316,11 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         </div>
       </div>
       
-      {/* Timeline body */}
       <div 
         className="relative overflow-x-auto"
         style={{ height: `${maxRow * 100 + 50}px` }}
         ref={timelineRef}
       >
-        {/* Time unit dividers */}
         <div className="absolute inset-0 flex pointer-events-none">
           {timeUnits.map((_, idx) => (
             <div 
@@ -366,7 +331,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           ))}
         </div>
         
-        {/* Row dividers */}
         <div className="absolute inset-0 pointer-events-none">
           {Array.from({ length: maxRow }).map((_, idx) => (
             <div 
@@ -377,7 +341,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           ))}
         </div>
         
-        {/* Drag and drop context */}
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
@@ -387,7 +350,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           modifiers={[restrictToParentElement]}
         >
           <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-            {/* Timeline items */}
             <div className="absolute inset-0">
               {items.map((item) => (
                 <div
@@ -410,7 +372,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
                 </div>
               ))}
               
-              {/* Add button at the bottom */}
               <button
                 onClick={handleAddItem}
                 className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
@@ -423,7 +384,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
             </div>
           </SortableContext>
           
-          {/* Drag overlay */}
           <DragOverlay>
             {draggingItemId ? (
               <div className="opacity-80">
@@ -448,7 +408,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         </DndContext>
       </div>
       
-      {/* Item edit dialog */}
       <Dialog open={openForm} onOpenChange={setOpenForm}>
         <DialogContent className="sm:max-w-[500px]">
           {selectedItem && (

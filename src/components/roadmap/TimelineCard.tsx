@@ -40,6 +40,7 @@ const TimelineCard = ({
     if (!isResizing) {
       setCurrentWidth(`${item.duration * cellWidth}px`);
       setTempDuration(item.duration);
+      setInitialDuration(item.duration);
     }
   }, [item.duration, cellWidth, isResizing]);
   
@@ -98,7 +99,7 @@ const TimelineCard = ({
     setIsResizing(false);
     
     // Only call the callback if the duration actually changed
-    if (tempDuration !== item.duration && onResize) {
+    if (tempDuration !== initialDuration && onResize) {
       onResize(item.id, tempDuration);
     }
     

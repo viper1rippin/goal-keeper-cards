@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
@@ -24,6 +23,7 @@ const Roadmap = () => {
   const [parentGoals, setParentGoals] = useState<ParentGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastSaveTimestamp, setLastSaveTimestamp] = useState(Date.now());
+  const [isDirty, setIsDirty] = useState(false);
   
   useEffect(() => {
     const fetchParentGoals = async () => {
@@ -104,6 +104,7 @@ const Roadmap = () => {
         });
       } finally {
         setIsLoading(false);
+        setIsDirty(false);
       }
     };
     
@@ -146,6 +147,7 @@ const Roadmap = () => {
   const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
     // Update the local state immediately for visual feedback
     setRoadmapItems(updatedItems);
+    setIsDirty(true);
     
     // Only proceed with DB updates if user is authenticated and roadmap is selected
     if (user && selectedRoadmapId) {
@@ -266,6 +268,7 @@ const Roadmap = () => {
       // If any database operation was successful, update the timestamp to trigger a data refresh
       if (databaseUpdated) {
         setLastSaveTimestamp(Date.now());
+        setIsDirty(false);
         
         if (updateErrors > 0) {
           toast({
