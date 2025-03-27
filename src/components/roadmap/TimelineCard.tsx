@@ -56,6 +56,7 @@ const TimelineCard = ({
     e.stopPropagation();
     e.preventDefault();
     
+    // Lower the threshold to start resizing
     setIsResizing(true);
     setResizeStartX(e.clientX);
     setInitialDuration(tempDuration);
@@ -75,27 +76,27 @@ const TimelineCard = ({
     
     const deltaX = e.clientX - resizeStartX;
     
-    // Make resize more responsive by using a smaller threshold
-    // Changed from Math.round(deltaX / cellWidth) to make it more sensitive
-    const deltaUnits = deltaX / cellWidth;
+    // Increase sensitivity with a smaller divisor
+    // Using 0.5 instead of 1 for cellWidth to make it twice as sensitive
+    const deltaUnits = deltaX / (cellWidth * 0.5);
     
-    // Calculate new duration with decimal precision first
+    // Calculate new duration with high precision for smoother visual experience
     const preciseNewDuration = initialDuration + deltaUnits;
     
-    // Then round to nearest integer for actual duration value
-    const newDuration = Math.max(1, Math.round(preciseNewDuration));
+    // Then round to nearest 0.1 for visual smoothness, but we'll still use integer for actual data
+    const visualDuration = Math.max(0.5, preciseNewDuration);
     
-    // Update the visual width immediately for smooth resizing
-    // Use the precise calculation for the width to make resizing feel more fluid
-    setCurrentWidth(`${preciseNewDuration * cellWidth}px`);
+    // Update the visual width immediately with the precise calculation
+    setCurrentWidth(`${visualDuration * cellWidth}px`);
     
-    // Only update the actual duration value when it changes to an integer
-    if (tempDuration !== newDuration) {
-      setTempDuration(newDuration);
+    // Round to integer for actual duration data updates, but only when it changes
+    const newIntDuration = Math.max(1, Math.round(preciseNewDuration));
+    if (tempDuration !== newIntDuration) {
+      setTempDuration(newIntDuration);
       
-      // Call onResize during resize move for immediate feedback
+      // Provide immediate feedback
       if (onResize) {
-        onResize(item.id, newDuration);
+        onResize(item.id, newIntDuration);
       }
     }
   };
@@ -133,10 +134,24 @@ const TimelineCard = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 2 && onDragStart) { // Right mouse button
-      e.preventDefault();
-      e.stopPropagation();
-      onDragStart(e, item.id);
+    // Make dragging more sensitive by triggering on any click, not just right click
+    if (onDragStart) {
+      // Detect left click
+      if (e.button === 0) {
+        // Only if we're grabbing via the handle area or header
+        const target = e.target as HTMLElement;
+        if (target.closest('.drag-handle') || target.closest('.card-header')) {
+          e.preventDefault();
+          e.stopPropagation();
+          onDragStart(e, item.id);
+        }
+      }
+      // Also support right click for alternative dragging
+      else if (e.button === 2) {
+        e.preventDefault();
+        e.stopPropagation();
+        onDragStart(e, item.id);
+      }
     }
   };
 
@@ -174,7 +189,7 @@ const TimelineCard = ({
         )}
       >
         <div 
-          className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
+          className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10 drag-handle"
         >
           <GripHorizontal size={12} />
         </div>
@@ -192,7 +207,7 @@ const TimelineCard = ({
           </button>
         )}
         
-        <div className="flex flex-col h-full relative z-2 pt-3">
+        <div className="flex flex-col h-full relative z-2 pt-3 card-header">
           <h3 className="font-medium text-sm text-white line-clamp-1">{item.title}</h3>
           
           {shouldShowExpandedDetails && (
@@ -225,9 +240,9 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-8 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
-              isResizing && "after:opacity-100 bg-white/10"
+              "absolute right-0 top-0 bottom-0 w-12 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-3 after:bg-white/40 after:opacity-40 hover:after:opacity-100 active:after:opacity-100",
+              isResizing && "after:opacity-100 bg-white/20"
             )}
             onMouseDown={handleResizeStart}
             onTouchStart={(e) => {
@@ -238,7 +253,7 @@ const TimelineCard = ({
         )}
         
         {isResizing && (
-          <div className="absolute inset-0 border-2 border-white/50 rounded-lg pointer-events-none z-20"></div>
+          <div className="absolute inset-0 border-2 border-white/70 rounded-lg pointer-events-none z-20"></div>
         )}
       </div>
     </div>
