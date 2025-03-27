@@ -24,7 +24,7 @@ import {
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
-import { updateDatesFromTimelinePosition } from './utils/timelineUtils';
+import { updateDatesFromTimelinePosition, calculateEndDateFromDurationChange } from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -169,19 +169,33 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleResizeItem = (itemId: string, newDuration: number) => {
     const updatedItems = items.map(item => {
       if (item.id === itemId) {
-        const { startDate: newStartDate, endDate: newEndDate } = updateDatesFromTimelinePosition(
-          { ...item, duration: newDuration },
-          viewMode,
-          currentYear,
-          currentMonth
-        );
+        const updatedItem = { ...item, duration: newDuration };
         
-        return {
-          ...item,
-          duration: newDuration,
-          startDate: newStartDate,
-          endDate: newEndDate
-        };
+        if (updatedItem.startDate) {
+          const startDate = new Date(updatedItem.startDate);
+          const newEndDate = calculateEndDateFromDurationChange(
+            startDate,
+            item.duration,
+            newDuration,
+            viewMode
+          );
+          
+          updatedItem.endDate = newEndDate.toISOString();
+        } else {
+          const { startDate, endDate } = updateDatesFromTimelinePosition(
+            updatedItem,
+            viewMode,
+            currentYear,
+            currentMonth
+          );
+          
+          updatedItem.startDate = startDate;
+          updatedItem.endDate = endDate;
+        }
+        
+        console.log(`Resized item ${itemId}: duration ${item.duration} → ${newDuration}, dates: ${updatedItem.startDate} → ${updatedItem.endDate}`);
+        
+        return updatedItem;
       }
       return item;
     });

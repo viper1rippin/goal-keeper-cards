@@ -145,6 +145,8 @@ const Roadmap = () => {
   }, [selectedRoadmapId, parentGoals]);
   
   const handleItemsChange = async (updatedItems: SubGoalTimelineItem[]) => {
+    console.log("Handling items change:", updatedItems);
+    
     // Update the local state immediately for visual feedback
     setRoadmapItems(updatedItems);
     setIsDirty(true);

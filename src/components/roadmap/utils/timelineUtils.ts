@@ -53,6 +53,7 @@ export const calculateEndDateFromDurationChange = (
   newDuration: number, 
   viewMode: TimelineViewMode
 ): Date => {
+  // Create a copy of the start date
   const endDate = new Date(startDate);
   
   if (viewMode === 'month') {
