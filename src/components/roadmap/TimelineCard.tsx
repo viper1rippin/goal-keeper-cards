@@ -74,7 +74,17 @@ const TimelineCard = ({
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
-    const deltaUnits = Math.round(deltaX / cellWidth);
+    
+    // Much more sensitive calculation - using a very small divisor
+    // This makes resizing happen with minimal mouse movement
+    const divisor = Math.max(cellWidth * 0.2, 5); // Use just 20% of cell width or minimum 5px
+    
+    // Use Math.floor for drag right (positive delta) and Math.ceil for drag left (negative delta)
+    // This makes the card resize as soon as you start dragging
+    const deltaUnits = deltaX >= 0 
+      ? Math.floor(deltaX / divisor) 
+      : Math.ceil(deltaX / divisor);
+    
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
     // Update the visual width immediately for smooth resizing
@@ -212,8 +222,8 @@ const TimelineCard = ({
           <div 
             ref={resizeRef}
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-6 cursor-ew-resize hover:bg-white/20",
-              "after:content-[''] after:absolute after:right-0 after:h-full after:w-2 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
+              "absolute right-0 top-0 bottom-0 w-12 cursor-ew-resize hover:bg-white/20",
+              "after:content-[''] after:absolute after:right-0 after:h-full after:w-3 after:bg-white/40 after:opacity-30 hover:after:opacity-100",
               isResizing && "after:opacity-100 bg-white/10"
             )}
             onMouseDown={handleResizeStart}
