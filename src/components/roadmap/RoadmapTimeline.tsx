@@ -17,7 +17,6 @@ import {
   KeyboardSensor,
   pointerWithin,
 } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 
@@ -67,16 +66,16 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
-  // Add sensors for drag operations with reduced activation constraint for easier dragging
+  // Add sensors for drag operations
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 2, // Reduced from 5 to make dragging easier
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        distance: 2, // Reduced from 5 to make dragging easier
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {})
@@ -94,19 +93,16 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setDraggingItemId(active.id as string);
-    console.log('Drag started for item:', active.id);
   };
   
   // Handle drag move
   const handleDragMove = (event: DragMoveEvent) => {
-    // Implement for future position preview
-    console.log('Drag move event:', event.delta);
+    // Currently empty, but needed for future features
   };
   
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('Drag ended. Active:', active.id, 'Over:', over?.id);
     
     if (!over) {
       setDraggingItemId(null);
@@ -140,13 +136,9 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
       const relativeX = clientX - rect.left;
       const relativeY = clientY - rect.top;
       
-      console.log('Drop position - X:', relativeX, 'Y:', relativeY);
-      
       // Calculate new position
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
-      
-      console.log('New position - Cell:', newCell, 'Row:', newRow);
       
       // Update the item's position
       const updatedItems = items.map(item => {
@@ -189,34 +181,13 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   // Open form for new item
   const handleAddItem = () => {
-    // Calculate a better initial position for the new item
-    // Find an available position by checking existing items
-    const usedPositions = new Set(items.map(item => `${item.row}-${item.start}`));
-    
-    let newRow = 0;
-    let newStart = 0;
-    let found = false;
-    
-    // Find an empty position
-    for (let r = 0; r < maxRow; r++) {
-      for (let s = 0; s < timeUnitCount - 1; s++) {
-        if (!usedPositions.has(`${r}-${s}`)) {
-          newRow = r;
-          newStart = s;
-          found = true;
-          break;
-        }
-      }
-      if (found) break;
-    }
-    
     const newItem: SubGoalTimelineItem = {
       id: `item-${Date.now()}`,
       title: 'New Item',
       description: '',
       progress: 0,
-      row: newRow,
-      start: newStart,
+      row: 0,
+      start: 0,
       duration: 2,
       category: 'default'
     };
@@ -315,28 +286,26 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         >
           {/* Timeline items */}
           <div className="absolute inset-0">
-            <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="absolute"
-                  style={{ 
-                    top: `${item.row * 100 + 10}px`,
-                    left: `${item.start * cellWidth}px`,
-                  }}
-                >
-                  <TimelineCard
-                    item={item}
-                    isSelected={selectedItem?.id === item.id}
-                    onSelect={() => setSelectedItem(item)}
-                    onEdit={() => handleEditItem(item)}
-                    onResize={handleResizeItem}
-                    cellWidth={cellWidth}
-                    viewMode={viewMode}
-                  />
-                </div>
-              ))}
-            </SortableContext>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="absolute"
+                style={{ 
+                  top: `${item.row * 100 + 10}px`,
+                  left: `${item.start * cellWidth}px`,
+                }}
+              >
+                <TimelineCard
+                  item={item}
+                  isSelected={selectedItem?.id === item.id}
+                  onSelect={() => setSelectedItem(item)}
+                  onEdit={() => handleEditItem(item)}
+                  onResize={handleResizeItem}
+                  cellWidth={cellWidth}
+                  viewMode={viewMode}
+                />
+              </div>
+            ))}
             
             {/* Add button at the bottom */}
             <button

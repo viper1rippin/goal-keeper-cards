@@ -11,18 +11,18 @@ const IndexPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   return (
-    <div className="flex min-h-screen">
-      <Sidebar onCollapseChange={setSidebarCollapsed} />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
-        <IndexPageProvider>
+    <IndexPageProvider>
+      <div className="flex min-h-screen">
+        <Sidebar onCollapseChange={setSidebarCollapsed} />
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
           <AnimatedContainer className="flex-1 container mx-auto px-4 py-8">
             <GoalsContent />
             <DialogManager />
           </AnimatedContainer>
-        </IndexPageProvider>
-        <Footer />
+          <Footer />
+        </div>
       </div>
-    </div>
+    </IndexPageProvider>
   );
 };
 
