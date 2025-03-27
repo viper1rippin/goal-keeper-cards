@@ -112,7 +112,7 @@ const TimelineCard = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.button === 0 || e.button === 2) && onDragStart) {
+    if (e.button === 2 && onDragStart) {
       e.preventDefault();
       e.stopPropagation();
       onDragStart(e, item.id);
@@ -154,12 +154,6 @@ const TimelineCard = ({
       >
         <div 
           className="absolute top-1 left-1 p-1 text-white/70 hover:text-white hover:bg-white/10 rounded opacity-70 hover:opacity-100 transition-all cursor-grab z-10"
-          onMouseDown={(e) => {
-            if (onDragStart) {
-              e.stopPropagation();
-              onDragStart(e, item.id);
-            }
-          }}
         >
           <GripHorizontal size={12} />
         </div>

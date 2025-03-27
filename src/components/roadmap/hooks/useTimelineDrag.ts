@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from '../types';
 import { calculateCellFromPosition, calculateRowFromPosition, updateDatesFromTimelinePosition } from '../utils/timelineUtils';
@@ -70,12 +71,9 @@ export const useTimelineDrag = ({
       }
     });
     
-    // Add document event listeners with immediate activation
+    // Add document event listeners
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
-    
-    // Set cursor style for better feedback
-    document.body.style.cursor = 'grabbing';
     
     // Prevent default behavior
     e.preventDefault();
@@ -86,11 +84,11 @@ export const useTimelineDrag = ({
     
     const timelineRect = timelineRef.current.getBoundingClientRect();
     
-    // Calculate position relative to timeline with no threshold
+    // Calculate position relative to timeline
     const relativeX = e.clientX - timelineRect.left - dragState.dragOffset.x;
     const relativeY = e.clientY - timelineRect.top - dragState.dragOffset.y;
     
-    // Update ghost position for visual feedback immediately
+    // Update ghost position for visual feedback
     setDragState(prev => ({
       ...prev,
       ghostPosition: {
@@ -152,9 +150,6 @@ export const useTimelineDrag = ({
   };
   
   const cleanup = () => {
-    // Reset cursor style
-    document.body.style.cursor = '';
-    
     setDragState({
       isDragging: false,
       draggingItemId: null,
@@ -175,7 +170,6 @@ export const useTimelineDrag = ({
     return () => {
       document.removeEventListener('mousemove', handleDragMove);
       document.removeEventListener('mouseup', handleDragEnd);
-      document.body.style.cursor = '';
     };
   }, []);
   
