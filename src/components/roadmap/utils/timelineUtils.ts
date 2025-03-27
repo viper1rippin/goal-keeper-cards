@@ -1,6 +1,6 @@
 
 import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
-import { TimelineViewMode } from '../types';
+import { TimelineViewMode, SubGoalTimelineItem } from '../types';
 
 /**
  * Calculates the start position in the timeline based on the date and view mode
@@ -127,11 +127,11 @@ export const updateDatesFromTimelinePosition = (
  * Synchronizes timeline position with actual dates
  */
 export const syncTimelineItemWithDates = (
-  item: { startDate?: string; endDate?: string; start: number; duration: number },
+  item: SubGoalTimelineItem,
   currentYear: number,
   currentMonth: number,
   viewMode: TimelineViewMode
-) => {
+): SubGoalTimelineItem => {
   if (item.startDate && item.endDate) {
     const startDate = new Date(item.startDate);
     const endDate = new Date(item.endDate);
