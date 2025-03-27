@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -32,6 +31,7 @@ const formSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   progress: z.number().min(0).max(100),
+  duration: z.number().optional(),
 });
 
 interface SubGoalTimelineFormProps {
@@ -60,10 +60,10 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       startDate: item.startDate || '',
       endDate: item.endDate || '',
       progress: item.progress,
+      duration: item.duration,
     },
   });
 
-  // Calculate timeline positions when dates change
   useEffect(() => {
     const startDate = form.watch('startDate');
     const endDate = form.watch('endDate');
@@ -72,40 +72,30 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       const startDateObj = new Date(startDate);
       const endDateObj = new Date(endDate);
       
-      // Calculate timeline start position based on view mode
       const start = calculateStartPosition(startDateObj, viewMode);
       form.setValue('start', start);
       
-      // Calculate duration based on view mode
       const duration = calculateDuration(startDateObj, endDateObj, viewMode);
-      
-      // We'll use this duration when saving the form
       form.setValue('duration', duration);
     }
   }, [form.watch('startDate'), form.watch('endDate'), viewMode]);
 
-  // Calculate start position based on the date and view mode
   const calculateStartPosition = (date: Date, viewMode: TimelineViewMode): number => {
     if (viewMode === 'month') {
-      // For month view, return the month index (0-11)
       return date.getMonth();
     } else if (viewMode === 'year') {
-      // For year view, return the quarter index (0-3)
       return Math.floor(date.getMonth() / 3);
     }
     return 0;
   };
 
-  // Calculate duration based on start and end dates and view mode
   const calculateDuration = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): number => {
     if (viewMode === 'month') {
-      // Calculate duration in months, minimum 1
       const monthsDiff = differenceInMonths(endDate, startDate);
-      return Math.max(1, monthsDiff + 1); // +1 to include the start month
+      return Math.max(1, monthsDiff + 1);
     } else if (viewMode === 'year') {
-      // Calculate duration in quarters, minimum 1
       const quartersDiff = differenceInQuarters(endDate, startDate);
-      return Math.max(1, quartersDiff + 1); // +1 to include the start quarter
+      return Math.max(1, quartersDiff + 1);
     }
     return 1;
   };
@@ -114,8 +104,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
     const startDateObj = values.startDate ? new Date(values.startDate) : new Date();
     const endDateObj = values.endDate ? new Date(values.endDate) : addMonths(startDateObj, 1);
     
-    // Calculate duration for saving
-    const duration = calculateDuration(startDateObj, endDateObj, viewMode);
+    const duration = values.duration || calculateDuration(startDateObj, endDateObj, viewMode);
     
     const updatedItem: SubGoalTimelineItem = {
       id: values.id,
@@ -123,7 +112,7 @@ const SubGoalTimelineForm: React.FC<SubGoalTimelineFormProps> = ({
       description: values.description || '',
       row: values.row,
       start: values.start,
-      duration: duration, // Use calculated duration
+      duration: duration,
       progress: values.progress,
       startDate: values.startDate,
       endDate: values.endDate,
