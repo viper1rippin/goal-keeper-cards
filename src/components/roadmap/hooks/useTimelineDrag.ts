@@ -71,9 +71,9 @@ export const useTimelineDrag = ({
       }
     });
     
-    // Add document event listeners with capture to ensure we get all events
-    document.addEventListener('mousemove', handleDragMove, { capture: true });
-    document.addEventListener('mouseup', handleDragEnd, { capture: true });
+    // Add document event listeners
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('mouseup', handleDragEnd);
     
     // Prevent default behavior
     e.preventDefault();
@@ -96,10 +96,6 @@ export const useTimelineDrag = ({
         top: relativeY
       }
     }));
-    
-    // Prevent default and stop propagation
-    e.preventDefault();
-    e.stopPropagation();
   };
   
   const handleDragEnd = (e: MouseEvent) => {
@@ -151,10 +147,6 @@ export const useTimelineDrag = ({
     // Update state
     onItemsChange(updatedItems);
     cleanup();
-    
-    // Prevent default and stop propagation
-    e.preventDefault();
-    e.stopPropagation();
   };
   
   const cleanup = () => {
@@ -169,15 +161,15 @@ export const useTimelineDrag = ({
     });
     
     // Remove document event listeners
-    document.removeEventListener('mousemove', handleDragMove, { capture: true });
-    document.removeEventListener('mouseup', handleDragEnd, { capture: true });
+    document.removeEventListener('mousemove', handleDragMove);
+    document.removeEventListener('mouseup', handleDragEnd);
   };
   
   // Cleanup effect for unmounting
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleDragMove, { capture: true });
-      document.removeEventListener('mouseup', handleDragEnd, { capture: true });
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
     };
   }, []);
   

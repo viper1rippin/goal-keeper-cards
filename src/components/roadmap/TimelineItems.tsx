@@ -30,11 +30,6 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
   onSelectItem,
   onDragStart
 }) => {
-  // Find the dragged item data
-  const draggedItem = isDragging && draggingItemId 
-    ? items.find(item => item.id === draggingItemId) 
-    : null;
-
   return (
     <div className="absolute inset-0">
       {items.map((item) => (
@@ -45,7 +40,6 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
             top: `${item.row * 100 + 10}px`,
             left: `${item.start * cellWidth}px`,
             opacity: isDragging && draggingItemId === item.id ? 0.4 : 1,
-            transition: isDragging ? 'none' : 'opacity 0.2s ease-out',
           }}
         >
           <TimelineCard
@@ -61,27 +55,21 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
         </div>
       ))}
       
-      {/* Drag ghost element with more fluid visuals */}
-      {isDragging && draggingItemId && draggedItem && (
+      {/* Drag ghost element */}
+      {isDragging && draggingItemId && (
         <div 
-          className="absolute pointer-events-none transform-gpu z-50"
+          className="absolute pointer-events-none"
           style={{
             top: `${ghostPosition.top}px`,
             left: `${ghostPosition.left}px`,
-            width: `${draggedItem.duration * cellWidth}px`,
-            transition: 'none',
-            opacity: 0.9,
+            width: `${items.find(item => item.id === draggingItemId)?.duration || 1 * cellWidth}px`,
+            zIndex: 999,
           }}
         >
-          <div className="h-[80px] rounded-lg bg-emerald-500/90 border-2 border-white/90 shadow-xl shadow-black/40">
-            <div className="p-2 text-white truncate font-medium">
-              {draggedItem.title}
+          <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">
+            <div className="p-2 text-white truncate">
+              {items.find(item => item.id === draggingItemId)?.title}
             </div>
-            {draggedItem.description && (
-              <div className="px-2 pb-2 text-white/80 text-xs truncate">
-                {draggedItem.description}
-              </div>
-            )}
           </div>
         </div>
       )}
