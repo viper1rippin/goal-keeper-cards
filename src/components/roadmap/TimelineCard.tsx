@@ -4,9 +4,7 @@ import { SubGoalTimelineItem, TimelineViewMode } from "./types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Edit2, GripHorizontal, Calendar } from "lucide-react";
-import { format } from "date-fns";
-import { formatDateRange } from "./utils/timelineUtils";
+import { Edit2, GripHorizontal } from "lucide-react";
 
 interface TimelineCardProps {
   item: SubGoalTimelineItem;
@@ -16,8 +14,6 @@ interface TimelineCardProps {
   onResize?: (itemId: string, newDuration: number) => void;
   cellWidth: number;
   viewMode: TimelineViewMode;
-  currentMonth?: number;
-  currentYear?: number;
 }
 
 const TimelineCard = ({ 
@@ -27,9 +23,7 @@ const TimelineCard = ({
   onEdit,
   onResize,
   cellWidth,
-  viewMode,
-  currentMonth,
-  currentYear
+  viewMode
 }: TimelineCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -44,7 +38,6 @@ const TimelineCard = ({
   // Update width when duration or cellWidth changes
   useEffect(() => {
     if (!isResizing) {
-      // Ensure width is always an exact multiple of cellWidth for precise alignment
       setCurrentWidth(`${item.duration * cellWidth}px`);
       setTempDuration(item.duration);
     }
@@ -91,13 +84,11 @@ const TimelineCard = ({
     if (!isResizing) return;
     
     const deltaX = e.clientX - resizeStartX;
-    // Calculate exact cell units for precise grid alignment
     const deltaUnits = Math.round(deltaX / cellWidth);
     const newDuration = Math.max(1, initialDuration + deltaUnits);
     
-    // Update the visual width with exact cell multiples for perfect alignment
-    const exactWidth = newDuration * cellWidth;
-    setCurrentWidth(`${exactWidth}px`);
+    // Update the visual width immediately for smooth resizing
+    setCurrentWidth(`${newDuration * cellWidth}px`);
     setTempDuration(newDuration);
     
     // Call onResize during resize move for immediate feedback
@@ -127,21 +118,6 @@ const TimelineCard = ({
   };
 
   const shouldShowExpandedDetails = isSelected || isHovered || item.duration > 3;
-
-  // Format date range for display
-  const getDateRangeDisplay = () => {
-    if (item.startDate && item.endDate) {
-      const startDate = new Date(item.startDate);
-      const endDate = new Date(item.endDate);
-      
-      if (viewMode === 'month') {
-        return `${startDate.getDate()}-${endDate.getDate()} ${format(startDate, 'MMM')}`;
-      } else {
-        return `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd')}`;
-      }
-    }
-    return '';
-  };
 
   // Get label for duration based on view mode
   const getDurationLabel = () => {
@@ -213,13 +189,6 @@ const TimelineCard = ({
             <div className="mt-1 space-y-0.5">
               {item.description && (
                 <p className="text-xs text-white/80 line-clamp-2">{item.description}</p>
-              )}
-              
-              {item.startDate && item.endDate && (isHovered || isSelected) && (
-                <div className="flex items-center gap-1 mt-1">
-                  <Calendar size={10} className="text-white/80" />
-                  <p className="text-xs text-white/90">{getDateRangeDisplay()}</p>
-                </div>
               )}
               
               {isResizing && (

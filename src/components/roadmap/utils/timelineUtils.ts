@@ -1,16 +1,11 @@
-
 import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
  * Calculates the start position in the timeline based on the date and view mode
  */
-export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode, currentMonth?: number, currentYear?: number): number => {
-  if (viewMode === 'month' && currentMonth !== undefined && currentYear !== undefined) {
-    // If the date is not in the current month/year, return -1 to indicate it's out of range
-    if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
-      return -1;
-    }
+export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode): number => {
+  if (viewMode === 'month') {
     return date.getDate() - 1; // Convert from 1-based days to 0-based index
   } else if (viewMode === 'year') {
     return date.getMonth(); // Months are already 0-based
@@ -21,28 +16,10 @@ export const calculateStartPosition = (date: Date, viewMode: TimelineViewMode, c
 /**
  * Calculates the duration in the timeline based on start and end dates and view mode
  */
-export const calculateDuration = (startDate: Date, endDate: Date, viewMode: TimelineViewMode, currentMonth?: number, currentYear?: number): number => {
-  if (viewMode === 'month' && currentMonth !== undefined && currentYear !== undefined) {
-    const normalizedStartDate = new Date(startDate);
-    const normalizedEndDate = new Date(endDate);
-    
-    // Adjust dates if they fall outside the current month/year view
-    if (normalizedStartDate.getMonth() !== currentMonth || normalizedStartDate.getFullYear() !== currentYear) {
-      normalizedStartDate.setDate(1);
-      normalizedStartDate.setMonth(currentMonth);
-      normalizedStartDate.setFullYear(currentYear);
-    }
-    
-    // Ensure end date doesn't exceed the current month
-    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    if (normalizedEndDate.getMonth() !== currentMonth || normalizedEndDate.getFullYear() !== currentYear) {
-      normalizedEndDate.setDate(lastDayOfMonth);
-      normalizedEndDate.setMonth(currentMonth);
-      normalizedEndDate.setFullYear(currentYear);
-    }
-    
-    // Calculate days difference
-    const daysDiff = differenceInDays(normalizedEndDate, normalizedStartDate);
+export const calculateDuration = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): number => {
+  if (viewMode === 'month') {
+    // For month view, calculate days difference
+    const daysDiff = differenceInDays(endDate, startDate);
     return Math.max(1, daysDiff + 1);
   } else if (viewMode === 'year') {
     // For year view, calculate months difference
@@ -94,58 +71,3 @@ export const calculateEndDateFromDurationChange = (
   
   return endDate;
 };
-
-/**
- * Formats a start-end date range for display
- */
-export const formatDateRange = (startDate: Date, endDate: Date, viewMode: TimelineViewMode): string => {
-  if (viewMode === 'month') {
-    return `${startDate.getDate()} - ${endDate.getDate()}`;
-  } else if (viewMode === 'year') {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[startDate.getMonth()]} - ${months[endDate.getMonth()]}`;
-  }
-  return '';
-};
-
-/**
- * Determines if an item should be visible in the current month/year view
- */
-export const isItemVisibleInCurrentView = (
-  startDate: Date | undefined, 
-  endDate: Date | undefined, 
-  currentMonth: number, 
-  currentYear: number
-): boolean => {
-  if (!startDate || !endDate) return true;
-  
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  // Item starts before current month/year but extends into it
-  const startsBeforeButExtendsInto = 
-    (start.getFullYear() < currentYear || 
-     (start.getFullYear() === currentYear && start.getMonth() < currentMonth)) && 
-    (end.getFullYear() > currentYear || 
-     (end.getFullYear() === currentYear && end.getMonth() >= currentMonth));
-  
-  // Item starts in current month/year
-  const startsInCurrentMonthYear = 
-    start.getFullYear() === currentYear && 
-    start.getMonth() === currentMonth;
-  
-  // Item ends in current month/year
-  const endsInCurrentMonthYear = 
-    end.getFullYear() === currentYear && 
-    end.getMonth() === currentMonth;
-  
-  // Item spans over current month/year (starts before and ends after)
-  const spansOverCurrentMonthYear =
-    (start.getFullYear() < currentYear || 
-     (start.getFullYear() === currentYear && start.getMonth() < currentMonth)) &&
-    (end.getFullYear() > currentYear || 
-     (end.getFullYear() === currentYear && end.getMonth() > currentMonth));
-    
-  return startsInCurrentMonthYear || endsInCurrentMonthYear || spansOverCurrentMonthYear || startsBeforeButExtendsInto;
-};
-
