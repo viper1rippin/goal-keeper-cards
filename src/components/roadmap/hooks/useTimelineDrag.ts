@@ -55,7 +55,6 @@ export const useTimelineDrag = ({
     const timelineRect = timelineRef.current?.getBoundingClientRect();
     if (!timelineRect) return;
     
-    // Set the drag state immediately without any conditions
     setDragState({
       isDragging: true,
       draggingItemId: itemId,
@@ -85,11 +84,11 @@ export const useTimelineDrag = ({
     
     const timelineRect = timelineRef.current.getBoundingClientRect();
     
-    // Calculate position relative to timeline - respond immediately
+    // Calculate position relative to timeline
     const relativeX = e.clientX - timelineRect.left - dragState.dragOffset.x;
     const relativeY = e.clientY - timelineRect.top - dragState.dragOffset.y;
     
-    // Update ghost position for visual feedback immediately
+    // Update ghost position for visual feedback
     setDragState(prev => ({
       ...prev,
       ghostPosition: {
