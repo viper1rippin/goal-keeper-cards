@@ -55,10 +55,6 @@ export const useTimelineDrag = ({
     const timelineRect = timelineRef.current?.getBoundingClientRect();
     if (!timelineRect) return;
     
-    // Calculate exact offsets for smoother dragging
-    const itemLeft = item.start * cellWidth;
-    const itemTop = item.row * 100 + 10; // 10px is the top padding
-    
     setDragState({
       isDragging: true,
       draggingItemId: itemId,
@@ -66,21 +62,18 @@ export const useTimelineDrag = ({
       dragStartY: e.clientY,
       dragInitialPosition: { row: item.row, start: item.start },
       dragOffset: {
-        x: e.clientX - (timelineRect.left + itemLeft),
-        y: e.clientY - (timelineRect.top + itemTop)
+        x: e.clientX - (timelineRect.left + item.start * cellWidth),
+        y: e.clientY - (timelineRect.top + item.row * 100 + 10)
       },
       ghostPosition: {
-        left: itemLeft, 
-        top: itemTop
+        left: (item.start * cellWidth), 
+        top: (item.row * 100 + 10)
       }
     });
     
     // Add document event listeners
     document.addEventListener('mousemove', handleDragMove);
     document.addEventListener('mouseup', handleDragEnd);
-    
-    // Add dragging class to body for cursor changes
-    document.body.classList.add('timeline-dragging');
     
     // Prevent default behavior
     e.preventDefault();
@@ -95,16 +88,12 @@ export const useTimelineDrag = ({
     const relativeX = e.clientX - timelineRect.left - dragState.dragOffset.x;
     const relativeY = e.clientY - timelineRect.top - dragState.dragOffset.y;
     
-    // Calculate snapped grid positions
-    const snappedX = Math.max(0, relativeX);
-    const snappedY = Math.max(0, relativeY);
-    
     // Update ghost position for visual feedback
     setDragState(prev => ({
       ...prev,
       ghostPosition: {
-        left: snappedX,
-        top: snappedY
+        left: relativeX,
+        top: relativeY
       }
     }));
   };
@@ -125,42 +114,38 @@ export const useTimelineDrag = ({
     }
     
     // Calculate position relative to timeline
-    const relativeX = e.clientX - timelineRect.left - dragState.dragOffset.x;
-    const relativeY = e.clientY - timelineRect.top - dragState.dragOffset.y;
+    const relativeX = e.clientX - timelineRect.left;
+    const relativeY = e.clientY - timelineRect.top;
     
-    // Calculate new cell and row positions - with snapping to grid
+    // Calculate new cell and row positions
     const newCell = calculateCellFromPosition(relativeX, cellWidth, timeUnitCount);
     const newRow = calculateRowFromPosition(relativeY, 100, maxRow);
     
-    // Only update if position has changed
-    if (newCell !== draggedItem.start || newRow !== draggedItem.row) {
-      // Update dates based on new position
-      const { startDate, endDate } = updateDatesFromTimelinePosition(
-        newCell,
-        draggedItem.duration,
-        currentYear,
-        currentMonth,
-        viewMode
-      );
-      
-      // Create updated items array
-      const updatedItems = items.map(item => {
-        if (item.id === dragState.draggingItemId) {
-          return {
-            ...item,
-            start: newCell,
-            row: newRow,
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString()
-          };
-        }
-        return item;
-      });
-      
-      // Update state
-      onItemsChange(updatedItems);
-    }
+    // Update dates based on new position
+    const { startDate, endDate } = updateDatesFromTimelinePosition(
+      newCell,
+      draggedItem.duration,
+      currentYear,
+      currentMonth,
+      viewMode
+    );
     
+    // Create updated items array
+    const updatedItems = items.map(item => {
+      if (item.id === dragState.draggingItemId) {
+        return {
+          ...item,
+          start: newCell,
+          row: newRow,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString()
+        };
+      }
+      return item;
+    });
+    
+    // Update state
+    onItemsChange(updatedItems);
     cleanup();
   };
   
@@ -178,9 +163,6 @@ export const useTimelineDrag = ({
     // Remove document event listeners
     document.removeEventListener('mousemove', handleDragMove);
     document.removeEventListener('mouseup', handleDragEnd);
-    
-    // Remove dragging class
-    document.body.classList.remove('timeline-dragging');
   };
   
   // Cleanup effect for unmounting
@@ -188,7 +170,6 @@ export const useTimelineDrag = ({
     return () => {
       document.removeEventListener('mousemove', handleDragMove);
       document.removeEventListener('mouseup', handleDragEnd);
-      document.body.classList.remove('timeline-dragging');
     };
   }, []);
   
