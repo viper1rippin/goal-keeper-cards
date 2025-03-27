@@ -17,6 +17,10 @@ import {
   KeyboardSensor,
   pointerWithin,
 } from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 
@@ -66,16 +70,18 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
-  // Add sensors for drag operations
+  // Add sensors for drag operations with reduced activation constraints
   const sensors = useSensors(
     useSensor(MouseSensor, {
+      // Reduced distance for easier drag activation
       activationConstraint: {
-        distance: 5,
+        distance: 2,
       },
     }),
     useSensor(TouchSensor, {
+      // Reduced distance for easier drag activation on mobile
       activationConstraint: {
-        distance: 5,
+        distance: 2,
       },
     }),
     useSensor(KeyboardSensor, {})
@@ -92,19 +98,23 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   // Handle drag start
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
+    console.log('Drag started with item ID:', active.id);
     setDraggingItemId(active.id as string);
   };
   
-  // Handle drag move
+  // Handle drag move - useful for debugging
   const handleDragMove = (event: DragMoveEvent) => {
-    // Currently empty, but needed for future features
+    // We can leave this empty or add logging if needed
+    // console.log('Drag move:', event);
   };
   
-  // Handle drag end
+  // Handle drag end with improved position calculation
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log('Drag end event:', event);
     
     if (!over) {
+      console.log('No over target found, cancelling drag');
       setDraggingItemId(null);
       return;
     }
@@ -112,33 +122,48 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     // Find the dragged item
     const draggedItem = items.find(item => item.id === active.id);
     if (!draggedItem) {
+      console.log('Dragged item not found in items list');
       setDraggingItemId(null);
       return;
     }
     
-    // Calculate new position
+    // Calculate new position more accurately
     if (timelineRef.current) {
       const rect = timelineRef.current.getBoundingClientRect();
       
-      // Safely access clientX and clientY
-      const clientX = event.activatorEvent instanceof MouseEvent 
-        ? event.activatorEvent.clientX 
-        : event.activatorEvent instanceof TouchEvent 
-          ? event.activatorEvent.touches[0].clientX 
-          : 0;
-          
-      const clientY = event.activatorEvent instanceof MouseEvent 
-        ? event.activatorEvent.clientY 
-        : event.activatorEvent instanceof TouchEvent 
-          ? event.activatorEvent.touches[0].clientY 
-          : 0;
+      // Get point from delta or from event
+      let clientX = 0;
+      let clientY = 0;
+      
+      if (event.activatorEvent instanceof MouseEvent) {
+        clientX = event.activatorEvent.clientX;
+        clientY = event.activatorEvent.clientY;
+      } else if (event.activatorEvent instanceof TouchEvent && event.activatorEvent.touches.length > 0) {
+        clientX = event.activatorEvent.touches[0].clientX;
+        clientY = event.activatorEvent.touches[0].clientY;
+      } else {
+        // If we don't have direct coordinates, try to use the over element position
+        const overElement = document.getElementById(over.id as string);
+        if (overElement) {
+          const overRect = overElement.getBoundingClientRect();
+          clientX = overRect.left + overRect.width / 2;
+          clientY = overRect.top + overRect.height / 2;
+        }
+      }
+      
+      console.log('Cursor position:', { clientX, clientY });
+      console.log('Timeline bounds:', rect);
       
       const relativeX = clientX - rect.left;
       const relativeY = clientY - rect.top;
       
+      console.log('Relative position in timeline:', { relativeX, relativeY });
+      
       // Calculate new position
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
+      
+      console.log('New calculated position:', { newCell, newRow });
       
       // Update the item's position
       const updatedItems = items.map(item => {
@@ -152,6 +177,7 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
         return item;
       });
       
+      console.log('Updated items with new positions:', updatedItems);
       onItemsChange(updatedItems);
     }
     
@@ -179,17 +205,70 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     setOpenForm(true);
   };
   
-  // Open form for new item
+  // Open form for new item with improved initial positioning
   const handleAddItem = () => {
+    // Find an empty position for the new item
+    let newRow = 0;
+    let newStart = 0;
+    
+    // Simple algorithm to find a free spot
+    const occupiedPositions = items.map(item => ({
+      row: item.row,
+      start: item.start,
+      end: item.start + item.duration - 1
+    }));
+    
+    // Try to find an empty row or column
+    let positionFound = false;
+    
+    // First try: find a completely empty row
+    for (let r = 0; r < maxRow; r++) {
+      const rowItems = occupiedPositions.filter(pos => pos.row === r);
+      if (rowItems.length === 0) {
+        newRow = r;
+        positionFound = true;
+        break;
+      }
+    }
+    
+    // Second try: find a position in a partially filled row
+    if (!positionFound) {
+      rowLoop: for (let r = 0; r < maxRow; r++) {
+        const rowItems = occupiedPositions.filter(pos => pos.row === r);
+        
+        // Try different starting positions
+        for (let s = 0; s < timeUnitCount - 1; s++) {
+          // Check if this position is free
+          const isOccupied = rowItems.some(pos => 
+            (s >= pos.start && s <= pos.end) || // Start is within an item
+            (s + 1 >= pos.start && s + 1 <= pos.end) // End is within an item
+          );
+          
+          if (!isOccupied) {
+            newRow = r;
+            newStart = s;
+            positionFound = true;
+            break rowLoop;
+          }
+        }
+      }
+    }
+    
+    // If all positions are occupied, use a new row
+    if (!positionFound) {
+      newRow = maxRow;
+    }
+    
     const newItem: SubGoalTimelineItem = {
       id: `item-${Date.now()}`,
       title: 'New Item',
       description: '',
       progress: 0,
-      row: 0,
-      start: 0,
+      row: newRow,
+      start: newStart,
       duration: 2,
-      category: 'default'
+      category: 'default',
+      parentId: roadmapId
     };
     
     setSelectedItem(newItem);
@@ -284,40 +363,46 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           collisionDetection={pointerWithin}
           modifiers={[restrictToParentElement]}
         >
-          {/* Timeline items */}
-          <div className="absolute inset-0">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="absolute"
-                style={{ 
-                  top: `${item.row * 100 + 10}px`,
-                  left: `${item.start * cellWidth}px`,
-                }}
+          <SortableContext 
+            items={items.map(item => item.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {/* Timeline items */}
+            <div className="absolute inset-0">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  id={item.id}
+                  className="absolute"
+                  style={{ 
+                    top: `${item.row * 100 + 10}px`,
+                    left: `${item.start * cellWidth}px`,
+                  }}
+                >
+                  <TimelineCard
+                    item={item}
+                    isSelected={selectedItem?.id === item.id}
+                    onSelect={() => setSelectedItem(item)}
+                    onEdit={() => handleEditItem(item)}
+                    onResize={handleResizeItem}
+                    cellWidth={cellWidth}
+                    viewMode={viewMode}
+                  />
+                </div>
+              ))}
+              
+              {/* Add button at the bottom */}
+              <button
+                onClick={handleAddItem}
+                className="absolute bottom-4 right-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
               >
-                <TimelineCard
-                  item={item}
-                  isSelected={selectedItem?.id === item.id}
-                  onSelect={() => setSelectedItem(item)}
-                  onEdit={() => handleEditItem(item)}
-                  onResize={handleResizeItem}
-                  cellWidth={cellWidth}
-                  viewMode={viewMode}
-                />
-              </div>
-            ))}
-            
-            {/* Add button at the bottom */}
-            <button
-              onClick={handleAddItem}
-              className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-            </button>
-          </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+              </button>
+            </div>
+          </SortableContext>
           
           {/* Drag overlay */}
           <DragOverlay>
