@@ -1,4 +1,5 @@
-import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
+
+import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths, setDate, setMonth } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
 /**
@@ -70,4 +71,53 @@ export const calculateEndDateFromDurationChange = (
   }
   
   return endDate;
+};
+
+/**
+ * Calculates a new Date from a timeline position, reference year and month, and view mode
+ */
+export const calculateDateFromPosition = (
+  position: number,
+  referenceYear: number,
+  referenceMonth: number,
+  viewMode: TimelineViewMode
+): Date => {
+  const date = new Date(referenceYear, referenceMonth);
+  
+  if (viewMode === 'month') {
+    // In month view, position is days (0-based)
+    return setDate(date, position + 1); // Convert to 1-based date
+  } else if (viewMode === 'year') {
+    // In year view, position is months (0-based)
+    return setMonth(date, position);
+  }
+  
+  return date;
+};
+
+/**
+ * Updates start and end dates based on new timeline position and duration
+ */
+export const updateDatesFromTimelinePosition = (
+  newStart: number,
+  duration: number,
+  referenceYear: number,
+  referenceMonth: number,
+  viewMode: TimelineViewMode
+): { startDate: Date; endDate: Date } => {
+  const startDate = calculateDateFromPosition(
+    newStart,
+    referenceYear,
+    referenceMonth,
+    viewMode
+  );
+  
+  const endDate = calculateEndDateFromDurationChange(
+    startDate,
+    1, // current duration doesn't matter as we're setting based on the new duration
+    duration,
+    viewMode
+  );
+  
+  return { startDate, endDate };
 };
