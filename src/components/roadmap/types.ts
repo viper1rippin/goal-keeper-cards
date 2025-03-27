@@ -1,6 +1,20 @@
 
 export type TimelineViewMode = "month" | "year";
 
+export type TimelineCategory = 
+  | "milestone"
+  | "feature"
+  | "research"
+  | "design"
+  | "development"
+  | "testing"
+  | "marketing"
+  | "mobile"
+  | "web"
+  | "infrastructure"
+  | "backend"
+  | "default";
+
 export interface SubGoalTimelineItem {
   id: string;
   title: string;
@@ -13,6 +27,7 @@ export interface SubGoalTimelineItem {
   originalSubGoalId?: string; // If imported from a sub-goal
   startDate?: string; // New field for start date
   endDate?: string; // New field for end date
+  category?: TimelineCategory; // Category for visual styling
 }
 
 export interface RoadmapData {

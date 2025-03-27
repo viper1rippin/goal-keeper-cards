@@ -1,5 +1,5 @@
 
-import { SubGoalTimelineItem } from './types';
+import { SubGoalTimelineItem, TimelineCategory } from './types';
 
 export const getSampleRoadmapData = (): SubGoalTimelineItem[] => {
   return [
