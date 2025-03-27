@@ -183,8 +183,11 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => {
                           field.onChange(date ? date.toISOString() : '');
-                          // Close the popover by triggering Escape key event
-                          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                          // Find and click the closest PopoverClose button instead of firing an Escape key event
+                          const popoverContent = document.activeElement?.closest('[data-radix-popper-content-wrapper]');
+                          if (popoverContent) {
+                            popoverContent.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+                          }
                         }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
@@ -227,8 +230,11 @@ const TimelineItemForm: React.FC<TimelineItemFormProps> = ({
                         selected={field.value ? new Date(field.value) : undefined}
                         onSelect={(date) => {
                           field.onChange(date ? date.toISOString() : '');
-                          // Close the popover by triggering Escape key event
-                          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                          // Find and click the closest PopoverClose button instead of firing an Escape key event
+                          const popoverContent = document.activeElement?.closest('[data-radix-popper-content-wrapper]');
+                          if (popoverContent) {
+                            popoverContent.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+                          }
                         }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}
