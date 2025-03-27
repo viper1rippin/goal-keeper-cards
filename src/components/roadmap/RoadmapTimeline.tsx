@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -17,13 +16,15 @@ import {
   KeyboardSensor,
   pointerWithin,
 } from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { cn } from '@/lib/utils';
 import { getDaysInMonth } from 'date-fns';
-import { 
-  calculateEndDateFromDurationChange,
-  updateDatesFromTimelinePosition 
-} from './utils/timelineUtils';
+import { calculateEndDateFromDurationChange } from './utils/timelineUtils';
 
 interface RoadmapTimelineProps {
   roadmapId: string;
@@ -44,7 +45,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [openForm, setOpenForm] = useState(false);
   const [maxRow, setMaxRow] = useState(3);
-  const [tempDragPosition, setTempDragPosition] = useState<{ id: string; row: number; start: number } | null>(null);
   
   const timelineRef = useRef<HTMLDivElement>(null);
   const [cellWidth, setCellWidth] = useState(100);
@@ -78,16 +78,13 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      // Lower activation constraint to make dragging easier
       activationConstraint: {
-        distance: 3,
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
-      // Lower activation constraint for touch devices
       activationConstraint: {
-        delay: 150,
-        tolerance: 5,
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {})
@@ -103,93 +100,61 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setDraggingItemId(active.id as string);
-    
-    const item = items.find(i => i.id === active.id);
-    if (item) {
-      setTempDragPosition({
-        id: item.id,
-        row: item.row,
-        start: item.start
-      });
-    }
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
-    if (!draggingItemId || !timelineRef.current) return;
-    
-    const { active } = event;
-    const draggingItem = items.find(item => item.id === active.id);
-    if (!draggingItem) return;
-    
-    const rect = timelineRef.current.getBoundingClientRect();
-    
-    // Get pointer position from event
-    let clientX = 0;
-    let clientY = 0;
-    
-    if (event.activatorEvent instanceof MouseEvent) {
-      clientX = event.activatorEvent.clientX;
-      clientY = event.activatorEvent.clientY;
-    } else if (event.activatorEvent instanceof TouchEvent && event.activatorEvent.touches.length > 0) {
-      clientX = event.activatorEvent.touches[0].clientX;
-      clientY = event.activatorEvent.touches[0].clientY;
-    }
-    
-    // Calculate position relative to the timeline container
-    const relativeX = clientX - rect.left;
-    const relativeY = clientY - rect.top;
-    
-    // Calculate the new cell and row
-    const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
-    const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
-    
-    setTempDragPosition({
-      id: draggingItem.id,
-      row: newRow,
-      start: newCell
-    });
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active } = event;
+    const { active, over } = event;
     
-    if (!tempDragPosition) {
+    if (!over) {
       setDraggingItemId(null);
-      setTempDragPosition(null);
       return;
     }
     
     const draggedItem = items.find(item => item.id === active.id);
     if (!draggedItem) {
       setDraggingItemId(null);
-      setTempDragPosition(null);
       return;
     }
     
-    const { startDate, endDate } = updateDatesFromTimelinePosition(
-      tempDragPosition.start,
-      draggedItem.duration,
-      currentYear,
-      currentMonth,
-      viewMode
-    );
+    if (timelineRef.current) {
+      const rect = timelineRef.current.getBoundingClientRect();
+      
+      const clientX = event.activatorEvent instanceof MouseEvent 
+        ? event.activatorEvent.clientX 
+        : event.activatorEvent instanceof TouchEvent 
+          ? event.activatorEvent.touches[0].clientX 
+          : 0;
+          
+      const clientY = event.activatorEvent instanceof MouseEvent 
+        ? event.activatorEvent.clientY 
+        : event.activatorEvent instanceof TouchEvent 
+          ? event.activatorEvent.touches[0].clientY 
+          : 0;
+      
+      const relativeX = clientX - rect.left;
+      const relativeY = clientY - rect.top;
+      
+      const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
+      const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
+      
+      const updatedItems = items.map(item => {
+        if (item.id === draggedItem.id) {
+          return {
+            ...item,
+            start: newCell,
+            row: newRow
+          };
+        }
+        return item;
+      });
+      
+      onItemsChange(updatedItems);
+    }
     
-    const updatedItems = items.map(item => {
-      if (item.id === draggedItem.id) {
-        return {
-          ...item,
-          start: tempDragPosition.start,
-          row: tempDragPosition.row,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString()
-        };
-      }
-      return item;
-    });
-    
-    onItemsChange(updatedItems);
     setDraggingItemId(null);
-    setTempDragPosition(null);
   };
   
   const handleResizeItem = (itemId: string, newDuration: number) => {
@@ -393,25 +358,15 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           collisionDetection={pointerWithin}
           modifiers={[restrictToParentElement]}
         >
-          {/* Removed SortableContext to allow free dragging */}
-          <div className="absolute inset-0">
-            {items.map((item) => {
-              const displayRow = (tempDragPosition && tempDragPosition.id === item.id) 
-                ? tempDragPosition.row 
-                : item.row;
-                
-              const displayStart = (tempDragPosition && tempDragPosition.id === item.id) 
-                ? tempDragPosition.start
-                : item.start;
-                
-              return (
+          <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+            <div className="absolute inset-0">
+              {items.map((item) => (
                 <div
                   key={item.id}
                   className="absolute"
                   style={{ 
-                    top: `${displayRow * 100 + 10}px`,
-                    left: `${displayStart * cellWidth}px`,
-                    transition: (tempDragPosition && tempDragPosition.id === item.id) ? 'none' : 'all 0.2s ease'
+                    top: `${item.row * 100 + 10}px`,
+                    left: `${item.start * cellWidth}px`,
                   }}
                 >
                   <TimelineCard
@@ -424,19 +379,19 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
                     viewMode={viewMode}
                   />
                 </div>
-              );
-            })}
-            
-            <button
-              onClick={handleAddItem}
-              className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                <path d="M5 12h14" />
-                <path d="M12 5v14" />
-              </svg>
-            </button>
-          </div>
+              ))}
+              
+              <button
+                onClick={handleAddItem}
+                className="absolute bottom-4 right-4 bg-emerald hover:bg-emerald-600 text-white rounded-full p-2 shadow-lg"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+              </button>
+            </div>
+          </SortableContext>
           
           <DragOverlay>
             {draggingItemId ? (

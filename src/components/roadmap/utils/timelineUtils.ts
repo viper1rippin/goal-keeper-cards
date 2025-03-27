@@ -1,4 +1,3 @@
-
 import { differenceInMonths, differenceInQuarters, differenceInDays, addDays, addMonths } from 'date-fns';
 import { TimelineViewMode } from '../types';
 
@@ -71,34 +70,4 @@ export const calculateEndDateFromDurationChange = (
   }
   
   return endDate;
-};
-
-/**
- * Updates the startDate and endDate based on the timeline position
- */
-export const updateDatesFromTimelinePosition = (
-  start: number,
-  duration: number,
-  year: number,
-  month: number,
-  viewMode: TimelineViewMode
-): { startDate: Date, endDate: Date } => {
-  const startDate = new Date(year, month, 1);
-  
-  if (viewMode === 'month') {
-    // In month view, start is the day of the month (0-indexed)
-    startDate.setDate(start + 1);
-  } else if (viewMode === 'year') {
-    // In year view, start is the month (0-indexed)
-    startDate.setMonth(start);
-  }
-  
-  const endDate = calculateEndDateFromDurationChange(
-    startDate, 
-    1, 
-    duration, 
-    viewMode
-  );
-  
-  return { startDate, endDate };
 };
