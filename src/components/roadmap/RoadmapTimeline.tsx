@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -77,16 +76,15 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     }
   }, [timelineRef.current?.clientWidth, viewMode, timeUnitCount]);
   
-  // Configure sensors with lower activation constraint for easier dragging
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 3, // Reduced from 5 to make dragging more responsive
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        distance: 3, // Reduced from 5 to make dragging more responsive on touch devices
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {})
@@ -105,13 +103,12 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
   };
   
   const handleDragMove = (event: DragMoveEvent) => {
-    // This is now empty as we'll handle position updates on drag end
   };
   
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!active) {
+    if (!over) {
       setDraggingItemId(null);
       return;
     }
@@ -125,7 +122,6 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
     if (timelineRef.current) {
       const rect = timelineRef.current.getBoundingClientRect();
       
-      // Get the clientX and clientY coordinates from the dragEnd event
       const clientX = event.activatorEvent instanceof MouseEvent 
         ? event.activatorEvent.clientX 
         : event.activatorEvent instanceof TouchEvent 
@@ -138,18 +134,14 @@ const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ roadmapId, items, onI
           ? event.activatorEvent.touches[0].clientY 
           : 0;
       
-      // Calculate the position relative to the timeline container
       const relativeX = clientX - rect.left;
       const relativeY = clientY - rect.top;
       
-      // Convert the pixel position to grid cell coordinates
       const newCell = Math.max(0, Math.min(timeUnitCount - 1, Math.floor(relativeX / cellWidth)));
       const newRow = Math.max(0, Math.min(maxRow - 1, Math.floor(relativeY / 100)));
       
-      // Update the item's position
       const updatedItems = items.map(item => {
         if (item.id === draggedItem.id) {
-          // Update both start and row for free positioning
           return {
             ...item,
             start: newCell,
