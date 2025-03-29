@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import { useTimelineState } from './hooks/useTimelineState';
