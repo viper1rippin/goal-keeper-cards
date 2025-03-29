@@ -1,5 +1,6 @@
 
 import { SubGoalTimelineItem, TimelineViewMode } from '../types';
+import { updateDatesFromTimelinePosition } from '../utils/timelineUtils';
 
 interface UseTimelineFormProps {
   items: SubGoalTimelineItem[];
