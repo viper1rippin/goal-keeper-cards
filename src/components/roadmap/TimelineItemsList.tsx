@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { SubGoalTimelineItem } from './types';
+import { SubGoalTimelineItem, TimelineViewMode } from './types';
 import TimelineCard from './TimelineCard';
 
 interface TimelineItemsListProps {
   items: SubGoalTimelineItem[];
   selectedItem: SubGoalTimelineItem | null;
   cellWidth: number;
-  viewMode: string;
+  viewMode: TimelineViewMode;
   isDragging: boolean;
   draggingItemId: string | null;
   onEditItem: (item: SubGoalTimelineItem) => void;
