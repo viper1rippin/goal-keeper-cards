@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { SubGoalTimelineItem, TimelineViewMode } from './types';
-import TimelineCard from './TimelineCard';
+import TimelineItemsList from './TimelineItemsList';
+import DraggingGhost from './DraggingGhost';
 
 interface TimelineItemsProps {
   items: SubGoalTimelineItem[];
@@ -35,46 +36,26 @@ const TimelineItems: React.FC<TimelineItemsProps> = ({
 
   return (
     <div className="absolute inset-0">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="absolute"
-          style={{ 
-            top: `${item.row * 100 + 10}px`,
-            left: `${item.start * cellWidth}px`,
-            opacity: isDragging && draggingItemId === item.id ? 0.4 : 1,
-          }}
-        >
-          <TimelineCard
-            item={item}
-            isSelected={selectedItem?.id === item.id}
-            onSelect={() => onSelectItem(item)}
-            onEdit={() => onEditItem(item)}
-            onResize={onResizeItem}
-            cellWidth={cellWidth}
-            viewMode={viewMode}
-            onDragStart={onDragStart}
-          />
-        </div>
-      ))}
+      <TimelineItemsList 
+        items={items}
+        selectedItem={selectedItem}
+        cellWidth={cellWidth}
+        viewMode={viewMode}
+        isDragging={isDragging}
+        draggingItemId={draggingItemId}
+        onEditItem={onEditItem}
+        onResizeItem={onResizeItem}
+        onSelectItem={onSelectItem}
+        onDragStart={onDragStart}
+      />
       
       {/* Drag ghost element */}
-      {isDragging && draggingItemId && draggingItem && (
-        <div 
-          className="absolute pointer-events-none"
-          style={{
-            top: `${ghostPosition.top}px`,
-            left: `${ghostPosition.left}px`,
-            width: `${draggingItem.duration * cellWidth}px`,
-            zIndex: 999,
-          }}
-        >
-          <div className="h-[80px] rounded-lg bg-emerald-500/80 border-2 border-white/80 shadow-lg shadow-black/30">
-            <div className="p-2 text-white truncate">
-              {draggingItem.title}
-            </div>
-          </div>
-        </div>
+      {isDragging && draggingItemId && (
+        <DraggingGhost 
+          draggingItem={draggingItem}
+          ghostPosition={ghostPosition}
+          cellWidth={cellWidth}
+        />
       )}
     </div>
   );
